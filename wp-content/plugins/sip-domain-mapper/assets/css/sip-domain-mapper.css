@@ -1,0 +1,91 @@
+/* sip-domain-mapper.css */
+
+#sip-domain-mapper-form .form-fields {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#sip-domain-mapper-form input,
+#sip-domain-mapper-form select {
+    margin-right: 10px;
+}
+
+#active-mappings table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#active-mappings th,
+#active-mappings td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ccc;
+}
+
+#active-mappings th {
+    background-color: #f1f1f1;
+}
+
+.remove-mapping {
+    background-color: #dc3545;
+	text-decoration: none;
+	margin-left: 10px;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.remove-mapping:hover {
+	color: #dc3232;
+    background-color: #c82333;
+}
+
+.mapping {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.mapping input[type="text"] {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.mapping select {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.mapping .remove-mapping {
+    flex-shrink: 0;
+}
+
+#add-mapping {
+    margin-top: 10px;
+}
+
+.domain-mapper-instructions {
+    background-color: #f0f0f1;
+    border-left: 4px solid #646970;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.toplevel_page_stuff-is-parts .wp-menu-image img {
+    width: 22px;
+    height: 22px;
+    padding: 5px 0 0 0 !important;
+}
+
+
+    .debug-info {
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 20px;
+        font-family: monospace;
+        white-space: pre-wrap;
+    }

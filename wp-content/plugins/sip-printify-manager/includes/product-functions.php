@@ -1,0 +1,125 @@
+<?php
+
+// Fetch products directly from Printify API using the Bearer token
+function fetch_products($token, $shop_id) {
+    $url = "https://api.printify.com/v1/shops/{$shop_id}/products.json";
+
+    $response = wp_remote_get($url, array(
+        'headers' => array(
+            'Authorization' => 'Bearer ' . $token,
+        ),
+    ));
+
+    if (is_wp_error($response)) {
+        error_log('fetch_products encountered an error: ' . $response->get_error_message());
+        return null;
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    if (empty($data)) {
+        error_log('fetch_products received empty data');
+        return null;
+    }
+
+    error_log('fetch_products retrieved ' . count($data['data']) . ' products');
+    return $data;
+}
+
+// Display product list in the WordPress admin
+function sip_display_product_list($products) {
+    if (empty($products) || !isset($products['data'])) {
+        error_log('sip_display_product_list found no products');
+        echo '<p>No products found.</p>';
+        return;
+    }
+
+    echo '<div style="max-height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">';
+    echo '<ul style="list-style-type: none; padding-left: 0;">';
+    foreach ($products['data'] as $product) {
+        $product_url = isset($product['external']['handle']) ? esc_url($product['external']['handle']) : '#';
+        echo '<li style="margin-bottom: 10px; display: flex; align-items: center;">';
+        echo '<input type="checkbox" name="selected_products[]" value="' . esc_attr($product['id']) . '" style="margin-right: 10px;" />';
+        echo '<a href="' . $product_url . '" target="_blank"><strong>' . esc_html($product['title']) . '</strong></a>';
+        echo '</li>';
+    }
+    echo '</ul>';
+    echo '</div>';
+
+    error_log('sip_display_product_list completed displaying products');
+}
+
+function sip_execute_product_action($action, $selected_products = array()) {
+    error_log("sip_execute_product_action called with action: $action");
+
+    $token = get_option('printify_bearer_token');
+    $shop_id = get_option('sip_printify_shop_id');
+
+    if ($action === 'reload') {
+        error_log('Reloading products from Printify API.');
+
+        $fetched_products = fetch_products($token, $shop_id);
+        if ($fetched_products && isset($fetched_products['data'])) {
+            update_option('sip_printify_products', $fetched_products);
+            error_log('Products reloaded and updated in options.');
+            return $fetched_products;
+        } else {
+            error_log('Failed to fetch products during reload action.');
+            return array('data' => array());
+        }
+    }
+
+    $products = get_option('sip_printify_products');
+
+    if ($action === 'remove_from_manager') {
+        if (empty($selected_products)) {
+            error_log('No products selected for action: remove_from_manager');
+            return $products;
+        }
+
+        error_log('Removing selected products from manager.');
+
+        $initial_count = count($products['data']);
+        $products['data'] = array_filter($products['data'], function ($product) use ($selected_products) {
+            return !in_array($product['id'], $selected_products);
+        });
+        $filtered_count = count($products['data']);
+
+        error_log("Products before removal: $initial_count, after removal: $filtered_count");
+
+        update_option('sip_printify_products', $products);
+        error_log('Updated sip_printify_products option after removal.');
+
+    } elseif ($action === 'create_template') {
+        error_log('Creating templates for selected products.');
+
+        foreach ($selected_products as $product_id) {
+            $product_data = array_filter($products['data'], function ($product) use ($product_id) {
+                return $product['id'] === $product_id;
+            });
+
+            if (!empty($product_data)) {
+                $product = array_shift($product_data);
+                sip_save_template($product, $product['title']);
+                error_log('Template created for product ID: ' . $product_id);
+            } else {
+                error_log('Product ID not found in products data: ' . $product_id);
+            }
+        }
+    } else {
+        error_log('Unknown action requested: ' . $action);
+    }
+
+    return $products;
+}
+
+function process_product_with_python($product_data) {
+    error_log('process_product_with_python function called');
+    // Simulate running the Python script and getting the processed JSON back
+    // Replace with actual script execution as needed
+    $json_input = json_encode($product_data);
+    // Example: $processed_json = shell_exec("python3 /path/to/your/script.py --json '{$json_input}'");
+    $processed_json = $json_input; // Simulating the processed output
+    return $processed_json;
+}
