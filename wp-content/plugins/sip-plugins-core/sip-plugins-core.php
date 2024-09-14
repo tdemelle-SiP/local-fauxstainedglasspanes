@@ -46,7 +46,7 @@ class SiP_Plugins_Core {
         $core_plugin = plugin_basename(__FILE__);
         
         echo '<div class="wrap">';
-        echo '<h1>SiP Plugins</h1>';
+        echo '<h1>SiP Plugins Suite</h1>';
         echo '<p>Manage your Stuff is Parts plugins here.</p>';
         echo '<table class="wp-list-table widefat fixed striped sip-plugins-list">';
         echo '<thead><tr><th>Plugin Name</th><th>Status</th><th>Action</th></tr></thead>';

@@ -6,7 +6,6 @@ jQuery(document).ready(function($) {
         
         var formData = new FormData(this);
         var actionType = '';
-        
         if ($(this).attr('id') === 'save-token-form') {
             actionType = 'save_token';
         } else if ($(this).attr('id') === 'authorization-form') {
@@ -52,13 +51,28 @@ jQuery(document).ready(function($) {
                 console.log('AJAX Response:', response);  // Log the entire response
                 
                 if (response.success) {
-                    if (actionType === 'save_token') {
-                        alert(response.data);
-                        location.reload(); // Reload the page to show the authorized interface
-                    } else if (actionType === 'reauthorize' || actionType === 'new_token') {
-                        alert(response.data);
-                        location.reload(); // Reload the page to update the interface
-                    } else if (actionType === 'product_action') {
+                    if (actionType === 'template_action') {
+                        if (formData.get('template_action') === 'edit_template') {
+                            if (response.data && response.data.template_content) {
+                                $('#editing-template-name').text(response.data.template_name);
+                                $('#template-content').val(response.data.template_content);
+                                originalContent = response.data.template_content;
+                                $('#template-editor').show();
+                            } else {
+                                console.error('Template content missing from response');
+                                alert('Error: Template content not found');
+                            }
+                        } else {
+                            // For delete_template and other template actions
+                            if (response.data.template_list_html) {
+                                console.log('Updating template list');
+                                $('#template-list').html(response.data.template_list_html);
+                            } else {
+                                console.log('No template list HTML in response');
+                            }
+                        }
+                    } else {
+                        // Handle product actions and other non-template actions
                         if (response.data.product_list_html) {
                             console.log('Updating product list');
                             $('#product-list').html(response.data.product_list_html);
@@ -71,33 +85,15 @@ jQuery(document).ready(function($) {
                         } else {
                             console.log('No template list HTML in response');
                         }
-                        // Clear product checkboxes
-                        $('input[name="selected_products[]"]').prop('checked', false);
-                    } else if (actionType === 'template_action') {
-                        if (formData.get('template_action') === 'edit_template') {
-                            if (response.data && response.data.template_content) {
-                                $('#editing-template-name').text(response.data.template_name);
-                                $('#template-content').val(response.data.template_content);
-                                originalContent = response.data.template_content;
-                                $('#template-editor').show();
-                            } else {
-                                console.error('Template content missing from response');
-                                alert('Error: Template content not found');
-                            }
-                        } else {
-                            if (response.data.template_list_html) {
-                                console.log('Updating template list');
-                                $('#template-list').html(response.data.template_list_html);
-                            } else {
-                                console.log('No template list HTML in response');
-                            }
-                            // Clear template checkboxes
-                            $('input[name="selected_templates[]"]').prop('checked', false);
-                        }
+                    }
+                    
+                    // Clear checkboxes after successful action
+                    if (actionType === 'product_action' || actionType === 'template_action') {
+                        $('input[type="checkbox"]').prop('checked', false);
                     }
                 } else {
                     console.error('Error:', response.data);
-                    alert('Error: ' + response.data);
+                    alert('Error: ' + JSON.stringify(response.data));
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -127,7 +123,7 @@ jQuery(document).ready(function($) {
         $('#template-content').val(originalContent);
     });
 
-    // Save template changes
+    // Save changes
     $('#save-template').on('click', function() {
         var formData = new FormData();
         formData.append('action', 'sip_handle_ajax_request');
@@ -148,7 +144,7 @@ jQuery(document).ready(function($) {
                     originalContent = $('#template-content').val();
                 } else {
                     console.error('Error:', response.data);
-                    alert('Error saving template: ' + response.data);
+                    alert('Error saving template: ' + JSON.stringify(response.data));
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {

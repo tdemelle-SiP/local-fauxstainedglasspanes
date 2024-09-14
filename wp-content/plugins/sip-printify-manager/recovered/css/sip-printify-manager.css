@@ -1,0 +1,30 @@
+.sip-printify-manager .button {
+    margin-right: 5px;
+}
+
+.sip-printify-manager .button-primary {
+    background-color: #0073aa;
+    border-color: #0073aa;
+    color: #fff;
+}
+
+.sip-printify-manager .button-secondary {
+    background-color: #82878c;
+    border-color: #82878c;
+    color: #fff;
+}
+
+#product-action-form {
+    display: flex;
+    align-items: center;
+}
+
+#loading-spinner {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+#loading-spinner img {
+    width: 24px;
+    height: 24px;
+}

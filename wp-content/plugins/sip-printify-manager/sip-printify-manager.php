@@ -12,14 +12,25 @@ require_once(WP_PLUGIN_DIR . '/sip-plugins-core/sip-plugin-framework.php');
 
 class SiP_Printify_Manager {
     private static $instance = null;
-    private $options;
+    private static $options;
+    private static $plugin_dir;
 
     private function __construct() {
-        $this->options = get_option('sip_printify_manager_options', array());
-        add_action('wp_ajax_sip_handle_printify_ajax_request', array($this, 'handle_ajax_request'));
-        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
-        add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_scripts'));
-        add_shortcode('sip_printify_products', array($this, 'render_products_shortcode'));
+        self::$options = get_option('sip_printify_manager_options', array());
+        self::$plugin_dir = plugin_dir_path(__FILE__);
+
+        // Include necessary files
+        require_once self::$plugin_dir . 'includes/shop-functions.php';
+        require_once self::$plugin_dir . 'includes/product-functions.php';
+        require_once self::$plugin_dir . 'includes/template-functions.php';
+
+        // Set up actions and filters
+        // Removed the admin_menu action hook
+        // add_action('admin_menu', array(__CLASS__, 'add_admin_menu'));
+        add_action('admin_enqueue_scripts', array(__CLASS__, 'enqueue_admin_scripts'));
+        add_action('wp_enqueue_scripts', array(__CLASS__, 'enqueue_frontend_scripts'));
+        add_action('wp_ajax_sip_handle_ajax_request', array(__CLASS__, 'handle_ajax_request'));
+        add_shortcode('sip_printify_products', array(__CLASS__, 'render_products_shortcode'));
     }
 
     public static function get_instance() {
@@ -30,30 +41,154 @@ class SiP_Printify_Manager {
     }
 
     public static function render_admin_page() {
-        echo '<div class="wrap">';
-        echo '<h1>SiP Printify Manager</h1>';
-        echo '<p>Manage your Printify integration here.</p>';
-        // Add your Printify management interface here
-        echo '</div>';
+        $token = get_option('printify_bearer_token');
+        $shop_name = get_option('sip_printify_shop_name');
+        $products = get_option('sip_printify_products');
+        $templates = sip_load_templates();
+
+        ?>
+        <div class="wrap">
+            <h1>SIP Printify Manager</h1>
+
+            <?php if (empty($token)) : ?>
+                <p>Welcome to the SiP Printify Manager!  Where managing your store and your Woocommerce Printify products is easy!</p>
+                <h2>To Begin, We'll Need To Connect Your Printify Account (You should only need to do this once!)</h2>
+                <p>To connect your Printify account, please follow the instructions below to generate an API token. This token allows the plugin to access your Printify shop and products.</p>
+                <ol>
+                    <li>
+                        Log in to your Printify account and navigate to the <a href="https://printify.com/app/account/api" target="_blank">Connections</a> page.
+                    </li>
+                    <li>
+                        Provide a contact email in the "API Access" section where you would like to receive connection related notifications.
+                    </li>
+                    <li>
+                        Click the <strong>Generate</strong> button to create a new API token.
+                    </li>
+                    <li>
+                        Name your token (e.g., "Printify Manager Token") and select :All scopes (full access).
+                    </li>
+                    <li>
+                        Click <strong>Generate token</strong> and then Click <strong>Copy to clipboard</strong>.
+                    </li>
+                    <li>
+                        Close the token window, the Printify Connections page, come back here, paste the token below and click <strong>Save Token</strong>.
+                    </li>
+                </ol>
+                <p><strong>Note:</strong> It's a good idea to save the token somewhere you can access it later in case you need to re-authorize the plugin.  If you lose the token, don't worry, you can just follow these steps again to generate a new one.</p>
+                <p>
+                    <a href="https://printify.com/app/account/api" target="_blank" class="button button-secondary">Open Printify Connections Page</a>
+                </p>
+                <form id="save-token-form" method="post" action="">
+                    <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+
+
+                    <label for="printify_bearer_token">Printify API Token:</label>
+                    <input type="text" name="printify_bearer_token" value="" class="regular-text" required/>
+                    <input type="submit" name="save_token" value="Save Token" class="button button-primary"/>
+                </form>
+            <?php else : ?>
+                <h2>Authorized</h2>
+                <form id="authorization-form" method="post" action="">
+                    <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+
+                    <input type="submit" name="reauthorize" value="Re-authorize" class="button button-secondary"/>
+                    <input type="submit" name="new_token" value="New Token" class="button button-primary"/>
+                </form>
+
+                <?php if (!empty($shop_name)) : ?>
+                    <h2>Shop: <a href="https://printify.com/app/store/products/1" target="_blank"><?php echo esc_html($shop_name); ?></a></h2>
+                    <h2>Products</h2>
+                    <form id="product-action-form" style="display: flex; align-items: center;" method="post" action="">
+                        <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+
+                        <label for="product_action">Product Actions: </label>
+                        <select name="product_action" id="product_action">
+                            <option value="reload">Reload</option>
+                            <option value="create_template">Create Template</option>
+                            <option value="remove_from_manager">Remove from Manager</option>
+                        </select>
+                        <input type="submit" name="execute_action" value="Execute" class="button button-secondary" style="margin-left: 10px;" />
+                        
+                        <!-- Spinner -->
+                        <div id="loading-spinner" style="display: none; margin-left: 10px;">
+                        <img src="<?php echo plugin_dir_url('sip-plugins-core/sip-plugins-core.php'); ?>assets/images/spinner.webp" alt="Loading..." width="24" height="24"/>
+                        
+                        </div>
+                    </form>
+                    <div id="product-list">
+                        <?php 
+                        $products = get_option('sip_printify_products');
+                        if (!empty($products)) {
+                            sip_display_product_list($products);
+                        } else {
+                            echo '<p>No products found.</p>';
+                        }
+                        ?>
+                    </div>
+                        
+                <?php else : ?>
+                    <h2>Shop could not be loaded. Please try re-authorizing.</h2>
+                <?php endif; ?>
+            <?php endif; ?>
+
+            <?php if (!empty($templates)) : ?>
+                <h2>Templates</h2>
+                <form id="template-action-form" method="post" action="">
+                    <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+
+                    <label for="template_action">Template Actions: </label>
+                    <select name="template_action" id="template_action">
+                        <option value="delete_template">Delete Template</option>
+                        <option value="rename_template">Rename Template</option>
+                        <option value="edit_template">Edit Template</option>
+                    </select>
+                    <input type="submit" name="execute_template_action" value="Execute" class="button button-secondary"/>
+                    <div id="rename-template-input" style="display: none; margin-top: 10px;">
+                        <input type="text" name="new_template_name" placeholder="New template name">
+                    </div>
+                </form>
+                <div id="template-list">
+                    <?php sip_display_template_list($templates); ?>
+                </div>
+                <div id="template-editor" style="display: none; margin-top: 20px;">
+                    <h3>Edit Template: <span id="editing-template-name"></span></h3>
+                    <textarea id="template-content" rows="20" style="width: 100%;"></textarea>
+                    <div style="margin-top: 10px;">
+                        <button id="close-editor" class="button">Close</button>
+                        <button id="revert-changes" class="button">Revert Changes</button>
+                        <button id="save-template" class="button button-primary">Save Changes</button>
+                    </div>
+                </div>
+            <?php else : ?>
+                <h2>No templates found.</h2>
+            <?php endif; ?>
+        </div>
+        <?php
     }
 
-    public function handle_ajax_request() {
-        check_ajax_referer('sip-printify-ajax-nonce', 'nonce');
+    public static function handle_ajax_request() {
+        check_ajax_referer('sip_printify_manager_nonce', 'nonce');
 
         $action_type = sanitize_text_field($_POST['action_type']);
 
         switch ($action_type) {
             case 'save_token':
-                $this->save_token();
+                self::save_token();
                 break;
             case 'reauthorize':
-                $this->reauthorize();
+                self::reauthorize();
+                break;
+            case 'new_token':
+                self::new_token();
                 break;
             case 'product_action':
-                $this->handle_product_action();
+                self::handle_product_action();
                 break;
             case 'template_action':
-                $this->handle_template_action();
+                self::handle_template_action();
+                break;
+            case 'save_template':
+                self::save_template();
                 break;
             default:
                 wp_send_json_error('Invalid action.');
@@ -61,85 +196,155 @@ class SiP_Printify_Manager {
         }
     }
 
-    private function save_token() {
+    private static function save_token() {
         $token = sanitize_text_field($_POST['printify_bearer_token']);
-        update_option('printify_bearer_token', $token);
-        wp_send_json_success('Token saved successfully.');
+
+        // Test the token by attempting to fetch shop details
+        $shop_details = fetch_shop_details($token);
+        if ($shop_details) {
+            update_option('printify_bearer_token', $token);
+            $shop_name = $shop_details['shop_name'];
+            $shop_id = $shop_details['shop_id'];
+            update_option('sip_printify_shop_name', $shop_name);
+            update_option('sip_printify_shop_id', $shop_id);
+            wp_send_json_success('Token saved and connection successful.');
+        } else {
+            wp_send_json_error('Invalid API token. Please check and try again.');
+        }
     }
 
-    private function reauthorize() {
-        // Implement reauthorization logic
-        wp_send_json_success('Reauthorized successfully.');
+    private static function reauthorize() {
+        $token = get_option('printify_bearer_token');
+        $shop_details = fetch_shop_details($token);
+        if ($shop_details) {
+            $shop_name = $shop_details['shop_name'];
+            $shop_id = $shop_details['shop_id'];
+            update_option('sip_printify_shop_name', $shop_name);
+            update_option('sip_printify_shop_id', $shop_id);
+            wp_send_json_success('Reauthorized successfully.');
+        } else {
+            wp_send_json_error('Failed to reauthorize. Please check your API token.');
+        }
     }
 
-    private function handle_product_action() {
+    private static function new_token() {
+        delete_option('printify_bearer_token');
+        delete_option('sip_printify_shop_name');
+        delete_option('sip_printify_shop_id');
+        wp_send_json_success('New token setup initialized.');
+    }
+
+    private static function handle_product_action() {
         $product_action = sanitize_text_field($_POST['product_action']);
-        $selected_products = isset($_POST['selected_products']) ? array_map('sanitize_text_field', $_POST['selected_products']) : array();
-        
-        // Implement product action logic
-        $updated_products = array(); // This should be populated with actual data
-        
+        $selected_products = isset($_POST['selected_products']) ? $_POST['selected_products'] : array();
+
+        // Ensure $selected_products is an array
+        if (!is_array($selected_products)) {
+            $selected_products = array($selected_products);
+        }
+
+        // Sanitize each product ID
+        $selected_products = array_map('sanitize_text_field', $selected_products);
+
+        $updated_products = sip_execute_product_action($product_action, $selected_products);
+
+        // Prepare the updated product list HTML
         ob_start();
-        $this->display_product_list($updated_products);
+        sip_display_product_list($updated_products);
         $product_list_html = ob_get_clean();
 
-        wp_send_json_success(array('product_list_html' => $product_list_html));
+        // Prepare the updated template list HTML
+        ob_start();
+        $templates = sip_load_templates();
+        sip_display_template_list($templates);
+        $template_list_html = ob_get_clean();
+
+        wp_send_json_success(array('product_list_html' => $product_list_html, 'template_list_html' => $template_list_html));
     }
 
-    private function handle_template_action() {
+    private static function handle_template_action() {
         $template_action = sanitize_text_field($_POST['template_action']);
-        $selected_templates = isset($_POST['selected_templates']) ? array_map('sanitize_text_field', $_POST['selected_templates']) : array();
+        $selected_templates = isset($_POST['selected_templates']) ? $_POST['selected_templates'] : array();
 
-        // Implement template action logic
-        $templates = array(); // This should be populated with actual data
+        if ($template_action === 'delete_template') {
+            if (!empty($selected_templates)) {
+                foreach ($selected_templates as $template_name) {
+                    $template_name = sanitize_text_field($template_name);
+                    $result = sip_delete_template($template_name);
+                }
+            }
+        } elseif ($template_action === 'edit_template') {
+            if (!empty($selected_templates)) {
+                $template_name = sanitize_text_field($selected_templates[0]);
+                $template_dir = sip_get_template_dir();
+                $file_path = $template_dir . $template_name . '.json';
 
+                if (file_exists($file_path)) {
+                    $template_content = file_get_contents($file_path);
+                    wp_send_json_success(array(
+                        'template_content' => $template_content,
+                        'template_name' => $template_name
+                    ));
+                } else {
+                    wp_send_json_error('Template file not found.');
+                }
+            } else {
+                wp_send_json_error('No template selected.');
+            }
+        }
+
+        // Reload the template list
+        $templates = sip_load_templates();
         ob_start();
-        $this->display_template_list($templates);
+        sip_display_template_list($templates);
         $template_list_html = ob_get_clean();
 
         wp_send_json_success(array('template_list_html' => $template_list_html));
     }
 
-    public function enqueue_admin_scripts($hook) {
-        if ('sip-plugins_page_sip-printify-manager' !== $hook) {
-            return;
+    private static function save_template() {
+        $template_name = sanitize_text_field($_POST['template_name']);
+        $template_content = wp_unslash($_POST['template_content']);
+        $template_dir = sip_get_template_dir();
+        $file_path = $template_dir . $template_name . '.json';
+
+        if (file_put_contents($file_path, $template_content)) {
+            wp_send_json_success('Template saved successfully.');
+        } else {
+            wp_send_json_error('Failed to save template.');
         }
+    }
+
+    public static function enqueue_admin_scripts($hook) {
+        wp_enqueue_style('dashicons');
         wp_enqueue_style('sip-printify-manager-style', plugin_dir_url(__FILE__) . 'assets/css/sip-printify-manager.css');
         wp_enqueue_script('sip-printify-manager-script', plugin_dir_url(__FILE__) . 'assets/js/sip-printify-manager.js', array('jquery'), null, true);
-        wp_localize_script('sip-printify-manager-script', 'sipPrintifyAjax', array(
+        wp_enqueue_script('sip-ajax-script', plugin_dir_url(__FILE__) . 'assets/js/sip-ajax.js', array('jquery'), null, true);
+        wp_localize_script('sip-ajax-script', 'sipAjax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('sip-printify-ajax-nonce')
+            'nonce'    => wp_create_nonce('sip_printify_manager_nonce')
         ));
     }
 
-    public function enqueue_frontend_scripts() {
+    public static function enqueue_frontend_scripts() {
         wp_enqueue_style('sip-printify-manager-frontend', plugin_dir_url(__FILE__) . 'assets/css/sip-printify-manager-frontend.css');
         wp_enqueue_script('sip-printify-manager-frontend', plugin_dir_url(__FILE__) . 'assets/js/sip-printify-manager-frontend.js', array('jquery'), null, true);
     }
 
-    public function render_products_shortcode($atts) {
-        // Implement shortcode logic to display Printify products
-        $products = $this->get_printify_products();
+    public static function render_products_shortcode($atts) {
+        $products = get_option('sip_printify_products');
         ob_start();
-        include plugin_dir_path(__FILE__) . 'views/products-shortcode.php';
+        if (!empty($products)) {
+            sip_display_product_list($products);
+        } else {
+            echo '<p>No products found.</p>';
+        }
         return ob_get_clean();
     }
-
-    private function get_printify_products() {
-        // Implement logic to fetch Printify products
-        return array(); // This should return actual product data
-    }
-
-    private function display_product_list($products) {
-        // Implement logic to display product list
-        include plugin_dir_path(__FILE__) . 'views/product-list.php';
-    }
-
-    private function display_template_list($templates) {
-        // Implement logic to display template list
-        include plugin_dir_path(__FILE__) . 'views/template-list.php';
-    }
 }
+
+// Initialize the plugin
+SiP_Printify_Manager::get_instance();
 
 SiP_Plugin_Framework::init_plugin(
     'SiP Printify Manager',

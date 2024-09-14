@@ -15,8 +15,7 @@ class SiP_Plugin_Framework {
                 $slug,
                 function() use ($class_name, $name) {
                     echo '<div class="wrap">';
-                    echo '<h1>' . esc_html($name) . '</h1>';
-                    echo '<p><a href="' . admin_url('admin.php?page=sip-plugins') . '">&larr; Back to SiP Plugins</a></p>';
+                    echo '<p><a href="' . admin_url('admin.php?page=sip-plugins') . '">&larr; Back to SiP Plugins Suite Main Page</a></p>';
                     call_user_func(array($class_name, 'render_admin_page'));
                     echo '</div>';
                 }
