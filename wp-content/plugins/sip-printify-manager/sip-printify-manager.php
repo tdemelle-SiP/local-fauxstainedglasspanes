@@ -3,7 +3,7 @@
 Plugin Name: SiP Printify Manager
 Description: A plugin to help manage your Printify Shop and its Products
 Version: 1.6
-Author: Todd DeMelle
+Author: Stuff is Parts, LLC
 */
 
 if (!defined('ABSPATH')) exit;

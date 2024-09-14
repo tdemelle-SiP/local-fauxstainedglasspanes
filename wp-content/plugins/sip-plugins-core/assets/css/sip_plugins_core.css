@@ -1,3 +1,17 @@
-#wpbody {    
-    background-color: #08090b,
+/* File: wp-content/plugins/sip-plugins-core/assets/css/sip_plugins_core.css */
+
+.sip-plugins-list .sip-installed-active {
+    background-color: #F0F6FC !important;
+}
+
+.sip-plugins-list .sip-installed-active td {
+    font-weight: bold;
+}
+
+.sip-plugins-list .sip-installed-inactive {
+    background-color: #FFFFFF !important;
+}
+
+.sip-plugins-list .sip-not-installed {
+    background-color: #f2f2f2 !important;
 }
