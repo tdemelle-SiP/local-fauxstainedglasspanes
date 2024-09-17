@@ -594,7 +594,8 @@ class SiP_Printify_Manager {
                         <input type="text" name="printify_bearer_token" value="" class="regular-text" required/>
                         <input type="submit" name="save_token" value="Save Token" class="button button-primary"/>
                         <!-- Spinner added next to the button, initially hidden -->
-                        <img id="spinner" src="<?php echo plugin_dir_url(__FILE__) . 'assets/images/spinner.webp'; ?>" alt="Loading..." style="display: none; width: 20px; height: 20px; vertical-align: middle; margin-left: 10px;">
+                        <img id="spinner" src="<?php echo plugin_dir_url('sip-plugins-core/sip-plugins-core.php') . 'assets/images/spinner.webp'; ?>" style="display: none; width: 20px; height: 20px; vertical-align: middle; margin-left: 10px;">
+
                     </h2>
                     <hr style="height: 1px; background-color: #000;">
                 </form>
