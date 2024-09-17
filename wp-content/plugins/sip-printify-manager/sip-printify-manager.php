@@ -99,16 +99,16 @@ class SiP_Printify_Manager {
      *
      * Saves the Printify API token after validating it by fetching shop details.
      *
-     * **Option Involved:**
+     * **Options Involved:**
      * - 'printify_bearer_token'
      *   - **Description:**
      *     - Stores the Printify API token required for authenticating API requests to the Printify service.
-     *     - Sensitive information that should be handled securely to prevent unauthorized access.
+     *     - Sensitive information that is encrypted and stored securely to prevent unauthorized access.
      *   - **Usage:**
-     *     - **Saving Token:**
-     *         update_option('printify_bearer_token', $token);
-     *     - **Retrieving Token:**
-     *         $token = get_option('printify_bearer_token');
+     *     - **Saving Encrypted Token:**
+     *         update_option('printify_bearer_token', $encrypted_token);
+     *     - **Retrieving Encrypted Token:**
+     *         $encrypted_token = get_option('printify_bearer_token');
      *     - **Deleting Token:**
      *         delete_option('printify_bearer_token');
      *
@@ -143,6 +143,9 @@ class SiP_Printify_Manager {
 
     /**
      * Generate and store the encryption key if it doesn't already exist.
+     *
+     * This key is used to encrypt and decrypt sensitive information such as the bearer token.
+     * It is automatically generated and stored securely in the WordPress options table.
      *
      * @return string The encryption key.
      */
@@ -197,6 +200,7 @@ class SiP_Printify_Manager {
      * Save API Token
      *
      * Saves the Printify API token after validating it by fetching shop details.
+     * The token is encrypted before storage to ensure secure handling.
      */
     private static function save_token() {
         $token = sanitize_text_field($_POST['printify_bearer_token']);
@@ -206,6 +210,7 @@ class SiP_Printify_Manager {
             $encrypted_token = self::encrypt_token($token);
             update_option('printify_bearer_token', $encrypted_token);
             
+            // Save the shop details
             $shop_name = $shop_details['shop_name'];
             $shop_id = $shop_details['shop_id'];
             update_option('sip_printify_shop_name', $shop_name);
@@ -220,6 +225,7 @@ class SiP_Printify_Manager {
      * Reauthorize API Connection
      *
      * Revalidates the existing API token by fetching shop details.
+     * The token is decrypted for use during this process.
      *
      * **Options Involved:**
      * - 'sip_printify_shop_name'
@@ -254,31 +260,42 @@ class SiP_Printify_Manager {
     /**
      * Initialize New API Token Setup
      *
-     * Clears existing API token and shop details to allow setting up a new token.
+     * Clears existing API token, shop details, and associated products to allow setting up a new token.
+     * The encrypted token is deleted, along with the associated shop details and products, since products
+     * are tied to the shop.
      *
      * **Options Involved:**
      * - 'printify_bearer_token'
      * - 'sip_printify_shop_name'
      * - 'sip_printify_shop_id'
+     * - 'sip_printify_products'
      *
      * **Usage:**
-     * - **Deleting Token and Shop Details:**
+     * - **Deleting Token, Shop Details, and Products:**
      *     delete_option('printify_bearer_token');
      *     delete_option('sip_printify_shop_name');
      *     delete_option('sip_printify_shop_id');
+     *     delete_option('sip_printify_products');
      */
     private static function new_token() {
         delete_option('printify_bearer_token');
         delete_option('sip_printify_shop_name');
         delete_option('sip_printify_shop_id');
+        delete_option('sip_printify_products'); // Clear products tied to the shop
         wp_send_json_success('New token setup initialized.');
     }
+
 
     // ===============================
     // Activation Hook
     // Generate the encryption key upon plugin activation.
     // ===============================
 
+    /**
+     * Activation Hook
+     *
+     * Generates the encryption key upon plugin activation to ensure secure handling of sensitive data.
+     */
     public static function activate_plugin() {
         self::generate_encryption_key();
     }
@@ -542,13 +559,12 @@ class SiP_Printify_Manager {
 
         ?>
         <div class="wrap">
-            <h1>SIP Printify Manager</h1>
-
+            <h1>Weclome to SIP Printify Manager!</h1>
+            <hr style="height: 1px; background-color: #000;">
             <?php if (empty($token)) : ?>
                 <!-- Initial API Connection UI -->
-                <p>Welcome to the SiP Printify Manager! Where managing your store and your WooCommerce Printify products is easy!</p>
-                <h2>To Begin, We'll Need To Connect Your Printify Account (You should only need to do this once!)</h2>
-                <p>To connect your Printify account, please follow the instructions below to generate an API token. This token allows the plugin to access your Printify shop and products.</p>
+                <h2>To Begin, We'll Need To Connect Your Printify Account.</h2>
+                <h2>This Will Load Your Store and Its Products Into the Manager. (You should only need to do this once!)</h2>
                 <ol>
                     <li>
                         Log in to your Printify account and navigate to the <a href="https://printify.com/app/account/api" target="_blank">Connections</a> page.
@@ -566,20 +582,23 @@ class SiP_Printify_Manager {
                         Click <strong>Generate token</strong> and then Click <strong>Copy to clipboard</strong>.
                     </li>
                     <li>
-                        Close the token window, the Printify Connections page, come back here, paste the token below and click <strong>Save Token</strong>.
+                        Paste the token below and click <strong>Save Token</strong>.
                     </li>
                 </ol>
                 <p><strong>Note:</strong> It's a good idea to save the token somewhere you can access it later in case you need to re-authorize the plugin. If you lose the token, don't worry, you can just follow these steps again to generate a new one.</p>
-                <p>
-                    <a href="https://printify.com/app/account/api" target="_blank" class="button button-secondary">Open Printify Connections Page</a>
-                </p>
                 <form id="save-token-form" method="post" action="">
                     <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
 
-                    <label for="printify_bearer_token">Printify API Token:</label>
-                    <input type="text" name="printify_bearer_token" value="" class="regular-text" required/>
-                    <input type="submit" name="save_token" value="Save Token" class="button button-primary"/>
+                    <h2>
+                        <label for="printify_bearer_token">Printify API Token:</label>
+                        <input type="text" name="printify_bearer_token" value="" class="regular-text" required/>
+                        <input type="submit" name="save_token" value="Save Token" class="button button-primary"/>
+                        <!-- Spinner added next to the button, initially hidden -->
+                        <img id="spinner" src="<?php echo plugin_dir_url(__FILE__) . 'assets/images/spinner.webp'; ?>" alt="Loading..." style="display: none; width: 20px; height: 20px; vertical-align: middle; margin-left: 10px;">
+                    </h2>
+                    <hr style="height: 1px; background-color: #000;">
                 </form>
+
             <?php else : ?>
                 <!-- Authorized State UI -->
                 <h2>Authorized</h2>

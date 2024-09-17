@@ -9,6 +9,7 @@ jQuery(document).ready(function($) {
         
         if ($(this).attr('id') === 'save-token-form') {
             actionType = 'save_token';
+            $('#spinner').show();  // Show the spinner next to Save Token button
         } else if ($(this).attr('id') === 'authorization-form') {
             actionType = $(this).find('input[type=submit]:focus').attr('name');
         } else if ($(this).attr('id') === 'product-action-form') {
@@ -39,7 +40,7 @@ jQuery(document).ready(function($) {
         formData.append('action_type', actionType);
         formData.append('nonce', sipAjax.nonce);
         
-        $('#loading-spinner').show();  // Show spinner
+        $('#loading-spinner').show();  // Show global spinner
         
         $.ajax({
             url: sipAjax.ajax_url,
@@ -48,7 +49,8 @@ jQuery(document).ready(function($) {
             processData: false,
             contentType: false,
             success: function(response) {
-                $('#loading-spinner').hide();  // Hide spinner
+                $('#loading-spinner').hide();  // Hide global spinner
+                $('#spinner').hide();  // Hide the inline spinner
                 console.log('AJAX Response:', response);  // Log the entire response
                 
                 if (response.success) {
@@ -102,6 +104,7 @@ jQuery(document).ready(function($) {
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 $('#loading-spinner').hide();
+                $('#spinner').hide();  // Hide the inline spinner
                 console.error('AJAX error:', textStatus, errorThrown);
                 alert('An error occurred. Please try again.');
             }
