@@ -1,14 +1,14 @@
-.sip-printify-manager .button {
+#sip-printify-manager-page .button {
     margin-right: 5px;
 }
 
-.sip-printify-manager .button-primary {
+#sip-printify-manager-page .button-primary {
     background-color: #0073aa;
     border-color: #0073aa;
     color: #fff;
 }
 
-.sip-printify-manager .button-secondary {
+#sip-printify-manager-page .button-secondary {
     background-color: #82878c;
     border-color: #82878c;
     color: #fff;
@@ -28,3 +28,8 @@
     width: 24px;
     height: 24px;
 }
+
+#sip-printify-manager-page .e-notice.notice {
+    display: none !important;
+}
+
