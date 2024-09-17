@@ -23,6 +23,13 @@ require_once(WP_PLUGIN_DIR . '/sip-plugins-core/sip-plugin-framework.php');
  *
  * Main class for the SiP Printify Manager plugin. It handles API connections, store management,
  * product and template management, and integrates necessary scripts and shortcodes.
+ *
+ * **Plugin Options Index:**
+ * 1. 'sip_printify_manager_options' - Stores multiple plugin settings collectively.
+ * 2. 'printify_bearer_token' - Stores the Printify API token for authentication.
+ * 3. 'sip_printify_shop_name' - Holds the name of the connected Printify shop.
+ * 4. 'sip_printify_shop_id' - Contains the ID of the connected Printify shop.
+ * 5. 'sip_printify_products' - Stores an array of products fetched from Printify.
  */
 class SiP_Printify_Manager {
     // Singleton instance
@@ -91,23 +98,120 @@ class SiP_Printify_Manager {
      * Save API Token
      *
      * Saves the Printify API token after validating it by fetching shop details.
+     *
+     * **Option Involved:**
+     * - 'printify_bearer_token'
+     *   - **Description:**
+     *     - Stores the Printify API token required for authenticating API requests to the Printify service.
+     *     - Sensitive information that should be handled securely to prevent unauthorized access.
+     *   - **Usage:**
+     *     - **Saving Token:**
+     *         update_option('printify_bearer_token', $token);
+     *     - **Retrieving Token:**
+     *         $token = get_option('printify_bearer_token');
+     *     - **Deleting Token:**
+     *         delete_option('printify_bearer_token');
+     *
+     * - 'sip_printify_shop_name'
+     *   - **Description:**
+     *     - Holds the name of the connected Printify shop.
+     *     - Used to display the shop name within the plugin's admin interface.
+     *   - **Usage:**
+     *     - **Saving Shop Name:**
+     *         update_option('sip_printify_shop_name', $shop_name);
+     *     - **Retrieving Shop Name:**
+     *         $shop_name = get_option('sip_printify_shop_name');
+     *     - **Deleting Shop Name:**
+     *         delete_option('sip_printify_shop_name');
+     *
+     * - 'sip_printify_shop_id'
+     *   - **Description:**
+     *     - Contains the ID of the connected Printify shop.
+     *     - Used internally to reference the specific shop in API requests and other operations.
+     *   - **Usage:**
+     *     - **Saving Shop ID:**
+     *         update_option('sip_printify_shop_id', $shop_id);
+     *     - **Retrieving Shop ID:**
+     *         $shop_id = get_option('sip_printify_shop_id');
+     *     - **Deleting Shop ID:**
+     *         delete_option('sip_printify_shop_id');
+     */
+
+    // ===============================
+    // Encryption & Decryption Methods
+    // ===============================
+
+    /**
+     * Generate and store the encryption key if it doesn't already exist.
+     *
+     * @return string The encryption key.
+     */
+    public static function generate_encryption_key() {
+        // Check if the encryption key already exists
+        $encryption_key = get_option('sip_printify_encryption_key');
+        
+        if (empty($encryption_key)) {
+            // Generate a secure encryption key (32 bytes for AES-256)
+            $encryption_key = base64_encode(random_bytes(32));
+            update_option('sip_printify_encryption_key', $encryption_key);
+        }
+
+        return $encryption_key;
+    }
+
+    /**
+     * Encrypt the bearer token before storing it.
+     *
+     * @param string $token The plain text bearer token.
+     * @return string The encrypted token.
+     */
+    private static function encrypt_token($token) {
+        // Get the encryption key from the options or generate one if it doesn't exist
+        $encryption_key = self::generate_encryption_key();
+        
+        // Initialization Vector (IV) for AES encryption (16 bytes)
+        $iv = substr(hash('sha256', '16_char_iv_here'), 0, 16);
+        return openssl_encrypt($token, 'AES-256-CBC', base64_decode($encryption_key), 0, $iv);
+    }
+
+    /**
+     * Decrypt the bearer token when retrieving it.
+     *
+     * @param string $encrypted_token The encrypted token.
+     * @return string The plain text bearer token.
+     */
+    private static function decrypt_token($encrypted_token) {
+        // Retrieve the encryption key
+        $encryption_key = get_option('sip_printify_encryption_key');
+        
+        // Initialization Vector (IV) for AES decryption
+        $iv = substr(hash('sha256', '16_char_iv_here'), 0, 16);
+        return openssl_decrypt($encrypted_token, 'AES-256-CBC', base64_decode($encryption_key), 0, $iv);
+    }
+
+    // ===============================
+    // Token Management Methods
+    // ===============================
+
+    /**
+     * Save API Token
+     *
+     * Saves the Printify API token after validating it by fetching shop details.
      */
     private static function save_token() {
-        // Sanitize the input token
         $token = sanitize_text_field($_POST['printify_bearer_token']);
-
-        // Test the token by attempting to fetch shop details
         $shop_details = fetch_shop_details($token);
         if ($shop_details) {
-            // Update the token and shop details in the database
-            update_option('printify_bearer_token', $token);
+            // Encrypt the token before saving it
+            $encrypted_token = self::encrypt_token($token);
+            update_option('printify_bearer_token', $encrypted_token);
+            
             $shop_name = $shop_details['shop_name'];
             $shop_id = $shop_details['shop_id'];
             update_option('sip_printify_shop_name', $shop_name);
             update_option('sip_printify_shop_id', $shop_id);
             wp_send_json_success('Token saved and connection successful.');
         } else {
-            // Send an error response if the token is invalid
             wp_send_json_error('Invalid API token. Please check and try again.');
         }
     }
@@ -116,20 +220,33 @@ class SiP_Printify_Manager {
      * Reauthorize API Connection
      *
      * Revalidates the existing API token by fetching shop details.
+     *
+     * **Options Involved:**
+     * - 'sip_printify_shop_name'
+     * - 'sip_printify_shop_id'
+     *
+     * **Usage:**
+     * - **Retrieving Shop Details:**
+     *     $shop_name = get_option('sip_printify_shop_name');
+     *     $shop_id = get_option('sip_printify_shop_id');
+     * - **Updating Shop Details:**
+     *     update_option('sip_printify_shop_name', $shop_name);
+     *     update_option('sip_printify_shop_id', $shop_id);
      */
     private static function reauthorize() {
-        // Retrieve the existing token from the database
-        $token = get_option('printify_bearer_token');
+        $encrypted_token = get_option('printify_bearer_token');
+        
+        // Decrypt the token after retrieving it
+        $token = self::decrypt_token($encrypted_token);
         $shop_details = fetch_shop_details($token);
+        
         if ($shop_details) {
-            // Update shop details in the database
             $shop_name = $shop_details['shop_name'];
             $shop_id = $shop_details['shop_id'];
             update_option('sip_printify_shop_name', $shop_name);
             update_option('sip_printify_shop_id', $shop_id);
             wp_send_json_success('Reauthorized successfully.');
         } else {
-            // Send an error response if reauthorization fails
             wp_send_json_error('Failed to reauthorize. Please check your API token.');
         }
     }
@@ -138,13 +255,32 @@ class SiP_Printify_Manager {
      * Initialize New API Token Setup
      *
      * Clears existing API token and shop details to allow setting up a new token.
+     *
+     * **Options Involved:**
+     * - 'printify_bearer_token'
+     * - 'sip_printify_shop_name'
+     * - 'sip_printify_shop_id'
+     *
+     * **Usage:**
+     * - **Deleting Token and Shop Details:**
+     *     delete_option('printify_bearer_token');
+     *     delete_option('sip_printify_shop_name');
+     *     delete_option('sip_printify_shop_id');
      */
     private static function new_token() {
-        // Delete existing token and shop details from the database
         delete_option('printify_bearer_token');
         delete_option('sip_printify_shop_name');
         delete_option('sip_printify_shop_id');
         wp_send_json_success('New token setup initialized.');
+    }
+
+    // ===============================
+    // Activation Hook
+    // Generate the encryption key upon plugin activation.
+    // ===============================
+
+    public static function activate_plugin() {
+        self::generate_encryption_key();
     }
 
     // ===============================
@@ -161,6 +297,19 @@ class SiP_Printify_Manager {
      * Handle Product Actions
      *
      * Executes actions on selected products based on user input.
+     *
+     * **Option Involved:**
+     * - 'sip_printify_products'
+     *   - **Description:**
+     *     - Stores an array of products fetched from the Printify shop.
+     *     - Utilized to display, manage, and perform actions on products within the plugin's admin interface.
+     *   - **Usage:**
+     *     - **Saving Products:**
+     *         update_option('sip_printify_products', $products);
+     *     - **Retrieving Products:**
+     *         $products = get_option('sip_printify_products');
+     *     - **Displaying Products:**
+     *         sip_display_product_list($products);
      */
     private static function handle_product_action() {
         // Sanitize the action type and selected products
@@ -501,7 +650,10 @@ class SiP_Printify_Manager {
                     </div>
                 </form>
                 <div id="template-list">
-                    <?php sip_display_template_list($templates); ?>
+                    <?php 
+                    // Display the list of templates
+                    sip_display_template_list($templates); 
+                    ?>
                 </div>
                 <div id="template-editor" style="display: none; margin-top: 20px;">
                     <h3>Edit Template: <span id="editing-template-name"></span></h3>
@@ -527,6 +679,9 @@ class SiP_Printify_Manager {
 
 // Instantiate the main plugin class
 SiP_Printify_Manager::get_instance();
+
+// Hook for generating the encryption key on plugin activation
+register_activation_hook(__FILE__, array('SiP_Printify_Manager', 'activate_plugin'));
 
 // Initialize the plugin framework to add the admin submenu and handle activation dependencies
 SiP_Plugin_Framework::init_plugin(
