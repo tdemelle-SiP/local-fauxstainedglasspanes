@@ -7,7 +7,8 @@ jQuery(document).ready(function($) {
             $(buttonSelector).attr('disabled', true); // Disable button to prevent multiple clicks
         }
         if (spinnerSelector) {
-            $(spinnerSelector).show(); // Show spinner
+            $(spinnerSelector).show(); // Show spinner overlay
+            $('#spinner-overlay').show(); // Show the global spinner overlay
         }
 
         $.ajax({
@@ -22,6 +23,7 @@ jQuery(document).ready(function($) {
                 }
                 if (spinnerSelector) {
                     $(spinnerSelector).hide(); // Hide spinner
+                    $('#spinner-overlay').hide(); // Hide the global spinner overlay
                 }
 
                 if (response.success) {
@@ -71,6 +73,7 @@ jQuery(document).ready(function($) {
                 }
                 if (spinnerSelector) {
                     $(spinnerSelector).hide(); // Hide spinner on error
+                    $('#spinner-overlay').hide(); // Hide the global spinner overlay
                 }
                 alert('An error occurred. Please try again.');
             }

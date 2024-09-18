@@ -25,7 +25,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(255, 255, 255, 0.5);
     z-index: 9999;
     display: flex;
     justify-content: center;
@@ -33,8 +33,8 @@
 }
 
 #spinner {
-    width: 100px;
-    height: 100px;
+    width: 50px;
+    height: 50px;
 }
 
 #sip-printify-manager-page .e-notice.notice {

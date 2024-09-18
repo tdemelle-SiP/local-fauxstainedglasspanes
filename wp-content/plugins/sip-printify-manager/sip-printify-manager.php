@@ -156,7 +156,8 @@ class SiP_Printify_Manager {
                 </div>
                 <hr style="height: 1px; background-color: #000;">
                 <div id="spinner-overlay" style="display: none;">
-                    <img id="spinner" src="<?php echo plugin_dir_url(__FILE__) . 'assets/images/spinner.webp'; ?>" alt="Loading...">
+                    <img id="spinner" src="<?php echo plugin_dir_url('sip-plugins-core/sip-plugins-core.php') . 'assets/images/spinner.webp'; ?>" alt="Loading...">
+
                 </div>
 
                 <?php if (empty($token)) : ?>
