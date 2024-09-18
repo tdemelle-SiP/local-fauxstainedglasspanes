@@ -1,11 +1,16 @@
 <?php
 
-// Function to save a JSON template to a custom directory.
+/**
+ * Save a product template to the custom directory.
+ *
+ * @param array $product The product data to save as a template.
+ * @param string $template_name The name of the template.
+ */
 function sip_save_template($product, $template_name) {
     $upload_dir = wp_upload_dir();
     $template_dir = $upload_dir['basedir'] . '/sip-printify-manager/templates/';
 
-    // Create the directory if it doesn't exist.
+    // Create directory if it doesn't exist
     if (!file_exists($template_dir)) {
         if (!wp_mkdir_p($template_dir)) {
             error_log('Failed to create template directory at: ' . $template_dir);
@@ -14,18 +19,17 @@ function sip_save_template($product, $template_name) {
         error_log('Created template directory at: ' . $template_dir);
     }
 
-    // Format the template name to lowercase with underscores and "_template" suffix
+    // Format template name and handle duplicates
     $base_name = sanitize_file_name(strtolower(str_replace(' ', '_', $template_name))) . '_template';
     $file_path = $template_dir . $base_name . '.json';
 
-    // Check for existing templates and append numbers if necessary
     $counter = 1;
     while (file_exists($file_path)) {
         $file_path = $template_dir . $base_name . '_' . str_pad($counter, 2, '0', STR_PAD_LEFT) . '.json';
         $counter++;
     }
 
-    // Save the template data
+    // Save template as JSON
     if (file_put_contents($file_path, json_encode($product, JSON_PRETTY_PRINT))) {
         error_log("Template saved successfully at: $file_path");
     } else {
@@ -33,7 +37,11 @@ function sip_save_template($product, $template_name) {
     }
 }
 
-// Function to load JSON templates from the custom directory.
+/**
+ * Load all available templates from the custom directory.
+ *
+ * @return array List of template names.
+ */
 function sip_load_templates() {
     $upload_dir = wp_upload_dir();
     $template_dir = $upload_dir['basedir'] . '/sip-printify-manager/templates/';
@@ -50,14 +58,22 @@ function sip_load_templates() {
     return $templates;
 }
 
-// Function to get the template directory path.
+/**
+ * Get the template directory path.
+ *
+ * @return string The path to the template directory.
+ */
 function sip_get_template_dir() {
     $upload_dir = wp_upload_dir();
     $template_dir = $upload_dir['basedir'] . '/sip-printify-manager/templates/';
     return $template_dir;
 }
 
-// Display the template list on the admin page.
+/**
+ * Display the list of templates in the WordPress admin interface.
+ *
+ * @param array $templates List of template names to display.
+ */
 function sip_display_template_list($templates) {
     if (empty($templates)) {
         echo '<p>No templates found.</p>';
@@ -73,7 +89,12 @@ function sip_display_template_list($templates) {
     }
 }
 
-// Function to delete a template by name.
+/**
+ * Delete a specific template by name.
+ *
+ * @param string $template_name The name of the template to delete.
+ * @return bool True on success, false on failure.
+ */
 function sip_delete_template($template_name) {
     $template_dir = sip_get_template_dir();
     $file_path = $template_dir . $template_name . '.json';
@@ -81,8 +102,7 @@ function sip_delete_template($template_name) {
     error_log("Attempting to delete template file: $file_path");
 
     if (file_exists($file_path)) {
-        $result = unlink($file_path);
-        if ($result) {
+        if (unlink($file_path)) {
             error_log("Template $template_name deleted successfully.");
             return true;
         } else {
@@ -95,7 +115,13 @@ function sip_delete_template($template_name) {
     }
 }
 
-// Function to rename a template.
+/**
+ * Rename a specific template.
+ *
+ * @param string $old_name The current name of the template.
+ * @param string $new_name The new name to assign to the template.
+ * @return bool True on success, false on failure.
+ */
 function sip_rename_template($old_name, $new_name) {
     $template_dir = sip_get_template_dir();
     $old_path = $template_dir . sanitize_file_name($old_name) . '.json';

@@ -1,44 +1,14 @@
 jQuery(document).ready(function($) {
     var originalContent = '';
 
-    // Form submissions (save token, product actions, template actions)
-    $('#save-token-form, #product-action-form, #template-action-form').on('submit', function(e) {
-        e.preventDefault();
-        
-        var formData = new FormData(this);
-        var actionType = '';
-
-        if ($(this).attr('id') === 'save-token-form') {
-            actionType = 'save_token';
-            $('#spinner').show();  // Show the spinner next to Save Token button
-        } else if ($(this).attr('id') === 'product-action-form') {
-            actionType = 'product_action';
-            // Add selected products to formData
-            var selectedProducts = [];
-            $('input[name="selected_products[]"]:checked').each(function() {
-                selectedProducts.push($(this).val());
-            });
-            formData.delete('selected_products[]'); // Remove the original selected_products
-            selectedProducts.forEach(function(productId) {
-                formData.append('selected_products[]', productId);
-            });
-        } else if ($(this).attr('id') === 'template-action-form') {
-            actionType = 'template_action';
-            // Add selected templates to formData
-            var selectedTemplates = $('input[name="selected_templates[]"]:checked').map(function() {
-                return this.value;
-            }).get();
-            formData.delete('selected_templates[]');
-            selectedTemplates.forEach(function(templateId) {
-                formData.append('selected_templates[]', templateId);
-            });
+    // Function to handle AJAX requests for token and other actions
+    function handleAjaxAction(actionType, formData = null, buttonSelector = null, spinnerSelector = null) {
+        if (buttonSelector) {
+            $(buttonSelector).attr('disabled', true); // Disable button to prevent multiple clicks
         }
-        
-        formData.append('action', 'sip_handle_ajax_request');
-        formData.append('action_type', actionType);
-        formData.append('nonce', sipAjax.nonce);
-
-        $('#loading-spinner').show();  // Show global spinner
+        if (spinnerSelector) {
+            $(spinnerSelector).show(); // Show spinner
+        }
 
         $.ajax({
             url: sipAjax.ajax_url,
@@ -47,98 +17,129 @@ jQuery(document).ready(function($) {
             processData: false,
             contentType: false,
             success: function(response) {
-                $('#loading-spinner').hide();  // Hide global spinner
-                $('#spinner').hide();  // Hide the inline spinner
-                console.log('AJAX Response:', response);  // Log the entire response
+                if (buttonSelector) {
+                    $(buttonSelector).attr('disabled', false); // Re-enable button
+                }
+                if (spinnerSelector) {
+                    $(spinnerSelector).hide(); // Hide spinner
+                }
 
                 if (response.success) {
-                    if (actionType === 'save_token') {
-                        alert(response.data);
-                        location.reload(); // Reload the page to show the authorized interface
-                    } else if (actionType === 'reauthorize' || actionType === 'new_token') {
-                        alert(response.data);
-                        location.reload(); // Reload the page to update the interface
-                    } else if (actionType === 'product_action') {
-                        if (response.data.product_list_html) {
-                            $('#product-list').html(response.data.product_list_html);
-                        }
-                        if (response.data.template_list_html) {
-                            $('#template-list').html(response.data.template_list_html);
-                        }
-                        $('input[name="selected_products[]"]').prop('checked', false); // Clear product checkboxes
-                    } else if (actionType === 'template_action') {
-                        if (formData.get('template_action') === 'edit_template') {
-                            if (response.data && response.data.template_content) {
-                                $('#editing-template-name').text(response.data.template_name);
-                                $('#template-content').val(response.data.template_content);
-                                originalContent = response.data.template_content;
-                                $('#template-editor').show();
-                            } else {
-                                alert('Error: Template content not found');
+                    switch (actionType) {
+                        case 'save_token':
+                        case 'reauthorize':
+                        case 'new_token':
+                            alert(response.data);
+                            location.reload(); // Reload page
+                            break;
+                        case 'product_action':
+                            if (response.data.product_list_html) {
+                                $('#product-list').html(response.data.product_list_html);
                             }
-                        } else {
                             if (response.data.template_list_html) {
                                 $('#template-list').html(response.data.template_list_html);
                             }
-                            $('input[name="selected_templates[]"]').prop('checked', false); // Clear template checkboxes
-                        }
+                            $('input[name="selected_products[]"]').prop('checked', false); // Clear product checkboxes
+                            break;
+                        case 'template_action':
+                            if (formData.get('template_action') === 'edit_template') {
+                                if (response.data && response.data.template_content) {
+                                    $('#editing-template-name').text(response.data.template_name);
+                                    $('#template-content').val(response.data.template_content);
+                                    originalContent = response.data.template_content;
+                                    $('#template-editor').show();
+                                } else {
+                                    alert('Error: Template content not found');
+                                }
+                            } else {
+                                if (response.data.template_list_html) {
+                                    $('#template-list').html(response.data.template_list_html);
+                                }
+                                $('input[name="selected_templates[]"]').prop('checked', false); // Clear template checkboxes
+                            }
+                            break;
+                        default:
+                            alert('Unknown action type');
                     }
                 } else {
                     alert('Error: ' + response.data);
                 }
             },
-            error: function(jqXHR, textStatus, errorThrown) {
-                $('#loading-spinner').hide();
-                $('#spinner').hide();  // Hide the inline spinner
+            error: function() {
+                if (buttonSelector) {
+                    $(buttonSelector).attr('disabled', false); // Re-enable button on error
+                }
+                if (spinnerSelector) {
+                    $(spinnerSelector).hide(); // Hide spinner on error
+                }
                 alert('An error occurred. Please try again.');
             }
         });
+    }
+
+    // Handle form submissions (save token, product actions, template actions)
+    $('#save-token-form, #product-action-form, #template-action-form').on('submit', function(e) {
+        e.preventDefault();
+
+        var formData = new FormData(this);
+        var actionType = '';
+
+        switch ($(this).attr('id')) {
+            case 'save-token-form':
+                actionType = 'save_token';
+                break;
+            case 'product-action-form':
+                actionType = 'product_action';
+                var selectedProducts = [];
+                $('input[name="selected_products[]"]:checked').each(function() {
+                    selectedProducts.push($(this).val());
+                });
+                formData.delete('selected_products[]');
+                selectedProducts.forEach(function(productId) {
+                    formData.append('selected_products[]', productId);
+                });
+                break;
+            case 'template-action-form':
+                actionType = 'template_action';
+                var selectedTemplates = $('input[name="selected_templates[]"]:checked').map(function() {
+                    return this.value;
+                }).get();
+                formData.delete('selected_templates[]');
+                selectedTemplates.forEach(function(templateId) {
+                    formData.append('selected_templates[]', templateId);
+                });
+                break;
+        }
+
+        formData.append('action', 'sip_handle_ajax_request');
+        formData.append('action_type', actionType);
+        formData.append('nonce', sipAjax.nonce);
+
+        handleAjaxAction(actionType, formData, null, '#loading-spinner'); // Call reusable function
     });
 
     // Handle Re-authorize button click
     $('#reauthorize-button').click(function(e) {
         e.preventDefault();
 
-        $.ajax({
-            url: sipAjax.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'sip_handle_ajax_request',
-                action_type: 'reauthorize',
-                nonce: sipAjax.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    alert('Reauthorized successfully.');
-                    location.reload();
-                } else {
-                    alert('Failed to reauthorize.');
-                }
-            }
-        });
+        var formData = new FormData();
+        formData.append('action', 'sip_handle_ajax_request');
+        formData.append('action_type', 'reauthorize');
+        formData.append('nonce', sipAjax.nonce);
+
+        handleAjaxAction('reauthorize', formData, '#reauthorize-button', '#loading-spinner');
     });
 
     // Handle New Store Token button click
     $('#new-token-button').click(function(e) {
         e.preventDefault();
 
-        $.ajax({
-            url: sipAjax.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'sip_handle_ajax_request',
-                action_type: 'new_token',
-                nonce: sipAjax.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    alert('New token setup initialized.');
-                    location.reload();
-                } else {
-                    alert('Failed to initialize new token setup.');
-                }
-            }
-        });
+        var formData = new FormData();
+        formData.append('action', 'sip_handle_ajax_request');
+        formData.append('action_type', 'new_token');
+        formData.append('nonce', sipAjax.nonce);
+
+        handleAjaxAction('new_token', formData, '#new-token-button', '#loading-spinner');
     });
 
     // Show/hide rename input based on selected action
@@ -169,23 +170,6 @@ jQuery(document).ready(function($) {
         formData.append('template_name', $('#editing-template-name').text());
         formData.append('template_content', $('#template-content').val());
 
-        $.ajax({
-            url: sipAjax.ajax_url,
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                if (response.success) {
-                    alert('Template saved successfully!');
-                    originalContent = $('#template-content').val();
-                } else {
-                    alert('Error saving template: ' + response.data);
-                }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                alert('An error occurred while saving the template. Please try again.');
-            }
-        });
+        handleAjaxAction('save_template', formData, '#save-template', '#loading-spinner');
     });
 });

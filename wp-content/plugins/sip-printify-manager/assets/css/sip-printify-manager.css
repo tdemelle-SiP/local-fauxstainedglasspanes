@@ -19,14 +19,22 @@
     align-items: center;
 }
 
-#loading-spinner {
-    display: inline-block;
-    margin-left: 10px;
+#spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-#loading-spinner img {
-    width: 24px;
-    height: 24px;
+#spinner {
+    width: 100px;
+    height: 100px;
 }
 
 #sip-printify-manager-page .e-notice.notice {
