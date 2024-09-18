@@ -91,9 +91,9 @@ class SiP_Printify_Manager {
      */
     public static function handle_ajax_request() {
         check_ajax_referer('sip_printify_manager_nonce', 'nonce');
-
+    
         $action_type = sanitize_text_field($_POST['action_type']);
-
+    
         switch ($action_type) {
             case 'save_token':
                 self::save_token();
@@ -102,7 +102,12 @@ class SiP_Printify_Manager {
                 self::reauthorize();
                 break;
             case 'new_token':
-                self::new_token();
+                // Clear the stored token and any associated data
+                delete_option('printify_bearer_token');  // Clear the API token
+                delete_option('sip_printify_shop_name'); // Optionally clear the saved shop name
+                delete_option('sip_printify_shop_id');   // Optionally clear the saved shop ID
+                
+                wp_send_json_success('Token reset successfully.');
                 break;
             case 'product_action':
                 self::handle_product_action();
@@ -117,7 +122,7 @@ class SiP_Printify_Manager {
                 wp_send_json_error('Invalid action.');
                 break;
         }
-    }
+    }    
 
     // Enqueue Admin Scripts and Styles
     public static function enqueue_admin_scripts($hook) {
@@ -149,18 +154,20 @@ class SiP_Printify_Manager {
             <div class="wrap">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h1 style="margin: 0;">Welcome to SIP Printify Manager!</h1>
-                    <div>
+                    <div id="button-container" <?php echo empty($token) ? 'style="display:none;"' : ''; ?>>
                         <button id="reauthorize-button" class="button button-secondary">Re-authorize</button>
                         <button id="new-token-button" class="button button-primary">New Store Token</button>
                     </div>
                 </div>
                 <hr style="height: 1px; background-color: #000;">
+
+                <!-- Spinner Overlay -->
                 <div id="spinner-overlay" style="display: none;">
                     <img id="spinner" src="<?php echo plugin_dir_url('sip-plugins-core/sip-plugins-core.php') . 'assets/images/spinner.webp'; ?>" alt="Loading...">
-
                 </div>
 
-                <?php if (empty($token)) : ?>
+                <!-- Auth Container for Token Entry -->
+                <div id="auth-container" <?php echo empty($token) ? '' : 'style="display:none;"'; ?>>
                     <h2>To Begin, We'll Need To Connect Your Printify Account.</h2>
                     <h2>This Will Load Your Store and Its Products Into the Manager. (You should only need to do this once!)</h2>
                     <form id="save-token-form" method="post" action="">
@@ -173,8 +180,10 @@ class SiP_Printify_Manager {
                         </h2>
                         <hr style="height: 1px; background-color: #000;">
                     </form>
+                </div>
 
-                <?php else : ?>
+                <!-- Shop Screen (only show if token exists) -->
+                <div id="shop-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>
                     <?php if (!empty($shop_name)) : ?>
                         <h2 style="text-align: center; font-weight: bold; font-size: 32px;">
                             <a href="https://printify.com/app/store/products/1" target="_blank" style="color: inherit; text-decoration: none;">
@@ -185,7 +194,6 @@ class SiP_Printify_Manager {
                         <h2>Products</h2>
                         <form id="product-action-form" style="display: flex; align-items: center;" method="post" action="">
                             <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
-
                             <label for="product_action">Product Actions: </label>
                             <select name="product_action" id="product_action">
                                 <option value="reload">Reload</option>
@@ -207,14 +215,14 @@ class SiP_Printify_Manager {
                     <?php else : ?>
                         <h2>Shop could not be loaded. Please try re-authorizing.</h2>
                     <?php endif; ?>
-                <?php endif; ?>
+                </div>
 
-                <?php if (!empty($templates)) : ?>
+                <!-- Template Section -->
+                <div id="template-container" <?php echo !empty($templates) && !empty($token) ? '' : 'style="display:none;"'; ?>>
                     <hr style="height: 1px; background-color: #000;">
                     <h2>Templates</h2>
                     <form id="template-action-form" method="post" action="">
                         <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
-
                         <label for="template_action">Template Actions: </label>
                         <select name="template_action" id="template_action">
                             <option value="delete_template">Delete Template</option>
@@ -222,7 +230,7 @@ class SiP_Printify_Manager {
                             <option value="edit_template">Edit Template</option>
                         </select>
                         <input type="submit" name="execute_template_action" value="Execute" class="button button-secondary"/>
-                        
+
                         <!-- Rename Template Input -->
                         <div id="rename-template-input" style="display: none; margin-top: 10px;">
                             <input type="text" name="new_template_name" placeholder="New template name">
@@ -242,11 +250,10 @@ class SiP_Printify_Manager {
                             <button id="save-template" class="button button-primary">Save Changes</button>
                         </div>
                     </div>
-                <?php else : ?>
-                    <h2>No templates found.</h2>
-                <?php endif; ?>
+                </div>
+            </div>
         </div>
-    </div>
+
     <?php
     }
 
