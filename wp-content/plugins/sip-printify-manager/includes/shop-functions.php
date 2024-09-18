@@ -27,7 +27,7 @@ function fetch_shop_details($token) {
     }
 
     return array(
-        'shop_id' => $data[0]['id'],
+        'shop_id'   => $data[0]['id'],
         'shop_name' => $data[0]['title']
     );
 }
@@ -44,3 +44,98 @@ function sip_connect_shop() {
     }
 }
 
+/**
+ * Save the Printify API token and store shop details.
+ */
+function sip_save_token() {
+    $token = sanitize_text_field($_POST['printify_bearer_token']);
+    $shop_details = fetch_shop_details($token);
+    if ($shop_details) {
+        $encrypted_token = sip_encrypt_token($token);
+        update_option('printify_bearer_token', $encrypted_token);
+        update_option('sip_printify_shop_name', $shop_details['shop_name']);
+        update_option('sip_printify_shop_id', $shop_details['shop_id']);
+        wp_send_json_success('Token saved and connection successful.');
+    } else {
+        wp_send_json_error('Invalid API token. Please check and try again.');
+    }
+}
+
+/**
+ * Reauthorize the connection by refreshing shop details using the stored token.
+ */
+function sip_reauthorize() {
+    $encrypted_token = get_option('printify_bearer_token');
+    $token = sip_decrypt_token($encrypted_token);
+    $shop_details = fetch_shop_details($token);
+
+    if ($shop_details) {
+        update_option('sip_printify_shop_name', $shop_details['shop_name']);
+        update_option('sip_printify_shop_id', $shop_details['shop_id']);
+        wp_send_json_success('Reauthorized successfully.');
+    } else {
+        wp_send_json_error('Failed to reauthorize. Please check your API token.');
+    }
+}
+
+/**
+ * Reset the API token and associated shop details.
+ */
+function sip_new_token() {
+    delete_option('printify_bearer_token');  // Clear the API token
+    delete_option('sip_printify_shop_name'); // Clear the saved shop name
+    delete_option('sip_printify_shop_id');   // Clear the saved shop ID
+
+    wp_send_json_success('Token reset successfully.');
+}
+
+/**
+ * Generate and store the encryption key if it doesn't already exist.
+ *
+ * This key is used to encrypt and decrypt sensitive information such as the bearer token.
+ * It is automatically generated and stored securely in the WordPress options table.
+ *
+ * @return string The encryption key.
+ */
+function sip_generate_encryption_key() {
+    // Check if the encryption key already exists
+    $encryption_key = get_option('sip_printify_encryption_key');
+
+    if (empty($encryption_key)) {
+        // Generate a secure encryption key (32 bytes for AES-256)
+        $encryption_key = base64_encode(random_bytes(32));
+        update_option('sip_printify_encryption_key', $encryption_key);
+    }
+
+    return $encryption_key;
+}
+
+/**
+ * Encrypt the bearer token before storing it.
+ *
+ * @param string $token The plain text bearer token.
+ * @return string The encrypted token.
+ */
+function sip_encrypt_token($token) {
+    // Get the encryption key from the options or generate one if it doesn't exist
+    $encryption_key = sip_generate_encryption_key();
+
+    // Initialization Vector (IV) for AES encryption (16 bytes)
+    $iv = substr(hash('sha256', '16_char_iv_here'), 0, 16);
+    return openssl_encrypt($token, 'AES-256-CBC', base64_decode($encryption_key), 0, $iv);
+}
+
+/**
+ * Decrypt the bearer token when retrieving it.
+ *
+ * @param string $encrypted_token The encrypted token.
+ * @return string The plain text bearer token.
+ */
+function sip_decrypt_token($encrypted_token) {
+    // Retrieve the encryption key
+    $encryption_key = get_option('sip_printify_encryption_key');
+
+    // Initialization Vector (IV) for AES decryption
+    $iv = substr(hash('sha256', '16_char_iv_here'), 0, 16);
+    return openssl_decrypt($encrypted_token, 'AES-256-CBC', base64_decode($encryption_key), 0, $iv);
+}

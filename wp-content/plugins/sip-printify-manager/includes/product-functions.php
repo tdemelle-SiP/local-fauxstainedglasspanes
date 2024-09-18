@@ -3,7 +3,7 @@
 // Fetch products directly from Printify API using the Bearer token
 function fetch_products($encrypted_token, $shop_id) {
     // Decrypt the token before using it
-    $token = SiP_Printify_Manager::decrypt_token($encrypted_token);
+    $token = sip_decrypt_token($encrypted_token);
     
     $url = "https://api.printify.com/v1/shops/{$shop_id}/products.json";
 
@@ -56,21 +56,47 @@ function sip_display_product_list($products) {
     error_log('sip_display_product_list completed displaying products');
 }
 
-// sip_execute_product_action function (adjusted to check for valid data)
+// Handle product actions triggered via AJAX
+function sip_handle_product_action() {
+    $product_action = sanitize_text_field($_POST['product_action']);
+    $selected_products = isset($_POST['selected_products']) ? $_POST['selected_products'] : array();
+
+    // Get the encrypted token and decrypt it
+    $encrypted_token = get_option('printify_bearer_token');
+    $token = sip_decrypt_token($encrypted_token);
+    $shop_id = get_option('sip_printify_shop_id');
+
+    // Fetch and display products
+    $updated_products = sip_execute_product_action($product_action, $selected_products);
+
+    ob_start();
+    sip_display_product_list($updated_products);
+    $product_list_html = ob_get_clean();
+
+    ob_start();
+    $templates = sip_load_templates();
+    sip_display_template_list($templates);
+    $template_list_html = ob_get_clean();
+
+    wp_send_json_success(array('product_list_html' => $product_list_html, 'template_list_html' => $template_list_html));
+}
+
+// Execute product actions based on the user's selection
 function sip_execute_product_action($action, $selected_products = array()) {
     error_log("sip_execute_product_action called with action: $action");
 
-    $token = get_option('printify_bearer_token');
+    $encrypted_token = get_option('printify_bearer_token');
+    $token = sip_decrypt_token($encrypted_token);
     $shop_id = get_option('sip_printify_shop_id');
 
     // Log token and shop ID
-    error_log('Using API Token: ' . $token);
+    error_log('Using API Token: ' . substr($token, 0, 5) . '***');
     error_log('Using Shop ID: ' . $shop_id);
 
     if ($action === 'reload') {
         error_log('Reloading products from Printify API.');
 
-        $fetched_products = fetch_products($token, $shop_id);
+        $fetched_products = fetch_products($encrypted_token, $shop_id);
 
         if ($fetched_products) {
             update_option('sip_printify_products', $fetched_products);
@@ -126,6 +152,7 @@ function sip_execute_product_action($action, $selected_products = array()) {
     return $products;
 }
 
+// Simulate processing a product with a Python script (placeholder function)
 function process_product_with_python($product_data) {
     error_log('process_product_with_python function called');
     // Simulate running the Python script and getting the processed JSON back
@@ -135,4 +162,3 @@ function process_product_with_python($product_data) {
     $processed_json = $json_input; // Simulating the processed output
     return $processed_json;
 }
-

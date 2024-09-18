@@ -1,84 +1,124 @@
 <?php
-<div class="wrap">
-    <h1>SIP Printify Manager</h1>
+/**
+ * Admin Page View for SiP Printify Manager
+ *
+ * This file contains the HTML and PHP code for rendering the admin page of the SiP Printify Manager plugin.
+ */
+ 
+// Prevent direct access for security
+if (!defined('ABSPATH')) exit;
 
-    <?php if (empty($token)) : ?>
-        <h2>API Token</h2>
-        <form id="save-token-form">
-            <?php wp_nonce_field('sip_printify_manager_nonce_action', 'sip_printify_manager_nonce_name'); ?>
-            <label for="printify_bearer_token">Printify Bearer Token:</label>
-            <input type="text" name="printify_bearer_token" value="" class="regular-text" required/>
-            <input type="submit" name="save_token" value="Save Token" class="button button-primary"/>
-        </form>
-    <?php else : ?>
-        <h2>Authorized</h2>
-        <form id="authorization-form">
-            <?php wp_nonce_field('sip_printify_manager_nonce_action', 'sip_printify_manager_nonce_name'); ?>
-            <input type="submit" name="reauthorize" value="Re-authorize" class="button button-secondary"/>
-            <input type="submit" name="new_token" value="New Token" class="button button-primary"/>
-        </form>
+// Retrieve necessary data
+$token      = get_option('printify_bearer_token');
+$shop_name  = get_option('sip_printify_shop_name');
+$products   = get_option('sip_printify_products');
+$templates  = sip_load_templates();
 
-        <?php if (!empty($shop_name)) : ?>
-            <h2>Shop: <?php echo esc_html($shop_name); ?></h2>
-            <h2>Products</h2>
-            <form id="product-action-form" style="display: flex; align-items: center;">
-                <?php wp_nonce_field('sip_printify_manager_nonce_action', 'sip_printify_manager_nonce_name'); ?>
-                <label for="product_action">Product Actions: </label>
-                <select name="product_action" id="product_action">
-                    <option value="reload">Reload</option>
-                    <option value="create_template">Create Template</option>
-                    <option value="remove_from_manager">Remove from Manager</option>
+// Get the URL to the sip-plugins-core assets directory
+$sip_core_assets_url = plugins_url('sip-plugins-core/assets');
+
+// Alternatively, if the sip-plugins-core plugin defines a constant or function to get its assets URL, use that.
+?>
+<div id="sip-printify-manager-page">
+    <div class="wrap">
+        <!-- Header Section -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h1 style="margin: 0;"><?php esc_html_e('Welcome to SIP Printify Manager!', 'sip-printify-manager'); ?></h1>
+            <div id="button-container" <?php echo empty($token) ? 'style="display:none;"' : ''; ?>>
+                <button id="reauthorize-button" class="button button-secondary"><?php esc_html_e('Re-authorize', 'sip-printify-manager'); ?></button>
+                <button id="new-token-button" class="button button-primary"><?php esc_html_e('New Store Token', 'sip-printify-manager'); ?></button>
+            </div>
+        </div>
+        <hr style="height: 1px; background-color: #000;">
+
+        <!-- Spinner Overlay -->
+        <div id="spinner-overlay" style="display: none;">
+            <img id="spinner" src="<?php echo esc_url($sip_core_assets_url . '/images/spinner.webp'); ?>" alt="<?php esc_attr_e('Loading...', 'sip-printify-manager'); ?>">
+        </div>
+
+        <!-- Auth Container for Token Entry -->
+        <div id="auth-container" <?php echo empty($token) ? '' : 'style="display:none;"'; ?>>
+            <h2><?php esc_html_e("To Begin, We'll Need To Connect Your Printify Account.", 'sip-printify-manager'); ?></h2>
+            <h2><?php esc_html_e("This Will Load Your Store and Its Products Into the Manager. (You should only need to do this once!)", 'sip-printify-manager'); ?></h2>
+            <form id="save-token-form" method="post" action="">
+                <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+                <h2>
+                    <label for="printify_bearer_token"><?php esc_html_e('Printify API Token:', 'sip-printify-manager'); ?></label>
+                    <input type="text" name="printify_bearer_token" id="printify_bearer_token" value="" class="regular-text" required/>
+                    <input type="submit" name="save_token" value="<?php esc_attr_e('Save Token', 'sip-printify-manager'); ?>" class="button button-primary"/>
+                    <img id="spinner" src="<?php echo esc_url($sip_core_assets_url . '/images/spinner.webp'); ?>" style="display: none; width: 20px; height: 20px; vertical-align: middle; margin-left: 10px;">
+                </h2>
+                <hr style="height: 1px; background-color: #000;">
+            </form>
+        </div>
+
+        <!-- Shop Screen (only show if token exists) -->
+        <div id="shop-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>
+            <?php if (!empty($shop_name)) : ?>
+                <h2 style="text-align: center; font-weight: bold; font-size: 32px;">
+                    <a href="https://printify.com/app/store/products/1" target="_blank" style="color: inherit; text-decoration: none;">
+                        <?php echo esc_html($shop_name); ?>
+                    </a>
+                </h2>
+                <hr style="height: 1px; background-color: #000;">
+                <h2><?php esc_html_e('Products', 'sip-printify-manager'); ?></h2>
+                <form id="product-action-form" style="display: flex; align-items: center;" method="post" action="">
+                    <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+                    <label for="product_action"><?php esc_html_e('Product Actions:', 'sip-printify-manager'); ?> </label>
+                    <select name="product_action" id="product_action">
+                        <option value="reload"><?php esc_html_e('Reload', 'sip-printify-manager'); ?></option>
+                        <option value="create_template"><?php esc_html_e('Create Template', 'sip-printify-manager'); ?></option>
+                        <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>
+                    </select>
+                    <input type="submit" name="execute_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" style="margin-left: 10px;" />
+                </form>
+                <div id="product-list">
+                    <?php 
+                    if (!empty($products)) {
+                        sip_display_product_list($products);
+                    } else {
+                        echo '<p>' . esc_html__('No products found.', 'sip-printify-manager') . '</p>';
+                    }
+                    ?>
+                </div>
+            <?php else : ?>
+                <h2><?php esc_html_e('Shop could not be loaded. Please try re-authorizing.', 'sip-printify-manager'); ?></h2>
+            <?php endif; ?>
+        </div>
+
+        <!-- Template Section -->
+        <div id="template-container" <?php echo !empty($templates) && !empty($token) ? '' : 'style="display:none;"'; ?>>
+            <hr style="height: 1px; background-color: #000;">
+            <h2><?php esc_html_e('Templates', 'sip-printify-manager'); ?></h2>
+            <form id="template-action-form" method="post" action="">
+                <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+                <label for="template_action"><?php esc_html_e('Template Actions:', 'sip-printify-manager'); ?> </label>
+                <select name="template_action" id="template_action">
+                    <option value="delete_template"><?php esc_html_e('Delete Template', 'sip-printify-manager'); ?></option>
+                    <option value="rename_template"><?php esc_html_e('Rename Template', 'sip-printify-manager'); ?></option>
+                    <option value="edit_template"><?php esc_html_e('Edit Template', 'sip-printify-manager'); ?></option>
                 </select>
-                <input type="submit" name="execute_action" value="Execute" class="button button-secondary" style="margin-left: 10px;" />
-                
-                <!-- Spinner -->
-                <div id="loading-spinner" style="display: none; margin-left: 10px;">
-                    <img src="<?php echo plugin_dir_url(dirname(__FILE__)); ?>assets/images/spinner.webp" alt="Loading..." width="24" height="24"/>
+                <input type="submit" name="execute_template_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary"/>
+
+                <!-- Rename Template Input -->
+                <div id="rename-template-input" style="display: none; margin-top: 10px;">
+                    <input type="text" name="new_template_name" placeholder="<?php esc_attr_e('New template name', 'sip-printify-manager'); ?>">
                 </div>
             </form>
-            <div id="product-list">
+            <div id="template-list">
                 <?php 
-                if (!empty($products)) {
-                    sip_display_product_list($products);
-                } else {
-                    echo '<p>No products found.</p>';
-                }
+                sip_display_template_list($templates); 
                 ?>
             </div>
-                
-        <?php else : ?>
-            <h2>Shop could not be loaded. Please try re-authorizing.</h2>
-        <?php endif; ?>
-    <?php endif; ?>
-
-    <?php if (!empty($templates)) : ?>
-        <h2>Templates</h2>
-        <form id="template-action-form">
-            <?php wp_nonce_field('sip_printify_manager_nonce_action', 'sip_printify_manager_nonce_name'); ?>
-            <label for="template_action">Template Actions: </label>
-            <select name="template_action" id="template_action">
-                <option value="delete_template">Delete Template</option>
-                <option value="rename_template">Rename Template</option>
-                <option value="edit_template">Edit Template</option>
-            </select>
-            <input type="submit" name="execute_template_action" value="Execute" class="button button-secondary"/>
-            <div id="rename-template-input" style="display: none; margin-top: 10px;">
-                <input type="text" name="new_template_name" placeholder="New template name">
-            </div>
-        </form>
-        <div id="template-list">
-            <?php sip_display_template_list($templates); ?>
-        </div>
-        <div id="template-editor" style="display: none; margin-top: 20px;">
-            <h3>Edit Template: <span id="editing-template-name"></span></h3>
-            <textarea id="template-content" rows="20" style="width: 100%;"></textarea>
-            <div style="margin-top: 10px;">
-                <button id="close-editor" class="button">Close</button>
-                <button id="revert-changes" class="button">Revert Changes</button>
-                <button id="save-template" class="button button-primary">Save Changes</button>
+            <div id="template-editor" style="display: none; margin-top: 20px;">
+                <h3><?php esc_html_e('Edit Template:', 'sip-printify-manager'); ?> <span id="editing-template-name"></span></h3>
+                <textarea id="template-content" rows="20" style="width: 100%;"></textarea>
+                <div style="margin-top: 10px;">
+                    <button id="close-editor" class="button"><?php esc_html_e('Close', 'sip-printify-manager'); ?></button>
+                    <button id="revert-changes" class="button"><?php esc_html_e('Revert Changes', 'sip-printify-manager'); ?></button>
+                    <button id="save-template" class="button button-primary"><?php esc_html_e('Save Changes', 'sip-printify-manager'); ?></button>
+                </div>
             </div>
         </div>
-    <?php else : ?>
-        <h2>No templates found.</h2>
-    <?php endif; ?>
+    </div>
 </div>
