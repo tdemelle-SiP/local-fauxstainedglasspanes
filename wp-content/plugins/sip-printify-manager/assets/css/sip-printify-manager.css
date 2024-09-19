@@ -41,3 +41,26 @@
     display: none !important;
 }
 
+#sip-printify-manager-page table td, table th {
+    padding: 2px;
+}
+
+/* Center align headers except for Filename */
+#sip-printify-manager-page table th {
+    text-align: center;
+}
+
+#sip-printify-manager-page table th:nth-child(3) {
+    text-align: left;
+}
+
+/* Ensure the image list container does not have overflow */
+#image-list {
+    overflow: hidden;
+}
+
+/* Adjust the table container to handle scrolling */
+#image-list > div {
+    max-height: 400px; /* Set a maximum height if desired */
+    overflow-y: auto;
+}

@@ -1,8 +1,8 @@
 <?php
 /*
 Plugin Name: SiP Printify Manager
-Description: A plugin to help manage your Printify Shop and its Products
-Version: 2.0
+Description: A plugin to help manage your Printify Shop, Products, and Images
+Version: 2.1
 Author: Stuff is Parts, LLC
 */
 
@@ -18,6 +18,7 @@ if (!defined('ABSPATH')) exit;
  * The core functionality is offloaded to specialized PHP files located in the 'includes' and 'views' directories:
  * - 'includes/shop-functions.php' handles shop-related functionalities like token management and encryption.
  * - 'includes/product-functions.php' manages product-related actions.
+ * - 'includes/image-functions.php' manages image-related actions.
  * - 'includes/template-functions.php' deals with template management.
  * - 'views/admin-page.php' contains the HTML and PHP code for rendering the plugin's admin page.
  *
@@ -41,6 +42,7 @@ require_once(WP_PLUGIN_DIR . '/sip-plugins-core/sip-plugin-framework.php');
  */
 require_once plugin_dir_path(__FILE__) . 'includes/shop-functions.php';      // Shop-related functions
 require_once plugin_dir_path(__FILE__) . 'includes/product-functions.php';   // Product-related functions
+require_once plugin_dir_path(__FILE__) . 'includes/image-functions.php';     // Image-related functions
 require_once plugin_dir_path(__FILE__) . 'includes/template-functions.php';  // Template-related functions
 
 /**
@@ -70,6 +72,9 @@ class SiP_Printify_Manager {
         // Handle AJAX requests
         // The actual AJAX handler functions are offloaded to specialized files
         add_action('wp_ajax_sip_handle_ajax_request', 'sip_handle_ajax_request');
+
+        // Handle AJAX requests for image uploads
+        add_action('wp_ajax_sip_upload_images', 'sip_handle_image_upload');
 
         // Register the shortcode for displaying products (if needed)
         // The rendering function can be offloaded if it grows in complexity
@@ -108,8 +113,15 @@ class SiP_Printify_Manager {
         wp_enqueue_script('sip-printify-manager-script', plugin_dir_url(__FILE__) . 'assets/js/sip-printify-manager.js', array('jquery'), null, true);
         wp_enqueue_script('sip-ajax-script', plugin_dir_url(__FILE__) . 'assets/js/sip-ajax.js', array('jquery'), null, true);
 
+        // Enqueue scripts for drag and drop file upload
+        wp_enqueue_script('sip-drag-drop-upload', plugin_dir_url(__FILE__) . 'assets/js/sip-drag-drop-upload.js', array('jquery'), null, true);
+
         // Localize script to pass AJAX URL and nonce
         wp_localize_script('sip-ajax-script', 'sipAjax', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce'    => wp_create_nonce('sip_printify_manager_nonce')
+        ));
+        wp_localize_script('sip-drag-drop-upload', 'sipAjax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce'    => wp_create_nonce('sip_printify_manager_nonce')
         ));
@@ -217,6 +229,20 @@ function sip_handle_ajax_request() {
              * This includes reloading products, creating templates, and removing products from the manager.
              */
             sip_handle_product_action();
+            break;
+        case 'image_action':
+            /**
+             * Image-related actions are handled in 'includes/image-functions.php'.
+             * This includes reloading images, uploading images, and removing images from the manager.
+             */
+            sip_handle_image_action();
+            break;
+        case 'upload_images':
+            /**
+             * Handling image uploads is in 'includes/image-functions.php'.
+             * This function processes images uploaded via drag-and-drop or file selection.
+             */
+            sip_handle_image_upload();
             break;
         case 'template_action':
             /**

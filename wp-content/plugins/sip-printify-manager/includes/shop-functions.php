@@ -47,6 +47,8 @@ function sip_connect_shop() {
 /**
  * Save the Printify API token and store shop details.
  */
+// includes/shop-functions.php
+
 function sip_save_token() {
     $token = sanitize_text_field($_POST['printify_bearer_token']);
     $shop_details = fetch_shop_details($token);
@@ -55,11 +57,25 @@ function sip_save_token() {
         update_option('printify_bearer_token', $encrypted_token);
         update_option('sip_printify_shop_name', $shop_details['shop_name']);
         update_option('sip_printify_shop_id', $shop_details['shop_id']);
+
+        // Fetch and store images
+        $images = fetch_images($token);
+        if ($images) {
+            update_option('sip_printify_images', $images);
+        }
+
+        // Fetch and store products
+        $products = fetch_products($encrypted_token, $shop_details['shop_id']);
+        if ($products) {
+            update_option('sip_printify_products', $products);
+        }
+
         wp_send_json_success('Token saved and connection successful.');
     } else {
         wp_send_json_error('Invalid API token. Please check and try again.');
     }
 }
+
 
 /**
  * Reauthorize the connection by refreshing shop details using the stored token.
@@ -80,14 +96,32 @@ function sip_reauthorize() {
 
 /**
  * Reset the API token and associated shop details.
+ * Only remote images are removed; local images remain in the database.
  */
 function sip_new_token() {
     delete_option('printify_bearer_token');  // Clear the API token
     delete_option('sip_printify_shop_name'); // Clear the saved shop name
     delete_option('sip_printify_shop_id');   // Clear the saved shop ID
+    delete_option('sip_printify_products');  // Clear the products
+
+    // Retrieve existing images
+    $images = get_option('sip_printify_images', array());
+
+    // Check if images are not empty
+    if (!empty($images)) {
+        // Filter out remote images (keep only local images)
+        $local_images = array_filter($images, function($image) {
+            // Check if 'location' key exists and is set to 'Local'
+            return isset($image['location']) && $image['location'] === 'Local';
+        });
+
+        // Update the images option with only local images
+        update_option('sip_printify_images', $local_images);
+    }
 
     wp_send_json_success('Token reset successfully.');
 }
+
 
 /**
  * Generate and store the encryption key if it doesn't already exist.
