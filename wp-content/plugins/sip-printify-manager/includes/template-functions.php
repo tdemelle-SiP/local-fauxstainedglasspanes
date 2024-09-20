@@ -3,10 +3,14 @@
 /**
  * Save a product template to the custom directory.
  *
+ * This function saves the given product data as a JSON file in the custom templates directory.
+ * If the directory does not exist, it will be created. The function also handles duplicate file names.
+ *
  * @param array $product The product data to save as a template.
  * @param string $template_name The name of the template.
  */
 function sip_save_template($product, $template_name) {
+    // Get the WordPress upload directory
     $upload_dir = wp_upload_dir();
     $template_dir = $upload_dir['basedir'] . '/sip-printify-manager/templates/';
 
@@ -40,9 +44,12 @@ function sip_save_template($product, $template_name) {
 /**
  * Load all available templates from the custom directory.
  *
+ * This function scans the templates directory and returns an array of template names.
+ *
  * @return array List of template names.
  */
 function sip_load_templates() {
+    // Get the WordPress upload directory
     $upload_dir = wp_upload_dir();
     $template_dir = $upload_dir['basedir'] . '/sip-printify-manager/templates/';
 
@@ -61,6 +68,8 @@ function sip_load_templates() {
 /**
  * Get the template directory path.
  *
+ * This function returns the full path to the template directory.
+ *
  * @return string The path to the template directory.
  */
 function sip_get_template_dir() {
@@ -72,25 +81,42 @@ function sip_get_template_dir() {
 /**
  * Display the list of templates in the WordPress admin interface.
  *
+ * This function outputs the list of templates as a table with a sticky header.
+ * The header includes a select-all checkbox and a label "Template Name".
+ *
  * @param array $templates List of template names to display.
  */
 function sip_display_template_list($templates) {
     if (empty($templates)) {
         echo '<p>No templates found.</p>';
     } else {
-        echo '<ul>';
+        echo '<table style="width: 100%; border-collapse: collapse;">';
+        echo '<thead style="position: sticky; top: 0; background-color: #fff; border-bottom: 2px solid #ccc;">';
+        echo '<tr>';
+        echo '<th style="padding: 10px; text-align: left;">';
+        echo '<input type="checkbox" id="select-all-templates"> ';
+        echo esc_html__('Template Name', 'sip-printify-manager');
+        echo '</th>';
+        echo '</tr>';
+        echo '</thead>';
+        echo '<tbody>';
         foreach ($templates as $template) {
-            echo '<li>';
+            echo '<tr>';
+            echo '<td style="padding: 10px; border-bottom: 1px solid #ccc;">';
             echo '<input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '"> ';
             echo esc_html($template);
-            echo '</li>';
+            echo '</td>';
+            echo '</tr>';
         }
-        echo '</ul>';
+        echo '</tbody>';
+        echo '</table>';
     }
 }
 
 /**
  * Delete a specific template by name.
+ *
+ * This function deletes the specified template file from the template directory.
  *
  * @param string $template_name The name of the template to delete.
  * @return bool True on success, false on failure.
@@ -118,6 +144,8 @@ function sip_delete_template($template_name) {
 /**
  * Rename a specific template.
  *
+ * This function renames the specified template file in the template directory.
+ *
  * @param string $old_name The current name of the template.
  * @param string $new_name The new name to assign to the template.
  * @return bool True on success, false on failure.
@@ -143,6 +171,8 @@ function sip_rename_template($old_name, $new_name) {
 
 /**
  * Handle template actions triggered via AJAX.
+ *
+ * This function handles actions like deleting, editing, or renaming templates based on AJAX requests.
  */
 function sip_handle_template_action() {
     $template_action = sanitize_text_field($_POST['action_type']); // Changed 'template_action' to 'action_type'
@@ -189,6 +219,8 @@ function sip_handle_template_action() {
 
 /**
  * Save the edited template content from the template editor.
+ *
+ * This function saves the edited template content back to the JSON file.
  */
 function sip_save_template_content() {
     $template_name    = sanitize_text_field($_POST['template_name']);

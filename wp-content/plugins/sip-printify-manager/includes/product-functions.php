@@ -14,6 +14,8 @@ function fetch_products($encrypted_token, $shop_id) {
     // Decrypt the token before using it
     $token = sip_decrypt_token($encrypted_token);
     
+    error_log('shop_id:' . ($shop_id));   
+    
     $url = "https://api.printify.com/v1/shops/{$shop_id}/products.json";
 
     $response = wp_remote_get($url, array(
@@ -29,6 +31,12 @@ function fetch_products($encrypted_token, $shop_id) {
 
     $body = wp_remote_retrieve_body($response);
     $products = json_decode($body, true);
+
+    // Ensure that $products is an array
+    if (!is_array($products)) {
+        error_log('fetch_products: $products is not an array');
+        return null;
+    }
 
     if (empty($products) || !isset($products['data'])) {
         error_log('fetch_products received empty or invalid data');
@@ -51,6 +59,9 @@ function sip_display_product_list($products) {
         return;
     }
 
+    // Filter out any non-array elements
+    $products = array_filter($products, 'is_array');
+
     echo '<div style="overflow-y: auto;">';
     echo '<table style="width: 100%; border-collapse: collapse; table-layout: fixed;">';
 
@@ -71,6 +82,12 @@ function sip_display_product_list($products) {
     // Table Body
     echo '<tbody>';
     foreach ($products as $product) {
+        // Add type check and error logging
+        if (!is_array($product)) {
+            error_log('Expected $product to be an array, but got: ' . gettype($product));
+            continue; // Skip processing this item
+        }
+        
         echo '<tr>';
         echo '<td style="text-align: center; padding: 2px;"><input type="checkbox" name="selected_products[]" value="' . esc_attr($product['id']) . '" /></td>';
         echo '<td style="text-align: left; padding: 2px;">' . esc_html($product['title']) . '</td>';
@@ -81,6 +98,8 @@ function sip_display_product_list($products) {
     echo '</table>';
     echo '</div>';
 }
+
+
 
 // Handle product actions triggered via AJAX
 function sip_handle_product_action() {

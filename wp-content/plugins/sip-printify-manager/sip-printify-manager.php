@@ -209,13 +209,6 @@ function sip_handle_ajax_request() {
              */
             sip_save_token();
             break;
-        case 'reauthorize':
-            /**
-             * Reauthorization logic is in 'includes/shop-functions.php'.
-             * It refreshes the shop details using the stored token.
-             */
-            sip_reauthorize();
-            break;
         case 'new_token':
             /**
              * Token reset functionality is in 'includes/shop-functions.php'.
