@@ -52,12 +52,27 @@ function sip_execute_image_action($action, $selected_images = array()) {
     $images = get_option('sip_printify_images', array());
 
     if ($action === 'reload_shop_images') {
-        $images = fetch_images($token);
-        if ($images) {
+        // Fetch images from Printify API
+        $remote_images = fetch_images($token);
+
+        if ($remote_images !== null) {
+            // Get existing images from options
+            $existing_images = get_option('sip_printify_images', array());
+
+            // Separate local images from existing images
+            $local_images = array_filter($existing_images, function($image) {
+                return isset($image['location']) && $image['location'] === 'Local';
+            });
+
+            // Merge local images with newly fetched remote images
+            $images = array_merge($local_images, $remote_images);
+
+            // Update the images option with the merged array
             update_option('sip_printify_images', $images);
+
             return array('images' => $images, 'message' => 'Shop images reloaded successfully.');
         } else {
-            return array('images' => array(), 'message' => 'Failed to reload shop images.');
+            return array('images' => $images, 'message' => 'Failed to reload shop images.');
         }
     }
 
@@ -74,7 +89,7 @@ function sip_execute_image_action($action, $selected_images = array()) {
         $uploaded_images = array();
         $already_in_shop = array();
         $errors = array();
-
+    
         foreach ($selected_images as $image_id) {
             // Find the image in the images array
             foreach ($images as &$image) {
@@ -85,7 +100,7 @@ function sip_execute_image_action($action, $selected_images = array()) {
                         if ($upload_result['success']) {
                             // Update image data with new info from shop
                             $image = array_merge($image, $upload_result['image_data']);
-                            $image['location'] = 'Remote';
+                            $image['location'] = 'Remote'; // Update location
                             $uploaded_images[] = $image['file_name'];
                         } else {
                             $errors[] = $upload_result['message'];
@@ -97,11 +112,11 @@ function sip_execute_image_action($action, $selected_images = array()) {
                 }
             }
         }
-
-        // Update images option
+    
+        // Update images option with the modified images array
         update_option('sip_printify_images', $images);
-
-        // Prepare message
+    
+        // Prepare the response message
         $message = '';
         if (!empty($uploaded_images)) {
             $message .= 'Uploaded images: ' . implode(', ', $uploaded_images) . '. ';
@@ -112,7 +127,7 @@ function sip_execute_image_action($action, $selected_images = array()) {
         if (!empty($errors)) {
             $message .= 'Errors: ' . implode(' ', $errors);
         }
-
+    
         return array('images' => $images, 'message' => $message);
     }
 
@@ -221,8 +236,6 @@ function fetch_images($token) {
 /**
  * Display the Image List in the Admin Interface
  *
- * This function generates the HTML table to display the list of images in the admin interface.
- *
  * @param array $images The array of images to display.
  */
 function sip_display_image_list($images) {
@@ -231,35 +244,65 @@ function sip_display_image_list($images) {
         return;
     }
 
-    echo '<div style="overflow-y: auto; border: 1px solid #ccc; padding: 10px;">';
-    echo '<table style="width: 100%; border-collapse: collapse;">';
-    echo '<tr>';
-    echo '<th style="text-align: center;">Select</th>';
-    echo '<th style="text-align: center;">Thumb</th>';
-    echo '<th style="text-align: left;">Filename</th>';
-    echo '<th style="text-align: center;">Location</th>';
-    echo '<th style="text-align: center;">Uploaded</th>';
-    echo '<th style="text-align: center;">Dimensions</th>';
-    echo '<th style="text-align: center;">Size</th>';
-    echo '</tr>';
+    echo '<div style="overflow-y: auto;">';
+    echo '<table style="width: 100%; border-collapse: collapse; table-layout: fixed;">';
 
+    // Define column widths to prevent horizontal scrollbar
+    echo '<colgroup>';
+    echo '<col style="width: 5%;">';   // Select checkbox
+    echo '<col style="width: 10%;">';  // Thumbnail
+    echo '<col style="width: 35%;">';  // Filename
+    echo '<col style="width: 10%;">';  // Location
+    echo '<col style="width: 15%;">';  // Uploaded
+    echo '<col style="width: 10%;">';  // Dimensions
+    echo '<col style="width: 15%;">';  // Size
+    echo '</colgroup>';
+
+    // Table Header
+    echo '<thead>';
+    echo '<tr>';
+    // Select all checkbox in header
+    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-images"></th>';
+    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;">Thumb</th>';
+    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: left; padding: 2px;">Filename</th>';
+    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;">Location</th>';
+    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;">Uploaded</th>';
+    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;">Dimensions</th>';
+    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;">Size</th>';
+    echo '</tr>';
+    echo '</thead>';
+
+
+    // Table Body
+    echo '<tbody>';  
     foreach ($images as $image) {
         // Ensure 'location' key exists
         $location = isset($image['location']) ? $image['location'] : 'Unknown';
-        $upload_time = isset($image['upload_time']) ? esc_html(date('y_m_d H:i', strtotime($image['upload_time']))) : '';
+        // Format upload time as "24_09_02 1:25pm"
+        $upload_time = isset($image['upload_time']) ? date('y_m_d g:ia', strtotime($image['upload_time'])) : '';
         $dimensions = isset($image['width']) && isset($image['height']) ? esc_html($image['width']) . 'x' . esc_html($image['height']) : '';
         $size = isset($image['size']) ? esc_html(format_file_size($image['size'])) : '';
-
-        echo '<tr>';
+    
+        // Use full filename without truncation
+        $filename = esc_html($image['file_name']);
+    
+        echo '<tr title="' . esc_attr($filename) . '">';
         echo '<td style="text-align: center; padding: 2px;"><input type="checkbox" name="selected_images[]" value="' . esc_attr($image['id']) . '" /></td>';
-        echo '<td style="text-align: center; padding: 2px;"><img src="' . esc_url($image['preview_url']) . '" alt="" style="width: 50px; height: auto;"></td>';
-        echo '<td style="text-align: left; padding: 2px;">' . esc_html($image['file_name']) . '</td>';
+        // Link the thumbnail to the preview image with cursor pointer
+        echo '<td style="text-align: center; padding: 2px;">
+                <a href="' . esc_url($image['preview_url']) . '" target="_blank">
+                    <img src="' . esc_url($image['preview_url']) . '" alt="' . esc_attr($filename) . '" style="width: 50px; height: auto; cursor: pointer;">
+                </a>
+              </td>';
+        echo '<td style="text-align: left; padding: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' . $filename . '</td>';
         echo '<td style="text-align: center; padding: 2px;">' . esc_html($location) . '</td>';
         echo '<td style="text-align: center; padding: 2px;">' . $upload_time . '</td>';
         echo '<td style="text-align: center; padding: 2px;">' . $dimensions . '</td>';
         echo '<td style="text-align: center; padding: 2px;">' . $size . '</td>';
         echo '</tr>';
     }
+    echo '</tbody>';
+    
 
     echo '</table>';
     echo '</div>';
@@ -278,6 +321,7 @@ function format_file_size($bytes) {
         return number_format($bytes / 1024, 2) . ' kB';
     }
 }
+
 
 /**
  * Handle Image Uploads via AJAX

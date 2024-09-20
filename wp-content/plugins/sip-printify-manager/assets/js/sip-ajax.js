@@ -1,8 +1,24 @@
 // assets/js/sip-ajax.js
 
+/**
+ * SIP Printify Manager JavaScript
+ *
+ * This file contains the JavaScript code that handles AJAX interactions,
+ * form submissions, and user interface behaviors for the SIP Printify Manager plugin.
+ */
+
 jQuery(document).ready(function ($) {
     // Store the original content of the template editor for reverting changes
     var originalContent = '';
+
+    // Add tooltip and pointer cursor to thumbnail images
+    $('#image-list tr td:first-child img').each(function() {
+        var fullTitle = $(this).attr('alt');
+        if (fullTitle) {
+            $(this).attr('title', fullTitle);
+            $(this).css('cursor', 'pointer');
+        }
+    });
 
     /**
      * Reusable function to handle AJAX requests for various actions.
@@ -29,7 +45,7 @@ jQuery(document).ready(function ($) {
             url: sipAjax.ajax_url,
             type: 'POST',
             data: formData,
-            processData: false, // Don't process the files
+            processData: false, // Don't process the files (important for file uploads)
             contentType: false, // Let jQuery set the content type
             success: function (response) {
                 // Re-enable the button
@@ -50,31 +66,8 @@ jQuery(document).ready(function ($) {
                             break;
 
                         case 'new_token':
-                            // Start the spinner overlay before making any changes
-                            $('#spinner-overlay').show();
-
-                            // Use AJAX to send the request to delete the token
-                            $.ajax({
-                                url: sipAjax.ajax_url,
-                                type: 'POST',
-                                data: {
-                                    action: 'sip_handle_ajax_request',
-                                    action_type: 'new_token',
-                                    nonce: sipAjax.nonce
-                                },
-                                success: function (response) {
-                                    if (response.success) {
-                                        // Reload the page to show the auth page
-                                        location.reload();
-                                    } else {
-                                        alert('Failed to reset the token. Please try again.');
-                                    }
-                                },
-                                error: function () {
-                                    alert('An error occurred. Please try again.');
-                                }
-                            });
-
+                            // Reload the page to show the auth page
+                            location.reload();
                             break;
 
                         case 'product_action':
@@ -87,9 +80,33 @@ jQuery(document).ready(function ($) {
                             }
                             // Uncheck all selected products
                             $('input[name="selected_products[]"]').prop('checked', false);
+                            // Uncheck the select all checkbox
+                            $('#select-all-products').prop('checked', false);
                             $('#spinner-overlay').hide(); // Hide spinner overlay after update
                             break;
 
+                        case 'image_action':
+                            // Update the image list if available
+                            if (response.data.image_list_html) {
+                                $('#image-list').html(response.data.image_list_html).show();
+                            }
+                            // Uncheck all selected images
+                            $('input[name="selected_images[]"]').prop('checked', false);
+                            // Uncheck the select all checkbox
+                            $('#select-all-images').prop('checked', false);
+                            $('#spinner-overlay').hide(); // Hide spinner overlay after update
+                            break;
+    
+                        case 'upload_images':
+                            // Images uploaded successfully
+                            if (response.data.image_list_html) {
+                                $('#image-list').html(response.data.image_list_html).show();
+                            }
+                            // Clear the file input
+                            $('#image-file-input').val('');
+                            $('#spinner-overlay').hide(); // Hide spinner overlay after upload
+                            break;
+    
                         case 'template_action':
                             // Handle editing a template
                             if (formData.get('template_action') === 'edit_template') {
@@ -107,44 +124,25 @@ jQuery(document).ready(function ($) {
                                     $('#template-list').html(response.data.template_list_html).show();
                                 }
                                 $('input[name="selected_templates[]"]').prop('checked', false);
+                                // Uncheck the select all checkbox
+                                $('#select-all-templates').prop('checked', false);
                             }
                             $('#spinner-overlay').hide(); // Hide spinner overlay after update
                             break;
 
                         case 'save_template':
                             // Template saved successfully
-                            alert('Template saved successfully.');
+                            // Optionally display a message in a message area
+                            $('#message-area').text('Template saved successfully.').show();
                             $('#template-editor').hide();
                             $('#spinner-overlay').hide(); // Hide spinner overlay after saving
                             break;
 
-                        case 'image_action':
-                            // Update the image list if available
-                            if (response.data.image_list_html) {
-                                $('#image-list').html(response.data.image_list_html).show();
-                            }
-                            // Uncheck all selected images
-                            $('input[name="selected_images[]"]').prop('checked', false);
-                            $('#spinner-overlay').hide(); // Hide spinner overlay after update
-                            break;
-
-                        case 'upload_images':
-                            // Images uploaded successfully
-                            if (response.data.image_list_html) {
-                                $('#image-list').html(response.data.image_list_html).show();
-                            }
-                            // Clear the file input
-                            $('#image-file-input').val('');
-                            $('#spinner-overlay').hide(); // Hide spinner overlay after upload
-                            break;
-
                         default:
-                            alert('Unknown action type');
                             $('#spinner-overlay').hide(); // Hide spinner overlay on error
                     }
                 } else {
                     // Handle errors
-                    alert('Error: ' + response.data);
                     $('#spinner-overlay').hide(); // Hide spinner overlay on error
                 }
             },
@@ -157,7 +155,8 @@ jQuery(document).ready(function ($) {
                     $(spinnerSelector).hide();
                 }
                 $('#spinner-overlay').hide(); // Hide global spinner overlay on error
-                alert('An error occurred. Please try again.');
+                // Optionally display a generic error message
+                $('#message-area').text('An error occurred. Please try again.').show();
             }
         });
     }
@@ -192,9 +191,10 @@ jQuery(document).ready(function ($) {
             case 'template-action-form':
                 actionType = 'template_action';
                 // Collect selected templates
-                var selectedTemplates = $('input[name="selected_templates[]"]:checked').map(function () {
-                    return this.value;
-                }).get();
+                var selectedTemplates = [];
+                $('input[name="selected_templates[]"]:checked').each(function () {
+                    selectedTemplates.push($(this).val());
+                });
                 formData.delete('selected_templates[]');
                 selectedTemplates.forEach(function (templateId) {
                     formData.append('selected_templates[]', templateId);
@@ -227,7 +227,7 @@ jQuery(document).ready(function ($) {
      * Handle New Store Token button click.
      * Sends an AJAX request to reset the token and reloads the page.
      */
-    $('#new-token-button').click(function (e) {
+    $('#new-token-button').on('click', function (e) {
         e.preventDefault();
 
         var formData = new FormData();
@@ -314,7 +314,7 @@ jQuery(document).ready(function ($) {
     /**
      * Trigger the hidden file input when the "Select Images" button is clicked.
      */
-    $('#select-images-button').off('click').on('click', function (e) {
+    $('#select-images-button').on('click', function (e) {
         e.preventDefault();
         $('#image-file-input').trigger('click');
     });
@@ -323,7 +323,7 @@ jQuery(document).ready(function ($) {
      * Handle file selection from the file input.
      * Processes the selected files.
      */
-    $('#image-file-input').off('change').on('change', function (e) {
+    $('#image-file-input').on('change', function (e) {
         var files = e.target.files;
         handleImageUpload(files);
     });
@@ -350,6 +350,49 @@ jQuery(document).ready(function ($) {
         handleAjaxAction('upload_images', formData, null, null);
     }
 
-    // Additional event handlers for image actions can be added here if needed
+    /**
+     * Select All / Deselect All functionality for images.
+     * When the select-all checkbox is changed, all individual image checkboxes are set accordingly.
+     */
+    $(document).on('change', '#select-all-images', function () {
+        var isChecked = $(this).is(':checked');
+        $('input[name="selected_images[]"]').prop('checked', isChecked);
+    });
 
+    /**
+     * Ensure that if any individual image checkbox is unchecked, the select-all checkbox is also unchecked.
+     */
+    $(document).on('change', 'input[name="selected_images[]"]', function () {
+        if (!$(this).is(':checked')) {
+            $('#select-all-images').prop('checked', false);
+        } else {
+            // If all individual checkboxes are checked, check the select-all checkbox
+            if ($('input[name="selected_images[]"]:checked').length === $('input[name="selected_images[]"]').length) {
+                $('#select-all-images').prop('checked', true);
+            }
+        }
+    });
+
+    /**
+     * Select All / Deselect All functionality for products.
+     * When the select-all checkbox is changed, all individual product checkboxes are set accordingly.
+     */
+    $(document).on('change', '#select-all-products', function () {
+        var isChecked = $(this).is(':checked');
+        $('input[name="selected_products[]"]').prop('checked', isChecked);
+    });
+
+    /**
+     * Ensure that if any individual product checkbox is unchecked, the select-all checkbox is also unchecked.
+     */
+    $(document).on('change', 'input[name="selected_products[]"]', function () {
+        if (!$(this).is(':checked')) {
+            $('#select-all-products').prop('checked', false);
+        } else {
+            // If all individual checkboxes are checked, check the select-all checkbox
+            if ($('input[name="selected_products[]"]:checked').length === $('input[name="selected_products[]"]').length) {
+                $('#select-all-products').prop('checked', true);
+            }
+        }
+    });
 });

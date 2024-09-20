@@ -59,8 +59,33 @@
     overflow: hidden;
 }
 
+#image-list tr:hover {
+    cursor: default;
+}
+
 /* Adjust the table container to handle scrolling */
 #image-list > div {
     max-height: 400px; /* Set a maximum height if desired */
     overflow-y: auto;
+}
+
+#image-list tr td:first-child img {
+    cursor: pointer;
+}
+
+#image-list tr:hover {
+    cursor: default;
+}
+
+#image-list tr td:first-child img:hover::after {
+    content: attr(title);
+    position: absolute;
+    background-color: #333;
+    color: #fff;
+    padding: 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+    transform: translateY(-100%);
+    margin-top: -5px;
+    z-index: 10;
 }

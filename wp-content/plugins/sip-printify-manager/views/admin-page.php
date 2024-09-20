@@ -68,7 +68,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         <!-- Products and Images Section -->
         <div id="products-images-container" style="display: flex; justify-content: space-between;">
             <!-- Products Section -->
-            <div id="products-section" style="width: 40%; padding-right: 10px;">
+            <div id="products-section" style="width: 30%; padding-right: 10px;">
                 <h2><?php esc_html_e('Products', 'sip-printify-manager'); ?></h2>
                 <form id="product-action-form" style="display: flex; align-items: center;" method="post" action="">
                     <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
@@ -80,7 +80,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                     </select>
                     <input type="submit" name="execute_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" style="margin-left: 10px;" />
                 </form>
-                <div id="product-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+                <div id="product-list" style="overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
                     <?php 
                     if (!empty($products)) {
                         sip_display_product_list($products);
@@ -92,7 +92,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
             </div>
 
             <!-- Images Section -->
-            <div id="images-section" style="width: 60%; padding-left: 10px;">
+            <div id="images-section" style="width: 70%; padding-left: 10px;">
                 <h2><?php esc_html_e('Images', 'sip-printify-manager'); ?></h2>
                 <form id="image-action-form" style="display: flex; align-items: center;" method="post" action="">
                     <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>

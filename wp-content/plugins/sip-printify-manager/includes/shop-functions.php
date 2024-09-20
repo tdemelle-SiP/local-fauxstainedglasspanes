@@ -59,38 +59,35 @@ function sip_save_token() {
         update_option('sip_printify_shop_id', $shop_details['shop_id']);
 
         // Fetch and store images
-        $images = fetch_images($token);
-        if ($images) {
+        $remote_images = fetch_images($token);
+        if ($remote_images !== null) {
+            // Get existing images from options
+            $existing_images = get_option('sip_printify_images', array());
+
+            // Separate local images from existing images
+            $local_images = array_filter($existing_images, function($image) {
+                return isset($image['location']) && $image['location'] === 'Local';
+            });
+
+            // Merge local images with newly fetched remote images
+            $images = array_merge($local_images, $remote_images);
+
+            // Update the images option with the merged array
             update_option('sip_printify_images', $images);
         }
 
         // Fetch and store products
-        $products = fetch_products($encrypted_token, $shop_details['shop_id']);
+        $encrypted_token = get_option('printify_bearer_token');
+        $shop_id = get_option('sip_printify_shop_id');
+        $products = fetch_products($encrypted_token, $shop_id);
         if ($products) {
             update_option('sip_printify_products', $products);
         }
+        
 
         wp_send_json_success('Token saved and connection successful.');
     } else {
         wp_send_json_error('Invalid API token. Please check and try again.');
-    }
-}
-
-
-/**
- * Reauthorize the connection by refreshing shop details using the stored token.
- */
-function sip_reauthorize() {
-    $encrypted_token = get_option('printify_bearer_token');
-    $token = sip_decrypt_token($encrypted_token);
-    $shop_details = fetch_shop_details($token);
-
-    if ($shop_details) {
-        update_option('sip_printify_shop_name', $shop_details['shop_name']);
-        update_option('sip_printify_shop_id', $shop_details['shop_id']);
-        wp_send_json_success('Reauthorized successfully.');
-    } else {
-        wp_send_json_error('Failed to reauthorize. Please check your API token.');
     }
 }
 

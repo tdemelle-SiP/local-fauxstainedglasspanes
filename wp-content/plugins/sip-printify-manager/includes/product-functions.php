@@ -1,4 +1,13 @@
 <?php
+/**
+ * Product-related Functions for SiP Printify Manager
+ *
+ * This file contains functions that handle product-related actions such as displaying the product list.
+ */
+
+// Prevent direct access to this file for security reasons
+if (!defined('ABSPATH')) exit;
+
 
 // Fetch products directly from Printify API using the Bearer token
 function fetch_products($encrypted_token, $shop_id) {
@@ -31,29 +40,46 @@ function fetch_products($encrypted_token, $shop_id) {
 }
 
 
-// Display product list in the WordPress admin
+/**
+ * Display the Product List in the Admin Interface
+ *
+ * @param array $products The array of products to display.
+ */
 function sip_display_product_list($products) {
     if (empty($products)) {
-        error_log('sip_display_product_list found no products');
         echo '<p>No products found.</p>';
         return;
     }
 
-    echo '<div style="max-height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">';
-    echo '<ul style="list-style-type: none; padding-left: 0;">';
-    
+    echo '<div style="overflow-y: auto;">';
+    echo '<table style="width: 100%; border-collapse: collapse; table-layout: fixed;">';
+
+    // Define column widths to prevent horizontal scrollbar
+    echo '<colgroup>';
+    echo '<col style="width: 5%;">';   // Select checkbox
+    echo '<col style="width: 95%;">';  // Product Name
+    echo '</colgroup>';
+
+    // Table Header
+    echo '<thead>';
+    echo '<tr>';
+    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-products"></th>';
+    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: left; padding: 2px;">Product Name</th>';
+    echo '</tr>';
+    echo '</thead>';
+
+    // Table Body
+    echo '<tbody>';
     foreach ($products as $product) {
-        $product_url = isset($product['external']['handle']) ? esc_url($product['external']['handle']) : '#';
-        echo '<li style="margin-bottom: 10px; display: flex; align-items: center;">';
-        echo '<input type="checkbox" name="selected_products[]" value="' . esc_attr($product['id']) . '" style="margin-right: 10px;" />';
-        echo '<a href="' . $product_url . '" target="_blank"><strong>' . esc_html($product['title']) . '</strong></a>';
-        echo '</li>';
+        echo '<tr>';
+        echo '<td style="text-align: center; padding: 2px;"><input type="checkbox" name="selected_products[]" value="' . esc_attr($product['id']) . '" /></td>';
+        echo '<td style="text-align: left; padding: 2px;">' . esc_html($product['title']) . '</td>';
+        echo '</tr>';
     }
+    echo '</tbody>';
 
-    echo '</ul>';
+    echo '</table>';
     echo '</div>';
-
-    error_log('sip_display_product_list completed displaying products');
 }
 
 // Handle product actions triggered via AJAX

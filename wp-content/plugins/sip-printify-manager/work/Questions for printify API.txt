@@ -1,0 +1,9 @@
+Questions for printify API
+
+is there a way to fetch templates using the API?
+
+is there a limit to the number of files stored in the my images archive?
+
+If so, where does printify keep the source images when a store has more than 100 products with unique images?
+
+is there a way to delete uploads?
