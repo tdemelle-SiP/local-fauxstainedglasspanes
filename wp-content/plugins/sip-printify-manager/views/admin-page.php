@@ -40,10 +40,30 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         <div id="auth-container" <?php echo empty($token) ? '' : 'style="display:none;"'; ?>>
             <h2><?php esc_html_e("To Begin, We'll Connect To Your Account Using A Code From Printify.", 'sip-printify-manager'); ?></h2>
             <ol>
-                <!-- Instructions omitted for brevity -->
+                <li>
+                    Log in to your Printify account and navigate to the <a href="https://printify.com/app/account/api" target="_blank">Connections</a> page.
+                </li>
+                <li>
+                    Provide a contact email in the "API Access" section where you would like to receive connection related notifications.
+                </li>
+                <li>
+                    Click the <strong>Generate</strong> button to create a new API token.  This is the code we'll use to connect.
+                </li>
+                <li>
+                    Name your token (e.g., "Printify Manager Token") and select :All scopes (full access).
+                </li>
+                <li>
+                    Click <strong>Generate token</strong> and then Click <strong>Copy to clipboard</strong>.
+                </li>
+                <li>
+                    Paste the token below and click <strong>Save Token</strong>.
+                </li>
+                <li>
+                    Once saved, we'll connect to your shop and retrieve your product list.
+                    From there, you'll be able to manage your Printify products and create new ones right from your Wordpress dashboard!
+                </li>
             </ol>
             <p><strong>Note:</strong> It's a good idea to save the token somewhere you can access it later in case you need to re-authorize the plugin. If you lose the token, don't worry, you can just follow these steps again to generate a new one.</p>           
-
             <form id="save-token-form" method="post" action="">
                 <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
                 <h2>
