@@ -1,114 +1,245 @@
+/* Styles for Buttons within the SiP Printify Manager Page */
 #sip-printify-manager-page .button {
-    margin-right: 5px;
+    margin-right: 5px; /* Adds a margin to the right of all buttons for spacing */
 }
 
 #sip-printify-manager-page .button-primary {
-    background-color: #0073aa;
-    border-color: #0073aa;
-    color: #fff;
+    background-color: #0073aa; /* Sets the background color for primary buttons */
+    border-color: #0073aa; /* Sets the border color for primary buttons */
+    color: #fff; /* Sets the text color for primary buttons */
 }
 
 #sip-printify-manager-page .button-secondary {
-    background-color: #82878c;
-    border-color: #82878c;
-    color: #fff;
+    background-color: #82878c; /* Sets the background color for secondary buttons */
+    border-color: #82878c; /* Sets the border color for secondary buttons */
+    color: #fff; /* Sets the text color for secondary buttons */
 }
 
+/* Flexbox styling for forms in the product action section */
 #product-action-form {
-    display: flex;
-    align-items: center;
+    display: flex; /* Aligns child elements horizontally */
+    align-items: center; /* Centers child elements vertically */
 }
 
+/* Spinner Overlay Styling */
 #spinner-overlay {
-    position: fixed;
+    position: fixed; /* Fixes the overlay in place over the entire screen */
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.5);
-    z-index: 9999;
-    display: flex;
+    background: rgba(255, 255, 255, 0.5); /* Semi-transparent white background */
+    z-index: 9999; /* Ensures the overlay is on top of all other elements */
+    display: flex; /* Aligns spinner in the center */
     justify-content: center;
     align-items: center;
 }
 
 #spinner {
-    width: 50px;
-    height: 50px;
+    width: 50px; /* Sets the width of the spinner */
+    height: 50px; /* Sets the height of the spinner */
 }
 
+/* Hides any notice messages specific to Elementor that may interfere with the page */
 #sip-printify-manager-page .e-notice.notice {
-    display: none !important;
+    display: none !important; /* Forces hiding of notices */
 }
 
-#sip-printify-manager-page table td, table th {
-    padding: 2px;
-}
-
-/* Center align headers except for Filename */
+/* Table Cell Padding and Alignment */
+#sip-printify-manager-page table td,
 #sip-printify-manager-page table th {
-    text-align: center;
+    padding: 2px; /* Adds padding inside table cells */
+}
+
+/* Center align headers except for the third column (Filename) */
+#sip-printify-manager-page table th {
+    text-align: center; /* Centers all table headers */
 }
 
 #sip-printify-manager-page table th:nth-child(3) {
-    text-align: left;
+    text-align: left; /* Aligns the third header to the left */
 }
 
-/* Ensure the image list container does not have overflow */
+/* Image List Container Styling */
 #image-list {
-    overflow: hidden;
+    overflow: hidden; /* Prevents overflow of the image list container */
 }
 
 #image-list tr:hover {
-    cursor: default;
+    cursor: default; /* Sets the cursor to default when hovering over rows */
 }
 
-/* Adjust the table container to handle scrolling */
 #image-list > div {
-    max-height: 400px; /* Set a maximum height if desired */
-    overflow-y: auto;
+    max-height: 400px; /* Limits the height of the div to allow scrolling */
+    overflow-y: auto; /* Enables vertical scrolling */
 }
 
 #image-list tr td:first-child img {
-    cursor: pointer;
+    cursor: pointer; /* Changes cursor to pointer over the first image */
 }
 
-#image-list tr:hover {
-    cursor: default;
-}
-
+/* Tooltip Styling for Hovering over Images in the Image List */
 #image-list tr td:first-child img:hover::after {
-    content: attr(title);
+    content: attr(title); /* Displays the image title as a tooltip */
     position: absolute;
-    background-color: #333;
-    color: #fff;
-    padding: 5px;
-    border-radius: 3px;
-    white-space: nowrap;
-    transform: translateY(-100%);
-    margin-top: -5px;
-    z-index: 10;
+    background-color: #333; /* Dark background for tooltip */
+    color: #fff; /* White text color for tooltip */
+    padding: 5px; /* Padding inside the tooltip */
+    border-radius: 3px; /* Rounds the corners of the tooltip */
+    white-space: nowrap; /* Prevents text from wrapping */
+    transform: translateY(-100%); /* Moves tooltip above the image */
+    margin-top: -5px; /* Adds a small space between the image and tooltip */
+    z-index: 10; /* Ensures tooltip is above other content */
 }
 
-#products-section, #template-container {
-    overflow-y: auto;
-    margin-bottom: 10px;
-    box-sizing: border-box;
-    height: auto; /* Allow the height to adjust automatically */
-    max-height: 60%; /* Cap the height at 60% for products */
+/* Section Styling for Products and Templates */
+#products-section,
+#template-container {
+    overflow-y: auto; /* Enables vertical scrolling for both sections */
+    margin-bottom: 10px; /* Adds space below each section */
+    box-sizing: border-box; /* Ensures padding and border are included in width/height */
+    height: auto; /* Allows height to adjust automatically */
+    max-height: 60%; /* Limits the height of the products section */
 }
 
 #template-container {
-    max-height: 40%; /* Cap the height at 40% for templates */
+    max-height: 40%; /* Limits the height of the templates section */
 }
 
+/* Flexbox Styling for the Templates and Products Column */
 #templates-products-column {
-    display: flex;
-    flex-direction: column;
-    height: 100%; /* Ensure the column fills the height */
+    display: flex; /* Aligns child elements vertically */
+    flex-direction: column; /* Stacks child elements vertically */
+    height: 100%; /* Fills the height of the parent container */
 }
 
+/* Styling for the Images Section */
 #images-section {
-    overflow-y: auto;
-    height: 100%; /* Fill remaining space */
+    overflow-y: auto; /* Enables vertical scrolling for the images section */
+    height: 100%; /* Fills the height of the parent container */
+}
+
+/* General Header Section Styling */
+.header-section {
+    display: flex; /* Aligns header elements horizontally */
+    justify-content: space-between; /* Distributes space between header elements */
+    align-items: center; /* Centers header elements vertically */
+    margin-bottom: 10px; /* Adds space below the header */
+    margin-top: -45px; /* Adjusts the top margin to align with the page */
+}
+
+.header-title {
+    margin: 0; /* Removes default margin */
+    flex-grow: 1; /* Allows the title to grow to fill available space */
+    text-align: center; /* Centers the title text */
+}
+
+/* Divider Line Styling */
+.divider {
+    height: 1px; /* Sets the height of the divider */
+    background-color: #000; /* Black color for the divider */
+    margin-top: 5px; /* Adds space above the divider */
+    margin-bottom: 5px; /* Adds space below the divider */
+}
+
+/* Shop Name Section Styling */
+.shop-name {
+    text-align: center; /* Centers the shop name text */
+    font-weight: bold; /* Makes the shop name text bold */
+    font-size: 54px; /* Sets the font size for the shop name */
+    color: #0273AB; /* Sets the color of the shop name */
+    text-transform: uppercase; /* Transforms the shop name to uppercase */
+    margin-top: 15px; /* Adds space above the shop name */
+    margin-bottom: 20px; /* Adds space below the shop name */
+}
+
+.shop-name a {
+    color: inherit; /* Inherits the color of the parent element */
+    text-decoration: none; /* Removes underline from the link */
+}
+
+/* Container for Products, Templates, and Images Sections */
+.products-templates-images-container {
+    display: flex; /* Aligns child elements horizontally */
+    justify-content: space-between; /* Distributes space between sections */
+    height: 635px; /* Sets a fixed height for the container */
+}
+
+/* Column Styling for Templates and Products */
+.templates-products-column {
+    width: 30%; /* Sets the width of the column */
+    padding-right: 10px; /* Adds padding to the right of the column */
+    display: flex; /* Aligns child elements vertically */
+    flex-direction: column; /* Stacks child elements vertically */
+    height: 100%; /* Fills the height of the parent container */
+}
+
+/* Section Styling for Products and Templates */
+.products-section,
+.template-container {
+    flex-shrink: 1; /* Allows the sections to shrink if necessary */
+    overflow-y: auto; /* Enables vertical scrolling within the sections */
+    border: 1px solid #ccc; /* Adds a light gray border around the sections */
+    padding: 10px; /* Adds padding inside the sections */
+}
+
+/* Template Container Specific Styling */
+.template-container {
+    flex-grow: 1; /* Allows the container to grow to fill available space */
+    display: flex; /* Aligns child elements vertically */
+    flex-direction: column; /* Stacks child elements vertically */
+}
+
+/* Styling for Product and Template Lists */
+.product-list,
+.template-list {
+    overflow-y: auto; /* Enables vertical scrolling within the lists */
+    max-height: 100%; /* Ensures the lists fill their container */
+    border: 1px solid #ccc; /* Adds a light gray border around the lists */
+    padding: 10px; /* Adds padding inside the lists */
+}
+
+/* Styling for the Rename Template Input */
+.rename-template-input {
+    display: none; /* Hides the input field by default */
+    margin-top: 10px; /* Adds space above the input field */
+}
+
+/* Template Editor Section Styling */
+.template-editor {
+    display: none; /* Hides the editor by default */
+    margin-top: 20px; /* Adds space above the editor */
+}
+
+.template-editor-buttons {
+    margin-top: 10px; /* Adds space above the buttons */
+}
+
+/* Styling for the Images Section */
+.images-section {
+    width: 70%; /* Sets the width of the section */
+    padding-left: 10px; /* Adds padding to the left of the section */
+    overflow-y: auto; /* Enables vertical scrolling within the section */
+}
+
+/* Styling for the Image List Container */
+.image-list {
+    overflow-y: auto; /* Enables vertical scrolling within the list */
+    border: 1px solid #ccc; /* Adds a light gray border around the list */
+    padding: 10px; /* Adds padding inside the list */
+}
+
+/* Styling for the Image Upload Area */
+.image-upload-area {
+    margin-top: 10px; /* Adds space above the upload area */
+    border: 2px dashed #ccc; /* Adds a dashed border around the upload area */
+    padding: 20px; /* Adds padding inside the upload area */
+    text-align: center; /* Centers text within the upload area */
+}
+
+/* Flexbox styling for action forms in the product and image sections */
+.product-action-form,
+.image-action-form {
+    display: flex; /* Aligns child elements horizontally */
+    align-items: center; /* Centers child elements vertically */
 }

@@ -21,15 +21,18 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 
 // Alternatively, if the sip-plugins-core plugin defines a constant or function to get its assets URL, use that.
 ?>
+<!-- Load the external stylesheet -->
+<link rel="stylesheet" href="<?php echo esc_url(plugins_url('admin-style.css', __FILE__)); ?>">
+
 <!-- Header Section -->
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; margin-top: -45px;">
-    <h1 style="margin: 0; flex-grow: 1; text-align: center;"><?php esc_html_e('Welcome to SIP Printify Manager!', 'sip-printify-manager'); ?></h1>
+<div class="header-section">
+    <h1 class="header-title"><?php esc_html_e('Welcome to SIP Printify Manager!', 'sip-printify-manager'); ?></h1>
     <div id="button-container" <?php echo empty($token) ? 'style="display:none;"' : ''; ?>>
         <!-- Removed Re-authorize Button -->
         <button id="new-token-button" class="button button-primary"><?php esc_html_e('New Store Token', 'sip-printify-manager'); ?></button>
     </div>
 </div>
-<hr style="height: 1px; background-color: #000; margin-top: 5px; margin-bottom: 5px;">
+<hr class="divider">
 
 <!-- Spinner Overlay -->
 <div id="spinner-overlay" style="display: none;">
@@ -40,28 +43,13 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 <div id="auth-container" <?php echo empty($token) ? '' : 'style="display:none;"'; ?>>
     <h2><?php esc_html_e("To Begin, We'll Need Your Authorization Token From Printify.", 'sip-printify-manager'); ?></h2>
     <ol>
-        <li>
-            Log in to your Printify account and navigate to the <a href="https://printify.com/app/account/api" target="_blank">Connections</a> page.
-        </li>
-        <li>
-            Provide a contact email in the "API Access" section where you would like to receive connection-related notifications.
-        </li>
-        <li>
-            Click the <strong>Generate</strong> button to create a new API token. This is the code we'll use to connect.
-        </li>
-        <li>
-            Name your token (e.g., "Printify Manager Token") and select :All scopes (full access).
-        </li>
-        <li>
-            Click <strong>Generate token</strong> and then Click <strong>Copy to clipboard</strong>.
-        </li>
-        <li>
-            Paste the token below and click <strong>Save Token</strong>.
-        </li>
-        <li>
-            Once saved, we'll connect to your shop and retrieve your product list.
-            From there, you'll be able to manage your Printify products and create new ones right from your WordPress dashboard!
-        </li>
+        <li>Log in to your Printify account and navigate to the <a href="https://printify.com/app/account/api" target="_blank">Connections</a> page.</li>
+        <li>Provide a contact email in the "API Access" section where you would like to receive connection-related notifications.</li>
+        <li>Click the <strong>Generate</strong> button to create a new API token. This is the code we'll use to connect.</li>
+        <li>Name your token (e.g., "Printify Manager Token") and select :All scopes (full access).</li>
+        <li>Click <strong>Generate token</strong> and then Click <strong>Copy to clipboard</strong>.</li>
+        <li>Paste the token below and click <strong>Save Token</strong>.</li>
+        <li>Once saved, we'll connect to your shop and retrieve your product list. From there, you'll be able to manage your Printify products and create new ones right from your WordPress dashboard!</li>
     </ol>
     <p><strong>Note:</strong> It's a good idea to save the token somewhere you can access it later in case you need to re-authorize the plugin. If you lose the token, don't worry, you can just follow these steps again to generate a new one.</p>
     <form id="save-token-form" method="post" action="">
@@ -70,9 +58,8 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
             <label for="printify_bearer_token"><?php esc_html_e('Printify API Token:', 'sip-printify-manager'); ?></label>
             <input type="text" name="printify_bearer_token" id="printify_bearer_token" value="" class="regular-text" required/>
             <input type="submit" name="save_token" value="<?php esc_attr_e('Save Token', 'sip-printify-manager'); ?>" class="button button-primary"/>
-            <img id="spinner" src="<?php echo esc_url($sip_core_assets_url . '/images/spinner.webp'); ?>" style="display: none; width: 20px; height: 20px; vertical-align: middle; margin-left: 10px;">
         </h2>
-        <hr style="height: 1px; background-color: #000;">
+        <hr class="divider">
     </form>
 </div>
 
@@ -80,22 +67,22 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 <div id="shop-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>
     <?php if (!empty($shop_name)) : ?>
         <!-- Store Name Section -->
-        <h2 style="text-align: center; font-weight: bold; font-size: 54px; color: #0273AB; text-transform: uppercase; margin-top: 15px; margin-bottom: 20px;">
-            <a href="https://printify.com/app/store/products/1" target="_blank" style="color: inherit; text-decoration: none;">
+        <h2 class="shop-name">
+            <a href="https://printify.com/app/store/products/1" target="_blank">
                 <?php echo esc_html($shop_name); ?>
             </a>
         </h2>
-        <hr style="height: 1px; background-color: #000;">
+        <hr class="divider">
 
-        <div id="products-templates-images-container" style="display: flex; justify-content: space-between; height: 635px;">
+        <div id="products-templates-images-container" class="products-templates-images-container">
     
     <!-- Left Column: Templates and Products -->
-    <div id="templates-products-column" style="width: 30%; padding-right: 10px; display: flex; flex-direction: column; height: 100%;">
+    <div id="templates-products-column" class="templates-products-column">
 
         <!-- Products Section -->
-        <div id="products-section" style="flex-shrink: 1; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+        <div id="products-section" class="products-section">
             <h2><?php esc_html_e('Products', 'sip-printify-manager'); ?></h2>
-            <form id="product-action-form" style="display: flex; align-items: center;" method="post" action="">
+            <form id="product-action-form" class="product-action-form" method="post" action="">
                 <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
                 <label for="product_action"><?php esc_html_e('Product Actions:', 'sip-printify-manager'); ?> </label>
                 <select name="product_action" id="product_action">
@@ -103,9 +90,9 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                     <option value="create_template"><?php esc_html_e('Create Template', 'sip-printify-manager'); ?></option>
                     <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>
                 </select>
-                <input type="submit" name="execute_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" style="margin-left: 10px;" />
+                <input type="submit" name="execute_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" />
             </form>
-            <div id="product-list" style="overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+            <div id="product-list" class="product-list">
                 <?php 
                 if (!empty($products)) {
                     sip_display_product_list($products);
@@ -117,7 +104,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         </div>
 
         <!-- Template Section -->
-        <div id="template-container" style="border: 1px solid #ccc; padding: 10px; flex-grow: 1; display: flex; flex-direction: column;">
+        <div id="template-container" class="template-container">
             <h2><?php esc_html_e('Templates', 'sip-printify-manager'); ?></h2>
             <form id="template-action-form" method="post" action="">
                 <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
@@ -130,15 +117,15 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                 <input type="submit" name="execute_template_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary"/>
 
                 <!-- Rename Template Input -->
-                <div id="rename-template-input" style="display: none; margin-top: 10px;">
+                <div id="rename-template-input" class="rename-template-input">
                     <input type="text" name="new_template_name" placeholder="<?php esc_attr_e('New template name', 'sip-printify-manager'); ?>">
                 </div>
             </form>
 
             <!-- Ensure the container itself doesn't scroll -->
-            <div id="template-list-container" style="flex-grow: 1; overflow: hidden;">
+            <div id="template-list-container" class="template-list-container">
                 <!-- The inner div that will scroll -->
-                <div id="template-list" style="overflow-y: auto; max-height: 100%; border: 1px solid #ccc; padding: 10px;">
+                <div id="template-list" class="template-list">
                     <?php 
                     if (!empty($templates)) {
                         sip_display_template_list($templates);
@@ -150,10 +137,10 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
             </div>
 
             <!-- Template Editor Section -->
-            <div id="template-editor" style="display: none; margin-top: 20px;">
+            <div id="template-editor" class="template-editor">
                 <h3><?php esc_html_e('Edit Template:', 'sip-printify-manager'); ?> <span id="editing-template-name"></span></h3>
-                <textarea id="template-content" rows="20" style="width: 100%;"></textarea>
-                <div style="margin-top: 10px;">
+                <textarea id="template-content" rows="20"></textarea>
+                <div class="template-editor-buttons">
                     <button id="close-editor" class="button"><?php esc_html_e('Close', 'sip-printify-manager'); ?></button>
                     <button id="revert-changes" class="button"><?php esc_html_e('Revert Changes', 'sip-printify-manager'); ?></button>
                     <button id="save-template" class="button button-primary"><?php esc_html_e('Save Changes', 'sip-printify-manager'); ?></button>
@@ -163,9 +150,9 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
     </div>
 
     <!-- Right Column: Images -->
-    <div id="images-section" style="width: 70%; padding-left: 10px; overflow-y: auto;">
+    <div id="images-section" class="images-section">
         <h2><?php esc_html_e('Images', 'sip-printify-manager'); ?></h2>
-        <form id="image-action-form" style="display: flex; align-items: center;" method="post" action="">
+        <form id="image-action-form" class="image-action-form" method="post" action="">
             <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
             <label for="image_action"><?php esc_html_e('Image Actions:', 'sip-printify-manager'); ?> </label>
             <select name="image_action" id="image_action">
@@ -175,9 +162,9 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                 <option value="upload_to_shop"><?php esc_html_e('Upload to Shop', 'sip-printify-manager'); ?></option>
                 <option value="archive_shop_image"><?php esc_html_e('Archive Shop Image', 'sip-printify-manager'); ?></option>
             </select>
-            <input type="submit" name="execute_image_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" style="margin-left: 10px;" />
+            <input type="submit" name="execute_image_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" />
         </form>
-        <div id="image-list" style="overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+        <div id="image-list">
             <?php 
             $images = get_option('sip_printify_images', array());
             if (!empty($images)) {
@@ -188,14 +175,13 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
             ?>
         </div>
         <!-- Drag and Drop Area -->
-        <div id="image-upload-area" style="margin-top: 10px; border: 2px dashed #ccc; padding: 20px; text-align: center;">
+        <div id="image-upload-area" class="image-upload-area">
             <p><?php esc_html_e('Drag and drop images here to upload, or', 'sip-printify-manager'); ?></p>
             <button id="select-images-button" class="button button-primary"><?php esc_html_e('Select Images', 'sip-printify-manager'); ?></button>
             <input type="file" id="image-file-input" accept=".jpg,.jpeg,.png,.webp,.svg" multiple style="display: none;">
         </div>
     </div>
 </div>
-
 
         <!-- End of Products, Templates, and Images Section -->
     <?php else : ?>
