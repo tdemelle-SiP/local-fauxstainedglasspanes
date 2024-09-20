@@ -89,3 +89,26 @@
     margin-top: -5px;
     z-index: 10;
 }
+
+#products-section, #template-container {
+    overflow-y: auto;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    height: auto; /* Allow the height to adjust automatically */
+    max-height: 60%; /* Cap the height at 60% for products */
+}
+
+#template-container {
+    max-height: 40%; /* Cap the height at 40% for templates */
+}
+
+#templates-products-column {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Ensure the column fills the height */
+}
+
+#images-section {
+    overflow-y: auto;
+    height: 100%; /* Fill remaining space */
+}

@@ -67,8 +67,8 @@ function sip_display_product_list($products) {
 
     // Define column widths to prevent horizontal scrollbar
     echo '<colgroup>';
-    echo '<col style="width: 5%;">';   // Select checkbox
-    echo '<col style="width: 95%;">';  // Product Name
+    echo '<col style="width: 8%;">';   // Select checkbox
+    echo '<col style="width: 92%;">';  // Product Name
     echo '</colgroup>';
 
     // Table Header
@@ -89,7 +89,8 @@ function sip_display_product_list($products) {
         }
         
         echo '<tr>';
-        echo '<td style="text-align: center; padding: 2px;"><input type="checkbox" name="selected_products[]" value="' . esc_attr($product['id']) . '" /></td>';
+        echo '<td style="text-align: center; padding: 2px;">';
+        echo '<input type="checkbox" name="selected_products[]" value="' . esc_attr($product['id']) . '" /></td>';
         echo '<td style="text-align: left; padding: 2px;">' . esc_html($product['title']) . '</td>';
         echo '</tr>';
     }

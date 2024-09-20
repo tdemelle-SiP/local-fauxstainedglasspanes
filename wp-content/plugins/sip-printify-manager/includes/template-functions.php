@@ -90,28 +90,40 @@ function sip_display_template_list($templates) {
     if (empty($templates)) {
         echo '<p>No templates found.</p>';
     } else {
-        echo '<table style="width: 100%; border-collapse: collapse;">';
-        echo '<thead style="position: sticky; top: 0; background-color: #fff; border-bottom: 2px solid #ccc;">';
+        echo '<div style="max-height: 250px; overflow-y: auto;">'; // Contain the scroll within this div
+        echo '<table style="width: 100%; border-collapse: collapse; table-layout: fixed;">';
+
+        // Define column widths to prevent horizontal scrollbar
+        echo '<colgroup>';
+        echo '<col style="width: 8%;">';   // Select checkbox
+        echo '<col style="width: 92%;">';  // Template Name
+        echo '</colgroup>';
+
+        // Table Header
+        echo '<thead>';
         echo '<tr>';
-        echo '<th style="padding: 10px; text-align: left;">';
-        echo '<input type="checkbox" id="select-all-templates"> ';
-        echo esc_html__('Template Name', 'sip-printify-manager');
-        echo '</th>';
+        echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-templates"></th>';
+        echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: left; padding: 2px;">Template Name</th>';
         echo '</tr>';
         echo '</thead>';
+
+        // Table Body
         echo '<tbody>';
         foreach ($templates as $template) {
             echo '<tr>';
-            echo '<td style="padding: 10px; border-bottom: 1px solid #ccc;">';
-            echo '<input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '"> ';
-            echo esc_html($template);
-            echo '</td>';
+            echo '<td style="text-align: center; padding: 2px;">';
+            echo '<input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '" /></td>';
+            echo '<td style="text-align: left; padding: 2px;">' . esc_html($template) . '</td>';
             echo '</tr>';
         }
         echo '</tbody>';
+
         echo '</table>';
+        echo '</div>';
     }
 }
+
+
 
 /**
  * Delete a specific template by name.
