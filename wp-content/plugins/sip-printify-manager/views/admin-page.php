@@ -18,11 +18,7 @@ $templates  = sip_load_templates();
 
 // Get the URL to the sip-plugins-core assets directory
 $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
-
-// Alternatively, if the sip-plugins-core plugin defines a constant or function to get its assets URL, use that.
 ?>
-<!-- Load the external stylesheet -->
-<link rel="stylesheet" href="<?php echo esc_url(plugins_url('admin-style.css', __FILE__)); ?>">
 
 <!-- Header Section -->
 <div class="header-section">

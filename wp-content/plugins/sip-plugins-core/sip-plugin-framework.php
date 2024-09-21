@@ -37,7 +37,7 @@ class SiP_Plugin_Framework {
                 function() use ($class_name, $name) {
                     echo '<div class="wrap">';
                     // Link to navigate back to the main SiP Plugins Suite page
-                    echo '<p><a href="' . admin_url('admin.php?page=sip-plugins') . '">&larr; Back to Stuff is Parts, LLC Plugins Suite Main Page</a></p>';
+                    echo '<p><a href="' . admin_url('admin.php?page=sip-plugins') . '">&larr; Back to Stuff is Parts Plugins Suite</a></p>';
                     // Call the 'render_admin_page' method of the specified class to display the page content
                     call_user_func(array($class_name, 'render_admin_page'));
                     echo '</div>';
