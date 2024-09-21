@@ -92,6 +92,10 @@
     z-index: 10; /* Ensures tooltip is above other content */
 }
 
+a, a:hover, a:focus, a:active, a:visited {
+    box-shadow: none;
+}
+
 /* Section Styling for Products and Templates */
 #products-section,
 #template-container {

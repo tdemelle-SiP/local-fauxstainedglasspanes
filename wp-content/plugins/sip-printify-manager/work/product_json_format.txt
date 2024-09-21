@@ -1,0 +1,26 @@
+{
+	"id":
+	"title":
+	"description":
+	"tags": []
+	"options": []
+	"variants": []
+	"images": [
+		{
+			"src": "url for product thumbnail"
+	"created_at":
+	"updated_at":
+	"visible":
+	"is_locked":
+	"external": {}
+	"blueprint_id":
+	"user_id":
+	"shop_id":
+	"print_provider_id":
+	"print_areas": []
+	"print_details": []
+	"sales_channel_properties": []
+	"is_printify_express_eligible":
+	"is_printify_express_enabled":
+	"is_economy_shipping_eligible":
+	"is_economy_shipping_enabled":
