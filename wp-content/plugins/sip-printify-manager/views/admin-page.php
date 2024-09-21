@@ -77,7 +77,10 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 
         <!-- Products Section -->
         <div id="products-section" class="products-section">
-            <h2><?php esc_html_e('Products', 'sip-printify-manager'); ?></h2>
+            <h2 style="display: flex; justify-content: space-between; align-items: center;">
+                <?php esc_html_e('Products', 'sip-printify-manager'); ?>
+                <input type="text" id="product-search" placeholder="<?php esc_attr_e('Search Products...', 'sip-printify-manager'); ?>" style="margin-left: auto;">
+            </h2>
             <form id="product-action-form" class="product-action-form" method="post" action="">
                 <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
                 <label for="product_action"><?php esc_html_e('Product Actions:', 'sip-printify-manager'); ?> </label>
@@ -101,7 +104,10 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 
         <!-- Template Section -->
         <div id="template-container" class="template-container">
-            <h2><?php esc_html_e('Templates', 'sip-printify-manager'); ?></h2>
+            <h2 style="display: flex; justify-content: space-between; align-items: center;">
+                <?php esc_html_e('Templates', 'sip-printify-manager'); ?>
+                <input type="text" id="template-search" placeholder="<?php esc_attr_e('Search Templates...', 'sip-printify-manager'); ?>" style="margin-left: auto;">
+            </h2>
             <form id="template-action-form" method="post" action="">
                 <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
                 <label for="template_action"><?php esc_html_e('Template Actions:', 'sip-printify-manager'); ?> </label>
@@ -147,7 +153,10 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 
     <!-- Right Column: Images -->
     <div id="images-section" class="images-section">
-        <h2><?php esc_html_e('Images', 'sip-printify-manager'); ?></h2>
+        <h2 style="display: flex; justify-content: space-between; align-items: center;">
+            <?php esc_html_e('Images', 'sip-printify-manager'); ?>
+            <input type="text" id="image-search" placeholder="<?php esc_attr_e('Search Images...', 'sip-printify-manager'); ?>" style="margin-left: auto;">
+        </h2>
         <form id="image-action-form" class="image-action-form" method="post" action="">
             <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
             <label for="image_action"><?php esc_html_e('Image Actions:', 'sip-printify-manager'); ?> </label>
