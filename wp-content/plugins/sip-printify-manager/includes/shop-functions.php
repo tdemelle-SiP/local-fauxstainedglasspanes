@@ -66,7 +66,7 @@ function sip_save_token() {
 
             // Separate local images from existing images
             $local_images = array_filter($existing_images, function($image) {
-                return isset($image['location']) && $image['location'] === 'Local';
+                return isset($image['location']) && $image['location'] === 'Local File';
             });
 
             // Merge local images with newly fetched remote images
@@ -108,8 +108,8 @@ function sip_new_token() {
     if (!empty($images)) {
         // Filter out remote images (keep only local images)
         $local_images = array_filter($images, function($image) {
-            // Check if 'location' key exists and is set to 'Local'
-            return isset($image['location']) && $image['location'] === 'Local';
+            // Check if 'location' key exists and is set to 'Local File'
+            return isset($image['location']) && $image['location'] === 'Local File';
         });
 
         // Update the images option with only local images

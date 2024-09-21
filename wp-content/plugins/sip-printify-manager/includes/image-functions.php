@@ -61,7 +61,7 @@ function sip_execute_image_action($action, $selected_images = array()) {
 
             // Separate local images from existing images
             $local_images = array_filter($existing_images, function($image) {
-                return isset($image['location']) && $image['location'] === 'Local';
+                return isset($image['location']) && $image['location'] === 'Local File';
             });
 
             // Merge local images with newly fetched remote images
@@ -94,13 +94,13 @@ function sip_execute_image_action($action, $selected_images = array()) {
             // Find the image in the images array
             foreach ($images as &$image) {
                 if ($image['id'] === $image_id) {
-                    if ($image['location'] === 'Local') {
+                    if ($image['location'] === 'Local File') {
                         // Upload image to shop
                         $upload_result = upload_image_to_shop($token, $image);
                         if ($upload_result['success']) {
                             // Update image data with new info from shop
                             $image = array_merge($image, $upload_result['image_data']);
-                            $image['location'] = 'Remote'; // Update location
+                            $image['location'] = 'Printify Shop'; // Update location
                             $uploaded_images[] = $image['file_name'];
                         } else {
                             $errors[] = $upload_result['message'];
@@ -139,11 +139,11 @@ function sip_execute_image_action($action, $selected_images = array()) {
             // Find the image in the images array
             foreach ($images as &$image) {
                 if ($image['id'] === $image_id) {
-                    if ($image['location'] === 'Remote') {
+                    if ($image['location'] === 'Printify Shop') {
                         // Archive image on Printify
                         $archive_result = archive_image_on_shop($token, $image['id']);
                         if ($archive_result['success']) {
-                            $image['location'] = 'Remote (Archived)';
+                            $image['location'] = 'Printify Shop (Archived)';
                             $archived_images[] = $image['file_name'];
                         } else {
                             $errors[] = $archive_result['message'];
@@ -216,7 +216,13 @@ function fetch_images($token) {
 
         // Add 'location' => 'Remote' or 'Remote (Archived)' to each image
         foreach ($images['data'] as &$image) {
-            $image['location'] = isset($image['is_archived']) && $image['is_archived'] ? 'Remote (Archived)' : 'Remote';
+            // Determine location based on Printify API response
+            if (isset($image['is_archived']) && $image['is_archived']) {
+                $image['location'] = 'Printify Shop (Archived)';
+            } else {
+                $image['location'] = 'Printify Shop'; // Set location for remote images
+            }
+            // Other processing as needed
         }
 
         $all_images = array_merge($all_images, $images['data']);
@@ -249,13 +255,13 @@ function sip_display_image_list($images) {
 
     // Define column widths to prevent horizontal scrollbar
     echo '<colgroup>';
-    echo '<col style="width: 5%;">';   // Select checkbox
-    echo '<col style="width: 10%;">';  // Thumbnail
-    echo '<col style="width: 35%;">';  // Filename
-    echo '<col style="width: 10%;">';  // Location
+    echo '<col style="width: 4%;">';   // Select checkbox
+    echo '<col style="width: 8%;">';  // Thumbnail
+    echo '<col style="width: 42%;">';  // Filename
+    echo '<col style="width: 15%;">';  // Location
     echo '<col style="width: 15%;">';  // Uploaded
     echo '<col style="width: 10%;">';  // Dimensions
-    echo '<col style="width: 15%;">';  // Size
+    echo '<col style="width: 10%;">';  // Size
     echo '</colgroup>';
 
     // Table Header
@@ -285,13 +291,13 @@ function sip_display_image_list($images) {
     
         // Use full filename without truncation
         $filename = esc_html($image['file_name']);
-    
+
         echo '<tr title="' . esc_attr($filename) . '">';
         echo '<td style="text-align: center; padding: 2px;"><input type="checkbox" name="selected_images[]" value="' . esc_attr($image['id']) . '" /></td>';
         // Link the thumbnail to the preview image with cursor pointer
         echo '<td style="text-align: center; padding: 2px;">
                 <a href="' . esc_url($image['preview_url']) . '" target="_blank">
-                    <img src="' . esc_url($image['preview_url']) . '" alt="' . esc_attr($filename) . '" style="width: 50px; height: auto; cursor: pointer;">
+                    <img src="' . esc_url($image['preview_url']) . '" alt="' . esc_attr($filename) . '" style="width: 32px; height: auto; cursor: pointer;">
                 </a>
               </td>';
         echo '<td style="text-align: left; padding: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' . $filename . '</td>';
@@ -383,7 +389,7 @@ function sip_handle_image_upload() {
                     'width' => $width,
                     'height' => $height,
                     'preview_url' => $sip_upload_url . $file_name,
-                    'location' => 'Local',
+                    'location' => 'Local File',
                 );
 
                 // Add image to existing images
