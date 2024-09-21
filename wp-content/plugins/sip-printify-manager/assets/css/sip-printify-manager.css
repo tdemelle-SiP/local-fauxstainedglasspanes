@@ -1,11 +1,20 @@
 
+/* Hides any notice messages specific to Elementor that may interfere with the page */
+#sip-printify-manager-page .e-notice.notice {
+    display: none !important; /* Forces hiding of notices */
+}
+
 a, a:hover, a:focus, a:active, a:visited {
     box-shadow: none;
 }
 
-/* Hides any notice messages specific to Elementor that may interfere with the page */
-#sip-printify-manager-page .e-notice.notice {
-    display: none !important; /* Forces hiding of notices */
+/* Divider Line Styling */
+.divider {
+    height: 1px; /* Sets the height of the divider */
+    background-color: #7d7d7d; /* Black color for the divider */
+    margin-top: 5px; /* Adds space above the divider */
+    margin-bottom: 5px; /* Adds space below the divider */
+    border: none; /* Removes the border from the divider */
 }
 
 /* Spinner Overlay Styling */
@@ -38,7 +47,7 @@ a, a:hover, a:focus, a:active, a:visited {
     display: flex; /* Aligns header elements horizontally */
     justify-content: space-between; /* Distributes space between header elements */
     align-items: center; /* Centers header elements vertically */
-    margin-bottom: 10px; /* Adds space below the header */
+    margin-bottom: 0px; /* Adds space below the header */
     margin-top: -45px; /* Adjusts the top margin to align with the page */
     pointer-events: none; /* Pass clicks through the header */
 }
@@ -50,7 +59,7 @@ a, a:hover, a:focus, a:active, a:visited {
     font-size: 54px; /* Sets the font size for the shop name */
     color: #0273AB; /* Sets the color of the shop name */
     text-transform: uppercase; /* Transforms the shop name to uppercase */
-    margin-top: 15px; /* Adds space above the shop name */
+    margin-top: 20px; /* Adds space above the shop name */
     margin-bottom: 20px; /* Adds space below the shop name */
 }
 
@@ -61,14 +70,6 @@ a, a:hover, a:focus, a:active, a:visited {
 
 .header-section #button-container {
     pointer-events: auto; /* Ensure the button is still clickable */
-}
-
-/* Divider Line Styling */
-#sip-printify-manager-page .divider {
-    height: 1px; /* Sets the height of the divider */
-    background-color: #000; /* Black color for the divider */
-    margin-top: 5px; /* Adds space above the divider */
-    margin-bottom: 5px; /* Adds space below the divider */
 }
 
 /* Styles for Buttons within the SiP Printify Manager Page */
@@ -110,6 +111,15 @@ a, a:hover, a:focus, a:active, a:visited {
     justify-content: space-between; /* Distributes space between sections */
     height: 635px; /* Sets a fixed height for the container */
 }
+
+table tbody tr:nth-child(odd) {
+    background-color: #f9f9f9; /* Light gray for odd rows */
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f2f2f2; /* Slightly darker gray for even rows */
+}
+
 
 /* Flexbox Styling for the Templates and Products Column */
 #templates-products-column {
@@ -168,10 +178,6 @@ a, a:hover, a:focus, a:active, a:visited {
     margin-top: 10px; /* Adds space above the buttons */
 }
 
-/**
-/* Styling for the Image List Container 
-*/
-
 /* Styling for the Images Section */
 #images-section {
 /*    overflow-y: auto; /* Enables vertical scrolling for the images section */
@@ -218,4 +224,15 @@ a, a:hover, a:focus, a:active, a:visited {
     border: 2px dashed #ccc; /* Adds a dashed border around the upload area */
     padding: 20px; /* Adds padding inside the upload area */
     text-align: center; /* Centers text within the upload area */
+}
+
+.creation-table-title {
+    font-size: 36px; /* Sets the font size for the creation table title */
+    font-weight: bold; /* Makes the creation table title bold */
+    margin-bottom: 10px; /* Adds space below the creation table title */
+    text-align: center; /* Centers the shop name text */
+    color: #0273AB; /* Sets the color of the shop name */
+    text-transform: uppercase; /* Transforms the shop name to uppercase */
+    margin-top: 15px; /* Adds space above the shop name */
+    margin-bottom: 20px; /* Adds space below the shop name */
 }

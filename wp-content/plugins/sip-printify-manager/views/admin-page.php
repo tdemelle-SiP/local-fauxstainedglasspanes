@@ -28,7 +28,6 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         <button id="new-token-button" class="button button-primary"><?php esc_html_e('New Store Token', 'sip-printify-manager'); ?></button>
     </div>
 </div>
-<hr class="divider">
 
 <!-- Spinner Overlay -->
 <div id="spinner-overlay" style="display: none;">
@@ -61,6 +60,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 
 <!-- Shop Screen (only show if token exists) -->
 <div id="shop-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>
+    <hr class="divider">
     <?php if (!empty($shop_name)) : ?>
         <!-- Store Name Section -->
         <h2 class="shop-name">
@@ -68,7 +68,6 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                 <?php echo esc_html($shop_name); ?>
             </a>
         </h2>
-        <hr class="divider">
 
         <div id="products-templates-images-container" class="products-templates-images-container">
     
@@ -192,4 +191,9 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
     <?php else : ?>
         <h2><?php esc_html_e('Shop could not be loaded. Please try re-authorizing.', 'sip-printify-manager'); ?></h2>
     <?php endif; ?>
+</div>
+
+<div id="product-creation-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>
+    <hr class="divider" style="margin-top: 20px; background-color: #c0bfbf;">
+    <h2 class="creation-table-title"><?php esc_html_e('Product Creation Table', 'sip-printify-manager'); ?></h2>
 </div>
