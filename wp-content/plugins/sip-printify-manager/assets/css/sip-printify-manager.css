@@ -1,3 +1,12 @@
+
+.header-section {
+    pointer-events: none; /* Pass clicks through the header */
+}
+
+.header-section #button-container {
+    pointer-events: auto; /* Ensure the button is still clickable */
+}
+
 /* Styles for Buttons within the SiP Printify Manager Page */
 #sip-printify-manager-page .button {
     margin-right: 5px; /* Adds a margin to the right of all buttons for spacing */
