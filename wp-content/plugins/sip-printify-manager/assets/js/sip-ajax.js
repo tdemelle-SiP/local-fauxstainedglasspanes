@@ -396,6 +396,30 @@ jQuery(document).ready(function ($) {
         }
     });
 
+
+    /**
+     * Select All / Deselect All functionality for templates.
+     * When the select-all checkbox is changed, all individual template checkboxes are set accordingly.
+     */
+    $(document).on('change', '#select-all-templates', function () {
+        var isChecked = $(this).is(':checked');
+        $('input[name="selected_templates[]"]').prop('checked', isChecked);
+    });
+
+    /**
+     * Ensure that if any individual template checkbox is unchecked, the select-all checkbox is also unchecked.
+     */
+    $(document).on('change', 'input[name="selected_templates[]"]', function () {
+        if (!$(this).is(':checked')) {
+            $('#select-all-templates').prop('checked', false);
+        } else {
+            // If all individual checkboxes are checked, check the select-all checkbox
+            if ($('input[name="selected_templates[]"]:checked').length === $('input[name="selected_templates[]"]').length) {
+                $('#select-all-templates').prop('checked', true);
+            }
+        }
+    });
+
     /**
      * Search functionality for products.
      * Filters the products table based on the search input value

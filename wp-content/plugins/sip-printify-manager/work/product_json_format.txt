@@ -1,3 +1,522 @@
+For the plugin that I'm working on, I need to take an array of data describing a Printify product returned from an API call and transform it into a new "template" file that can be used to create new products based on the source product.  I've outlined the steps that need to be taken to transform the product json into the template json.  Can you write the code that actually performs the modification on the input .json file and creates a new output .json file with the suffix "_template"?  Here are the steps that need to be taken.  Please ask me questions if there's anything that is not clear or anything that is contradictory.  The top level structure of the incoming json looks like this:
+
+{
+	"id":
+	"title":
+	"description":
+	"tags": []
+	"variants": []
+	etc
+}
+
+And here are the steps to perform on it:
+Remove Keys And Specified Values Under Circumstances Detailed in Parentheses
+	"Id":
+	"options":
+	"variants":[
+		"sku"
+		"cost"
+		"title"
+		"grams"
+		"is_default"
+		"is_available"
+		"is_printify_express_eligible"
+		"options"
+		"quantity"
+	]
+
+	"variants": [ (if "is_enabled": false)
+		"id"
+		"price"
+		"is_enabled"
+	]
+	
+	"images": [
+		{
+			"type"
+			"height"
+			"width"
+		}
+	],
+	"created_at"
+	"updated_at"
+	"visible"
+	"is_locked"
+	"external": [],
+	"user_id"
+	"shop_id"
+	"print_areas": [
+		(remove all variant_ids that have been removed from variants because is_enabled: false)
+		"placeholders": [ (remove all placeholders if their preceding variant_ids array is empty)
+			"position": "back", (remove if their are no images in the child images array)
+			"images"[]
+			"position": "front", (remove if their are no images in the child images array)
+		]
+	]
+
+	"print_details": []
+	"sales_channel_properties": [],
+    "is_printify_express_eligible": true,
+    "is_printify_express_enabled": false,
+    "is_economy_shipping_eligible": true,
+    "is_economy_shipping_enabled": false
+
+
+===================================FURTHER CLARIFICATION==============================================
+	Within print_areas, if there are any "positions" with corresponding "images", the "placeholders" object should be kept to contain those children.
+
+	Remove keys that have been tagged for removal entirely even if they are empty arrays.
+
+	Here's an example of a variant with is_enabled: false
+
+    "variants": [
+        {
+            "id": 12083,
+            "sku": "16769281874888591685",
+            "cost": 941,
+            "price": 1568,
+            "title": "Tropical Blue / M",
+            "grams": 160,
+            "is_enabled": false,
+            "is_default": false,
+            "is_available": true,
+            "is_printify_express_eligible": false,
+            "options": [
+                376,
+                15
+            ],
+            "quantity": 1
+        },
+
+
+This entire section of code between the brackets should be removed.  If the variant is_enabled is true, the variant and the id, price and is_enabled keys and values should be kept; other keys should be removed.
+
+Here's an example of print_areas which contains arraya of variant_ids followed by placeholders arrays
+    "print_areas": [
+        {
+            "variant_ids": [
+                12083,
+                11958,
+                11982,
+                12018,
+                12125,
+                11867,
+                12214,
+                12160,
+                12016,
+                12175,
+                12120,
+                11963,
+                11976,
+                12154,
+                11902,
+                12019,
+            "placeholders": []		
+
+All variant_ids that were removed from "variants" should also be removed here.  Since only variants with is_enabled false have been removed from variants, the same will be true here.
+If all variant_ids are removed from an array, the subsequent placeholders array should also be removed.
+
+=================================IMPLEMENTATION PLAN=========================================
+
+I have a place in my plugin where I'd like the python script to be run.
+There's an action that can be performed on products that have been retrieved from printify through an API call.  One of the actions is "Create Template".  It's currently set up to take the source product json and just save it as a template with the title appended _template (that will appear in the template list).  I'd like to modify the code so that it runs the python script on the selected product or products and then saves the modified file/s as new templates.
+
+==============================PHP CODE THAT TRANSFORM PRODUCT JSON TO TEMPLATE JSON=================================
+
+function transform_product_data($product) {
+    // Remove specified top-level keys
+    $keys_to_remove = [
+        'id', 'options', 'created_at', 'updated_at', 'visible', 'is_locked',
+        'external', 'user_id', 'shop_id', 'print_details', 'sales_channel_properties',
+        'is_printify_express_eligible', 'is_printify_express_enabled',
+        'is_economy_shipping_eligible', 'is_economy_shipping_enabled'
+    ];
+
+    foreach ($keys_to_remove as $key) {
+        if (isset($product[$key])) {
+            unset($product[$key]);
+        }
+    }
+
+    // Process variants
+    $enabled_variants = [];
+    $removed_variant_ids = [];
+
+    if (isset($product['variants']) && is_array($product['variants'])) {
+        foreach ($product['variants'] as $variant) {
+            if (isset($variant['is_enabled']) && $variant['is_enabled'] === false) {
+                // Collect IDs of removed variants
+                if (isset($variant['id'])) {
+                    $removed_variant_ids[] = $variant['id'];
+                }
+                // Remove the entire variant by not adding it to the new array
+            } else {
+                // Keep only specified keys
+                $variant_keys_to_keep = ['id', 'price', 'is_enabled'];
+                $new_variant = [];
+                foreach ($variant_keys_to_keep as $key) {
+                    if (isset($variant[$key])) {
+                        $new_variant[$key] = $variant[$key];
+                    }
+                }
+                $enabled_variants[] = $new_variant;
+            }
+        }
+        $product['variants'] = $enabled_variants;
+    }
+
+    // Process images
+    if (isset($product['images']) && is_array($product['images'])) {
+        foreach ($product['images'] as &$image) {
+            foreach (['type', 'height', 'width'] as $key) {
+                if (isset($image[$key])) {
+                    unset($image[$key]);
+                }
+            }
+        }
+    }
+
+    // Process print_areas
+    if (isset($product['print_areas']) && is_array($product['print_areas'])) {
+        $new_print_areas = [];
+        foreach ($product['print_areas'] as $print_area) {
+            // Remove variant_ids of removed variants
+            if (isset($print_area['variant_ids']) && is_array($print_area['variant_ids'])) {
+                $variant_ids = array_diff($print_area['variant_ids'], $removed_variant_ids);
+                if (empty($variant_ids)) {
+                    continue; // Skip print_area if no variant_ids left
+                }
+                $print_area['variant_ids'] = array_values($variant_ids); // Re-index array
+            }
+
+            // Process placeholders
+            if (isset($print_area['placeholders']) && is_array($print_area['placeholders'])) {
+                $new_placeholders = [];
+                foreach ($print_area['placeholders'] as $placeholder) {
+                    if (isset($placeholder['images']) && is_array($placeholder['images']) && !empty($placeholder['images'])) {
+                        $new_placeholders[] = $placeholder;
+                    }
+                    // If 'images' is empty, we skip adding this placeholder
+                }
+                if (!empty($new_placeholders)) {
+                    $print_area['placeholders'] = $new_placeholders;
+                } else {
+                    unset($print_area['placeholders']); // Remove placeholders if empty
+                }
+            }
+
+            $new_print_areas[] = $print_area;
+        }
+        $product['print_areas'] = $new_print_areas;
+    }
+
+    // Remove keys that have empty arrays (even if they were specified for removal)
+    $keys_with_empty_arrays = ['external', 'print_details', 'sales_channel_properties'];
+    foreach ($keys_with_empty_arrays as $key) {
+        if (isset($product[$key]) && empty($product[$key])) {
+            unset($product[$key]);
+        }
+    }
+
+    return $product;
+}
+
+============================THE FOLLOWING SHOULD INTEGRATE THE TRANSOFORMATION CODE INTO EXISTING FUNCTION=====================
+
+
+<?php
+// Handle product actions triggered via AJAX
+function sip_handle_product_action() {
+    // Retrieve the action requested by the user from the AJAX POST data
+    $product_action = sanitize_text_field($_POST['product_action']);
+
+    // Get the list of selected product IDs from the AJAX POST data
+    $selected_products = isset($_POST['selected_products']) ? $_POST['selected_products'] : array();
+
+    // Get the encrypted API token from the WordPress options and decrypt it
+    $encrypted_token = get_option('printify_bearer_token');
+    $token = sip_decrypt_token($encrypted_token);
+
+    // Get the shop ID from the WordPress options
+    $shop_id = get_option('sip_printify_shop_id');
+
+    // Execute the product action (e.g., reload, remove, create template) and get the updated products
+    $updated_products = sip_execute_product_action($product_action, $selected_products);
+
+    // Start output buffering to capture the product list HTML
+    ob_start();
+    // Display the updated product list
+    sip_display_product_list($updated_products);
+    // Get the product list HTML from the buffer
+    $product_list_html = ob_get_clean();
+
+    // Start output buffering to capture the template list HTML
+    ob_start();
+    // Load the templates
+    $templates = sip_load_templates();
+    // Display the template list
+    sip_display_template_list($templates);
+    // Get the template list HTML from the buffer
+    $template_list_html = ob_get_clean();
+
+    // Send a JSON response back to the AJAX call with the updated HTML content
+    wp_send_json_success(array(
+        'product_list_html' => $product_list_html,
+        'template_list_html' => $template_list_html
+    ));
+}
+
+// Execute product actions based on the user's selection
+function sip_execute_product_action($action, $selected_products = array()) {
+    // Log the action for debugging purposes
+    error_log("sip_execute_product_action called with action: $action");
+
+    // Get the encrypted API token from the options and decrypt it
+    $encrypted_token = get_option('printify_bearer_token');
+    $token = sip_decrypt_token($encrypted_token);
+
+    // Get the shop ID from the options
+    $shop_id = get_option('sip_printify_shop_id');
+
+    // Log the token (partially obscured) and shop ID for debugging purposes
+    error_log('Using API Token: ' . substr($token, 0, 5) . '***');
+    error_log('Using Shop ID: ' . $shop_id);
+
+    if ($action === 'reload') {
+        // If the action is 'reload', fetch the latest products from the Printify API
+        error_log('Reloading products from Printify API.');
+
+        // Fetch products from the Printify API
+        $fetched_products = fetch_products($encrypted_token, $shop_id);
+
+        if ($fetched_products) {
+            // Update the 'sip_printify_products' option with the fetched products
+            update_option('sip_printify_products', $fetched_products);
+            error_log('Products reloaded and updated in options.');
+            return $fetched_products;
+        } else {
+            // Log an error if fetching products failed
+            error_log('Failed to fetch products during reload action.');
+            return array(); // Return an empty array to avoid errors
+        }
+    }
+
+    // Get the existing products from the 'sip_printify_products' option
+    $products = get_option('sip_printify_products');
+
+    if ($action === 'remove_from_manager') {
+        // If the action is 'remove_from_manager', remove the selected products from the manager
+        if (empty($selected_products)) {
+            error_log('No products selected for action: remove_from_manager');
+            return $products;
+        }
+
+        error_log('Removing selected products from manager.');
+
+        $initial_count = count($products);
+
+        // Filter out the selected products by excluding products whose IDs are in $selected_products
+        $products = array_filter($products, function ($product) use ($selected_products) {
+            return !in_array($product['id'], $selected_products);
+        });
+
+        $filtered_count = count($products);
+
+        error_log("Products before removal: $initial_count, after removal: $filtered_count");
+
+        // Update the 'sip_printify_products' option with the filtered products
+        update_option('sip_printify_products', $products);
+        error_log('Updated sip_printify_products option after removal.');
+
+    } elseif ($action === 'create_template') {
+        // If the action is 'create_template', create templates for the selected products
+        error_log('Creating templates for selected products.');
+
+        foreach ($selected_products as $product_id) {
+            // Find the product data for the given product ID
+            $product_data = array_filter($products, function ($product) use ($product_id) {
+                return $product['id'] === $product_id;
+            });
+
+            if (!empty($product_data)) {
+                // Get the first (and only) matching product
+                $product = array_shift($product_data);
+
+                // Transform the product data according to the specified rules
+                $transformed_product = transform_product_data($product);
+
+                // Create a new template title by appending '_template' to the product title
+                $template_title = $transformed_product['title'] . '_template';
+
+                // Save the transformed product as a new template
+                sip_save_template($transformed_product, $template_title);
+                error_log('Template created for product ID: ' . $product_id);
+            } else {
+                // Log an error if the product ID was not found in the products data
+                error_log('Product ID not found in products data: ' . $product_id);
+            }
+        }
+    } else {
+        // Log an error if an unknown action was requested
+        error_log('Unknown action requested: ' . $action);
+    }
+
+    // Return the (possibly updated) products
+    return $products;
+}
+
+// Transform the product data according to specified rules
+function transform_product_data($product) {
+    // Remove specified top-level keys from the product data
+    $keys_to_remove = array(
+        'id',
+        'options',
+        'created_at',
+        'updated_at',
+        'visible',
+        'is_locked',
+        'external',
+        'user_id',
+        'shop_id',
+        'print_details',
+        'sales_channel_properties',
+        'is_printify_express_eligible',
+        'is_printify_express_enabled',
+        'is_economy_shipping_eligible',
+        'is_economy_shipping_enabled'
+    );
+
+    // Remove the keys from the product data
+    foreach ($keys_to_remove as $key) {
+        if (isset($product[$key])) {
+            unset($product[$key]);
+        }
+    }
+
+    // Initialize arrays to hold enabled variants and IDs of removed variants
+    $enabled_variants = array();
+    $removed_variant_ids = array();
+
+    // Process the 'variants' array
+    if (isset($product['variants']) && is_array($product['variants'])) {
+        foreach ($product['variants'] as $variant) {
+            if (isset($variant['is_enabled']) && $variant['is_enabled'] === false) {
+                // If the variant is not enabled, collect its ID for later removal
+                if (isset($variant['id'])) {
+                    $removed_variant_ids[] = $variant['id'];
+                }
+                // Do not include this variant in the enabled variants array
+            } else {
+                // If the variant is enabled, keep only specified keys
+                $variant_keys_to_keep = array('id', 'price', 'is_enabled');
+                $new_variant = array();
+                foreach ($variant_keys_to_keep as $key) {
+                    if (isset($variant[$key])) {
+                        $new_variant[$key] = $variant[$key];
+                    }
+                }
+                // Add the new variant to the enabled variants array
+                $enabled_variants[] = $new_variant;
+            }
+        }
+        // Replace the 'variants' array with the array of enabled variants
+        $product['variants'] = $enabled_variants;
+    }
+
+    // Process the 'images' array
+    if (isset($product['images']) && is_array($product['images'])) {
+        foreach ($product['images'] as &$image) {
+            // Remove specified keys from each image
+            foreach (array('type', 'height', 'width') as $key) {
+                if (isset($image[$key])) {
+                    unset($image[$key]);
+                }
+            }
+        }
+        unset($image); // Unset reference to avoid unintended side effects
+    }
+
+    // Process the 'print_areas' array
+    if (isset($product['print_areas']) && is_array($product['print_areas'])) {
+        $new_print_areas = array();
+        foreach ($product['print_areas'] as $print_area) {
+            // Remove 'variant_ids' of removed variants
+            if (isset($print_area['variant_ids']) && is_array($print_area['variant_ids'])) {
+                // Remove the variant IDs that were removed from 'variants'
+                $variant_ids = array_diff($print_area['variant_ids'], $removed_variant_ids);
+                if (empty($variant_ids)) {
+                    // If no variant IDs are left, skip this print area
+                    continue;
+                }
+                // Update the 'variant_ids' with the remaining IDs
+                $print_area['variant_ids'] = array_values($variant_ids); // Re-index array
+            }
+
+            // Process the 'placeholders' array within the print area
+            if (isset($print_area['placeholders']) && is_array($print_area['placeholders'])) {
+                $new_placeholders = array();
+                foreach ($print_area['placeholders'] as $placeholder) {
+                    // Check if the 'images' array is not empty
+                    if (isset($placeholder['images']) && is_array($placeholder['images']) && !empty($placeholder['images'])) {
+                        // Add the placeholder to the new placeholders array
+                        $new_placeholders[] = $placeholder;
+                    }
+                    // If 'images' is empty, skip this placeholder
+                }
+                if (!empty($new_placeholders)) {
+                    // Update the 'placeholders' with the new placeholders
+                    $print_area['placeholders'] = $new_placeholders;
+                } else {
+                    // Remove the 'placeholders' key if it's empty
+                    unset($print_area['placeholders']);
+                }
+            }
+
+            // Add the processed print area to the new print areas array
+            $new_print_areas[] = $print_area;
+        }
+        // Replace the 'print_areas' array with the new print areas
+        $product['print_areas'] = $new_print_areas;
+    }
+
+    // Remove keys that have empty arrays, even if they were specified for removal
+    $keys_with_empty_arrays = array('external', 'print_details', 'sales_channel_properties');
+    foreach ($keys_with_empty_arrays as $key) {
+        if (isset($product[$key]) && empty($product[$key])) {
+            unset($product[$key]);
+        }
+    }
+
+    // Return the transformed product data
+    return $product;
+}
+
+// Simulate processing a product with a Python script (placeholder function)
+// This function is no longer needed since we're processing the product data directly in PHP
+// function process_product_with_python($product_data) {
+//     error_log('process_product_with_python function called');
+//     // Simulate running the Python script and getting the processed JSON back
+//     // Replace with actual script execution as needed
+//     $json_input = json_encode($product_data);
+//     // Example: $processed_json = shell_exec("python3 /path/to/your/script.py --json '{$json_input}'");
+//     $processed_json = $json_input; // Simulating the processed output
+//     return $processed_json;
+// }
+
+// The rest of your code remains unchanged, including any other functions like:
+// - sip_display_product_list()
+// - sip_load_templates()
+// - sip_display_template_list()
+// - sip_save_template()
+// - sip_decrypt_token()
+// - fetch_products()
+// These functions are assumed to be defined elsewhere in your plugin code.
+?>
+
+
+==============================================RECOVERED ITERATION OF THIS DOC=================================================================
+
+
 {
 	"id":
 	"title":
@@ -5,6 +524,181 @@
 	"tags": []
 	"options": []
 	"variants": []
+	etc
+}
+
+
+	PRODUCT CREATION TABLE
+	HEADERS: 		Template 		| [Title] Stub 			| "position one value" : 01 | "position one value" : 02 		| "position one value" : 03 		| "position one value" : 04 	| "position two value" : 01 							| Description 										| Tags 					| Color Selector 																		| Size Selector 	| Mockups Selector 					| Price/Margin 
+	ROW 1: fills the rows with non-editable data drawn from the source template
+	EXAMPLE:  heavyTTest.json		| "FSGP Abstract 01 Tee"| front : FSGPurl98989a.svg | front: 66d4a40ef3e52e3c26057e06	| front: 66d4a6f097b891fa1a26beae	| front: FSGPtopper98989a.svg"	| there is none so this is not included in the table 	| Link that brings up text window with description 	| comma separated Tags	| swatches derived from template - these are clickable to toggle exclusion/inclusion 	| similar to color	| same shows thumbs not swatches	| if $ is entered it's price, if % is entered its margin
+	            "placeholders": [
+                {
+                    "position": "back",
+                    "images": []
+                },
+                {
+                    "position": "front",
+                    "images": [
+                        {
+                            "id": "ca6fcab7-7f67-5735-9d42-c8e0747a9a8b",
+                            "name": "",
+                            "type": "text/svg",
+                        },
+                        {
+                            "id": "66d4a40ef3e52e3c26057e06",
+                            "name": "square_empty_black.svg",
+                            "type": "image/png",
+                        },
+                        {
+                            "id": "66d4a6f097b891fa1a26beae",
+                            "name": "fsgp_abstract_04_3600.jpg",
+                            "type": "image/jpeg",
+                        },
+                        {
+                            "id": "92997ca3-4923-5881-35ab-8f050b0ec2ed",
+                            "name": "",
+                            "type": "text/svg",
+                        },
+                        {
+                            "id": "eff3afab-f0bb-0043-c6f2-af05835f4eb5",
+                            "name": "",
+                            "type": "text/svg",
+                        },
+                        {
+                            "id": "bcf5b440-e234-29f5-8dd5-fccb77b336cd",
+                            "name": "",
+                            "type": "text/svg",
+                        },
+                        {
+                            "id": "380359f8-2c77-b10b-473d-257539769781",
+                        }
+                    ]
+                }
+            ],
+            "font_color": "#000",
+            "font_family": "Roboto"
+
+
+
+
+===========================================================================
+PRINTIFY'S CREATE PRODUCT TEMPLATE EXAMPLE
+{
+    "title": "Product",
+    "description": "Good product",
+    "blueprint_id": 384,
+    "print_provider_id": 1,
+    "variants": [
+          {
+              "id": 45740,
+              "price": 400,
+              "is_enabled": true
+          },
+          {
+              "id": 45742,
+              "price": 400,
+              "is_enabled": true
+          },
+          {
+              "id": 45744,
+              "price": 400,
+              "is_enabled": false
+          },
+          {
+              "id": 45746,
+              "price": 400,
+              "is_enabled": false
+          }
+      ],
+	"print_areas": [
+	{
+		"variant_ids": [45740,45742,45744,45746],
+		"placeholders": [
+		{
+			"position": "front",
+			"images": [
+				{
+				"id": "5d15ca551163cde90d7b2203", 
+				"x": 0.5, 
+				"y": 0.5, 
+				"scale": 1,
+				"angle": 0,
+				"pattern": {
+					"spacing_x": 1,
+					"spacing_y": 2,
+					"scale": 3,
+					"offset": 4
+				}
+				}
+			]
+		}
+		]
+	}
+	]
+  }
+
+
+========================RECIPE FOR TURNING A PRODUCT JSON INTO A TEMPLATE===========================
+Keep Keys And Specified Values  Under Circumstances Detailed in Parentheses
+	"title":
+	"description":
+	"tags":
+	"variants": [ (if "is_enabled": true)
+		"id"
+		"price"
+		"is_enabled"
+		"blueprint_id":
+		"print_provider_id"
+	]
+	"print_areas": [ (only keep for product ids that have been kept because enabled in variants)
+		"variant_ids" [
+			again, only if these remain in the kept variants.
+		]
+		"placeholders": [
+			"position": "back", (keep only if there are images in the child images array)
+			"images"[]
+			"position": "front", (keep only if there are images in the child images array)
+			"images": [
+				{
+					"id":
+					"name":
+					"x":
+					"y":
+					"scale":
+					"angle":
+					"pattern": {
+						"spacing_x":
+						"spacing_y":
+						"scale":
+						"offset":
+					}
+				}
+			]
+		]
+	]
+
+Remove Keys And Specified Values Under Circumstances Detailed in Parentheses
+	"Id":
+	"options":
+	"variants":[
+		"sku"
+		"cost"
+		"title"
+		"grams"
+		"is_default"
+		"is_available"
+		"is_printify_express_eligible"
+		"options"
+		"quantity"
+	]
+
+	"variants": [ (if "is_enabled": false)
+		"id"
+		"price"
+		"is_enabled"
+	]
+
 	"images": [
 		{
 			"src": "url for product thumbnail"
@@ -18,9 +712,89 @@
 	"shop_id":
 	"print_provider_id":
 	"print_areas": []
+			"type"
+			"height"
+			"width"
+		}
+	],
+	"created_at"
+	"updated_at"
+	"visible"
+	"is_locked"
+	"external": [],
+	"user_id"
+	"shop_id"
+	"print_areas": [
+		(remove all variant_ids that have been removed from variants because is_enabled: false)
+		"placeholders": [ (remove all placeholders if their preceding variant_ids array is empty)
+			"position": "back", (remove if their are no images in the child images array)
+			"images"[]
+			"position": "front", (remove if their are no images in the child images array)
+		]
+	]
+
 	"print_details": []
 	"sales_channel_properties": []
 	"is_printify_express_eligible":
 	"is_printify_express_enabled":
 	"is_economy_shipping_eligible":
 	"is_economy_shipping_enabled":
+	"sales_channel_properties": [],
+    "is_printify_express_eligible": true,
+    "is_printify_express_enabled": false,
+    "is_economy_shipping_eligible": true,
+    "is_economy_shipping_enabled": false
+
+=====================================================================
+   Within print_areas, if there are any "positions" with corresponding "images", the "placeholders" object should be kept to contain those children.
+
+	Remove keys that have been tagged for removal entirely even if they are empty arrays.
+
+	Here's an example of a variant with is_enabled: false
+
+    "variants": [
+        {
+            "id": 12083,
+            "sku": "16769281874888591685",
+            "cost": 941,
+            "price": 1568,
+            "title": "Tropical Blue / M",
+            "grams": 160,
+            "is_enabled": false,
+            "is_default": false,
+            "is_available": true,
+            "is_printify_express_eligible": false,
+            "options": [
+                376,
+                15
+            ],
+            "quantity": 1
+        },
+
+
+This entire section of code between the brackets should be removed.  If the variant is_enabled is true, the variant and the id, price and is_enabled keys and values should be kept; other keys should be removed.
+
+Here's an example of print_areas which contains arraya of variant_ids followed by placeholders arrays
+    "print_areas": [
+        {
+            "variant_ids": [
+                12083,
+                11958,
+                11982,
+                12018,
+                12125,
+                11867,
+                12214,
+                12160,
+                12016,
+                12175,
+                12120,
+                11963,
+                11976,
+                12154,
+                11902,
+                12019,
+            "placeholders": []		
+
+All variant_ids that were removed from "variants" should also be removed here.  Since only variants with is_enabled false have been removed from variants, the same will be true here.
+If all variant_ids are removed from an array, the subsequent placeholders array should also be removed.

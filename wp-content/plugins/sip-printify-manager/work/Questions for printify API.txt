@@ -7,3 +7,17 @@ is there a limit to the number of files stored in the my images archive?
 If so, where does printify keep the source images when a store has more than 100 products with unique images?
 
 is there a way to delete uploads?
+
+is there a limit to the number of files stored in the my images archive?
+
+If so, where does printify keep the source images when a store has products that are designed with more than that number of unique images?
+
+is there a way to delete uploads using the API or just to archive them?
+
+In the create product API call, are variant IDs arbitrary?  How should they be generated? Can they be duplicated across products?
+IDs represent all sizexcolor combos?  so the correct ones need to be figured out based on what sizes:colors the store owner wants?
+
+Need to look into adding names to layers in product creator.  i.e. How does "name" in product data array get populatd?
+
+Do I need to include all variants in the product creation json even if they are not enabled?
+
