@@ -29,24 +29,40 @@ jQuery(document).ready(function ($) {
      * @param {string|null} buttonSelector - The jQuery selector for the button to disable/enable during the request.
      * @param {string|null} spinnerSelector - The jQuery selector for the spinner to show/hide during the request.
      */
+
     function handleAjaxAction(actionType, formData = null, buttonSelector = null, spinnerSelector = null) {
-        // Disable the button to prevent multiple clicks
+        // This function is called when an option is selected from a dropdown or a button is clicked to perform an action.
+        // When an option from a dropdown is selected, the form data is collected and sent to the server via AJAX to perform the action.
+        // The server processes the request and sends a response back to the client.
+        // The client-side JavaScript then handles the response and updates the UI accordingly.
+
+        // When the button is clicked, it is disabled to prevent multiple clicks while the request is being processed.
         if (buttonSelector) {
             $(buttonSelector).attr('disabled', true);
         }
-        // Show the spinner overlay
+        // A spinner is shown to indicate that the request is being processed.
         if (spinnerSelector) {
             $(spinnerSelector).show();
             $('#spinner-overlay').show();
         }
 
-        // Send the AJAX request
+        // After the button is disabled and the spinner is shown, the AJAX request is sent to the server.
+        // The type of action is specified in the form data, along with other necessary information.
+        // The form data contains the following elements: action, action_type, nonce, and any additional data needed for the action.
+        // for example the delete Template action form data would look like this: action: 'sip_handle_ajax_request', action_type: 'template_action', template_action: 'delete_template', nonce: sipAjax.nonce, selected_templates[]: [template_id].
+        
         $.ajax({
             url: sipAjax.ajax_url,
             type: 'POST',
             data: formData,
             processData: false, // Don't process the files (important for file uploads)
             contentType: false, // Let jQuery set the content type
+
+        // When the server responds, the success function is called based on the response and the action type.
+        // The response contains information about the success or failure of the action, along with any data needed to update the UI.
+        // The success function handles the response and updates the UI accordingly.
+        // If there is an error, the error function is called to handle the error and update the UI accordingly.
+
             success: function (response) {
                 // Re-enable the button
                 if (buttonSelector) {
@@ -58,6 +74,7 @@ jQuery(document).ready(function ($) {
                 }
 
                 // Handle the response based on the action type
+                // a switch statement is a good way to handle multiple cases based on the action type.
                 if (response.success) {
                     switch (actionType) {
                         case 'save_token':
@@ -110,8 +127,6 @@ jQuery(document).ready(function ($) {
 
                         case 'save_template':
                             // Template saved successfully
-                            // Optionally display a message in a message area
-                            $('#message-area').text('Template saved successfully.').show();
                             $('#template-editor').hide();
                             $('#spinner-overlay').hide(); // Hide spinner overlay after saving
                             break;
@@ -155,23 +170,28 @@ jQuery(document).ready(function ($) {
                     $(spinnerSelector).hide();
                 }
                 $('#spinner-overlay').hide(); // Hide global spinner overlay on error
-                // Optionally display a generic error message
-                $('#message-area').text('An error occurred. Please try again.').show();
             }
         });
     }
 
     /**
-     * Handle form submissions for various actions.
-     * Forms handled: save token, product actions, template actions, image actions.
+     * When the user pushes a button or makes a selection from a pulldown menu, a form submission event is triggered.
+     * 
+    * The following code handles form submissions for various actions.
+    * It attaches an event handler to the form submission event and prevents the default form submission behavior.
      */
     $('#save-token-form, #product-action-form, #template-action-form, #image-action-form').on('submit', function (e) {
         e.preventDefault(); // Prevent default form submission
 
+        // Create a new FormData object from the submitted form
         var formData = new FormData(this);
-        var actionType = '';
+        var actionType = ''; // Initialize the action type variable
 
-        // Determine the action type based on the form ID
+        /**
+         * Determine the action type based on the form's ID.
+         * The form ID indicates which form was submitted, allowing us to handle different actions.
+         * Action types include saving the token, updating products, templates, or images, and uploading images.
+         */
         switch ($(this).attr('id')) {
             case 'save-token-form':
                 actionType = 'save_token';
@@ -180,12 +200,14 @@ jQuery(document).ready(function ($) {
             //PRODUCTS    
             case 'product-action-form':
                 actionType = 'product_action';
-                // Collect selected products
+                // Collect selected products from checkboxes
                 var selectedProducts = [];
                 $('input[name="selected_products[]"]:checked').each(function () {
                     selectedProducts.push($(this).val());
                 });
+                // Remove any existing 'selected_products[]' entries to avoid duplicates
                 formData.delete('selected_products[]');
+                // Append each selected product to formData
                 selectedProducts.forEach(function (productId) {
                     formData.append('selected_products[]', productId);
                 });
@@ -194,7 +216,6 @@ jQuery(document).ready(function ($) {
             //TEMPLATES
             case 'template-action-form':
                 actionType = 'template_action';
-//                templateAction = $('#template_action').val();
                 // Collect selected templates
                 var selectedTemplates = [];
                 $('input[name="selected_templates[]"]:checked').each(function () {
@@ -219,13 +240,16 @@ jQuery(document).ready(function ($) {
                     formData.append('selected_images[]', imageId);
                 });
                 break;
+
+            default:
+                alert('Unknown form action.');
+                return; // Exit the function if the form ID is unrecognized       
         }
 
-        // Add common data to formData
-        formData.append('action', 'sip_handle_ajax_request');
-        formData.append('action_type', actionType);
-//        formData.append('template_action', templateAction);
-        formData.append('nonce', sipAjax.nonce);
+        // Append common data to formData for the AJAX request
+        formData.append('action', 'sip_handle_ajax_request'); // WordPress AJAX action hook
+        formData.append('action_type', actionType); // Specific action to perform
+        formData.append('nonce', sipAjax.nonce); // Security nonce
 
         // Call the reusable function to handle the AJAX request
         handleAjaxAction(actionType, formData, null, '#loading-spinner');
@@ -357,6 +381,8 @@ jQuery(document).ready(function ($) {
         // Send the AJAX request to upload images
         handleAjaxAction('upload_images', formData, null, null);
     }
+
+    ///////////////////////////////SELECT ALL AND SEARCH FUNCTIONALITY////////////////////////////////////////
 
     /**
      * Select All / Deselect All functionality for images.

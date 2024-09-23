@@ -195,10 +195,15 @@ SiP_Plugin_Framework::init_plugin(
  */
 function sip_handle_ajax_request() {
     // Verify the AJAX nonce for security
-    check_ajax_referer('sip_printify_manager_nonce', 'nonce');
+    // Verify nonce
+    if (!check_ajax_referer('sip_printify_manager_nonce', 'nonce', false)) {
+        wp_send_json_error('Security check failed');
+        wp_die();
+    }
 
     // Get the action type from the AJAX request
-    $action_type = sanitize_text_field($_POST['action_type']);
+    $action_type = isset($_POST['action_type']) ? sanitize_text_field($_POST['action_type']) : '';
+
 
     // Switch based on the action type to delegate to the appropriate function
     switch ($action_type) {

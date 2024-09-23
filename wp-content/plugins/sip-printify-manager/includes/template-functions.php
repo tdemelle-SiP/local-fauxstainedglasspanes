@@ -192,10 +192,19 @@ function sip_handle_template_action() {
     $selected_templates = isset($_POST['selected_templates']) ? $_POST['selected_templates'] : array();
 
     if ($template_action === 'delete_template') {
-        foreach ($selected_templates as $template_name) {
-            sip_delete_template(sanitize_text_field($template_name));
+        foreach ($selected_templates as $templateId) {
+            sip_delete_template(sanitize_text_field($templateId));
         }
-        wp_send_json_success('Templates deleted successfully.');
+
+        // Start output buffering to capture the template list HTML
+        ob_start();
+        $templates = sip_load_templates();
+        sip_display_template_list($templates);
+        $template_list_html = ob_get_clean();
+
+        // Send a JSON response back to the AJAX call with the updated HTML content
+        wp_send_json_success(array('template_list_html' => $template_list_html));
+
     } elseif ($template_action === 'edit_template') {
         if (!empty($selected_templates)) {
             $template_name = sanitize_text_field($selected_templates[0]);
@@ -213,6 +222,7 @@ function sip_handle_template_action() {
         } else {
             wp_send_json_error('No template selected.');
         }
+
     } elseif ($template_action === 'rename_template') {
         if (!empty($selected_templates)) {
             $old_name  = sanitize_text_field($selected_templates[0]);
