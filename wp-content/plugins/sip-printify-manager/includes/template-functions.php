@@ -187,7 +187,8 @@ function sip_rename_template($old_name, $new_name) {
  * This function handles actions like deleting, editing, or renaming templates based on AJAX requests.
  */
 function sip_handle_template_action() {
-    $template_action = sanitize_text_field($_POST['action_type']); // Changed 'template_action' to 'action_type'
+    $template_action = isset($_POST['template_action']) ? sanitize_text_field($_POST['template_action']) : '';
+
     $selected_templates = isset($_POST['selected_templates']) ? $_POST['selected_templates'] : array();
 
     if ($template_action === 'delete_template') {

@@ -85,28 +85,6 @@ jQuery(document).ready(function ($) {
                             $('#spinner-overlay').hide(); // Hide spinner overlay after update
                             break;
 
-                        case 'image_action':
-                            // Update the image list if available
-                            if (response.data.image_list_html) {
-                                $('#image-list').html(response.data.image_list_html).show();
-                            }
-                            // Uncheck all selected images
-                            $('input[name="selected_images[]"]').prop('checked', false);
-                            // Uncheck the select all checkbox
-                            $('#select-all-images').prop('checked', false);
-                            $('#spinner-overlay').hide(); // Hide spinner overlay after update
-                            break;
-    
-                        case 'upload_images':
-                            // Images uploaded successfully
-                            if (response.data.image_list_html) {
-                                $('#image-list').html(response.data.image_list_html).show();
-                            }
-                            // Clear the file input
-                            $('#image-file-input').val('');
-                            $('#spinner-overlay').hide(); // Hide spinner overlay after upload
-                            break;
-    
                         case 'template_action':
                             // Handle editing a template
                             if (formData.get('template_action') === 'edit_template') {
@@ -136,6 +114,28 @@ jQuery(document).ready(function ($) {
                             $('#message-area').text('Template saved successfully.').show();
                             $('#template-editor').hide();
                             $('#spinner-overlay').hide(); // Hide spinner overlay after saving
+                            break;
+
+                        case 'image_action':
+                            // Update the image list if available
+                            if (response.data.image_list_html) {
+                                $('#image-list').html(response.data.image_list_html).show();
+                            }
+                            // Uncheck all selected images
+                            $('input[name="selected_images[]"]').prop('checked', false);
+                            // Uncheck the select all checkbox
+                            $('#select-all-images').prop('checked', false);
+                            $('#spinner-overlay').hide(); // Hide spinner overlay after update
+                            break;
+    
+                        case 'upload_images':
+                            // Images uploaded successfully
+                            if (response.data.image_list_html) {
+                                $('#image-list').html(response.data.image_list_html).show();
+                            }
+                            // Clear the file input
+                            $('#image-file-input').val('');
+                            $('#spinner-overlay').hide(); // Hide spinner overlay after upload
                             break;
 
                         default:
@@ -176,6 +176,8 @@ jQuery(document).ready(function ($) {
             case 'save-token-form':
                 actionType = 'save_token';
                 break;
+
+            //PRODUCTS    
             case 'product-action-form':
                 actionType = 'product_action';
                 // Collect selected products
@@ -188,8 +190,11 @@ jQuery(document).ready(function ($) {
                     formData.append('selected_products[]', productId);
                 });
                 break;
+
+            //TEMPLATES
             case 'template-action-form':
                 actionType = 'template_action';
+//                templateAction = $('#template_action').val();
                 // Collect selected templates
                 var selectedTemplates = [];
                 $('input[name="selected_templates[]"]:checked').each(function () {
@@ -200,6 +205,8 @@ jQuery(document).ready(function ($) {
                     formData.append('selected_templates[]', templateId);
                 });
                 break;
+
+            //IMAGES
             case 'image-action-form':
                 actionType = 'image_action';
                 // Collect selected images
@@ -217,6 +224,7 @@ jQuery(document).ready(function ($) {
         // Add common data to formData
         formData.append('action', 'sip_handle_ajax_request');
         formData.append('action_type', actionType);
+//        formData.append('template_action', templateAction);
         formData.append('nonce', sipAjax.nonce);
 
         // Call the reusable function to handle the AJAX request
