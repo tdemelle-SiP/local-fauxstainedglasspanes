@@ -227,6 +227,7 @@ function transform_product_data($product) {
     $keys_to_remove = array(
         'id',
         'options',
+        'images',
         'created_at',
         'updated_at',
         'visible',
@@ -277,19 +278,6 @@ function transform_product_data($product) {
         }
         // Replace the 'variants' array with the array of enabled variants
         $product['variants'] = $enabled_variants;
-    }
-
-    // Process the 'images' array
-    if (isset($product['images']) && is_array($product['images'])) {
-        foreach ($product['images'] as &$image) {
-            // Remove specified keys from each image
-            foreach (array('type', 'height', 'width') as $key) {
-                if (isset($image[$key])) {
-                    unset($image[$key]);
-                }
-            }
-        }
-        unset($image); // Unset reference to avoid unintended side effects
     }
 
     // Process the 'print_areas' array

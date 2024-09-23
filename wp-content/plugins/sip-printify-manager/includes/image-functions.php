@@ -369,8 +369,8 @@ function sip_handle_image_upload() {
 
             // Save the file to a local directory
             $upload_dir = wp_upload_dir();
-            $sip_upload_dir = $upload_dir['basedir'] . '/sip_printify_manager/';
-            $sip_upload_url = $upload_dir['baseurl'] . '/sip_printify_manager/';
+            $sip_upload_dir = $upload_dir['basedir'] . '/sip-printify-manager/images/';
+            $sip_upload_url = $upload_dir['baseurl'] . '/sip-printify-manager/images/';
 
             if (!file_exists($sip_upload_dir)) {
                 wp_mkdir_p($sip_upload_dir);
