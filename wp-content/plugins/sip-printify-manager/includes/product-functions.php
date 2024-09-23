@@ -114,7 +114,9 @@ function sip_display_product_list($products) {
 
 // Handle product actions triggered via AJAX
 function sip_handle_product_action() {
+    // Retrieve the action requested by the user from the AJAX POST data
     $product_action = sanitize_text_field($_POST['product_action']);
+    // Get the list of selected product IDs from the AJAX POST data
     $selected_products = isset($_POST['selected_products']) ? $_POST['selected_products'] : array();
 
     // Get the encrypted token and decrypt it
@@ -125,15 +127,20 @@ function sip_handle_product_action() {
     // Fetch and display products
     $updated_products = sip_execute_product_action($product_action, $selected_products);
 
+    // Start output buffering to capture the product list HTML
     ob_start();
     sip_display_product_list($updated_products);
+    // Get the product list HTML from the buffer
     $product_list_html = ob_get_clean();
 
+    // Start output buffering to capture the template list HTML
     ob_start();
     $templates = sip_load_templates();
     sip_display_template_list($templates);
+    // Get the template list HTML from the buffer
     $template_list_html = ob_get_clean();
 
+    // Send a JSON response back to the AJAX call with the updated HTML content
     wp_send_json_success(array('product_list_html' => $product_list_html, 'template_list_html' => $template_list_html));
 }
 
@@ -194,8 +201,14 @@ function sip_execute_product_action($action, $selected_products = array()) {
             });
 
             if (!empty($product_data)) {
+                // Get the first (and only) matching product
                 $product = array_shift($product_data);
-                sip_save_template($product, $product['title']);
+
+                // Transform the product data according to the specified rules
+                $transformed_product = transform_product_data($product);
+                $template_title = $transformed_product['title'];
+
+                sip_save_template($transformed_product, $template_title);
                 error_log('Template created for product ID: ' . $product_id);
             } else {
                 error_log('Product ID not found in products data: ' . $product_id);
@@ -208,13 +221,128 @@ function sip_execute_product_action($action, $selected_products = array()) {
     return $products;
 }
 
-// Simulate processing a product with a Python script (placeholder function)
-function process_product_with_python($product_data) {
-    error_log('process_product_with_python function called');
-    // Simulate running the Python script and getting the processed JSON back
-    // Replace with actual script execution as needed
-    $json_input = json_encode($product_data);
-    // Example: $processed_json = shell_exec("python3 /path/to/your/script.py --json '{$json_input}'");
-    $processed_json = $json_input; // Simulating the processed output
-    return $processed_json;
+// Transform the product data according to specified rules
+function transform_product_data($product) {
+    // Remove specified top-level keys from the product data
+    $keys_to_remove = array(
+        'id',
+        'options',
+        'created_at',
+        'updated_at',
+        'visible',
+        'is_locked',
+        'external',
+        'user_id',
+        'shop_id',
+        'print_details',
+        'sales_channel_properties',
+        'is_printify_express_eligible',
+        'is_printify_express_enabled',
+        'is_economy_shipping_eligible',
+        'is_economy_shipping_enabled'
+    );
+
+    // Remove the keys from the product data
+    foreach ($keys_to_remove as $key) {
+        if (isset($product[$key])) {
+            unset($product[$key]);
+        }
+    }
+
+    // Initialize arrays to hold enabled variants and IDs of removed variants
+    $enabled_variants = array();
+    $removed_variant_ids = array();
+
+    // Process the 'variants' array
+    if (isset($product['variants']) && is_array($product['variants'])) {
+        foreach ($product['variants'] as $variant) {
+            if (isset($variant['is_enabled']) && $variant['is_enabled'] === false) {
+                // If the variant is not enabled, collect its ID for later removal
+                if (isset($variant['id'])) {
+                    $removed_variant_ids[] = $variant['id'];
+                }
+                // Do not include this variant in the enabled variants array
+            } else {
+                // If the variant is enabled, keep only specified keys
+                $variant_keys_to_keep = array('id', 'price', 'is_enabled');
+                $new_variant = array();
+                foreach ($variant_keys_to_keep as $key) {
+                    if (isset($variant[$key])) {
+                        $new_variant[$key] = $variant[$key];
+                    }
+                }
+                // Add the new variant to the enabled variants array
+                $enabled_variants[] = $new_variant;
+            }
+        }
+        // Replace the 'variants' array with the array of enabled variants
+        $product['variants'] = $enabled_variants;
+    }
+
+    // Process the 'images' array
+    if (isset($product['images']) && is_array($product['images'])) {
+        foreach ($product['images'] as &$image) {
+            // Remove specified keys from each image
+            foreach (array('type', 'height', 'width') as $key) {
+                if (isset($image[$key])) {
+                    unset($image[$key]);
+                }
+            }
+        }
+        unset($image); // Unset reference to avoid unintended side effects
+    }
+
+    // Process the 'print_areas' array
+    if (isset($product['print_areas']) && is_array($product['print_areas'])) {
+        $new_print_areas = array();
+        foreach ($product['print_areas'] as $print_area) {
+            // Remove 'variant_ids' of removed variants
+            if (isset($print_area['variant_ids']) && is_array($print_area['variant_ids'])) {
+                // Remove the variant IDs that were removed from 'variants'
+                $variant_ids = array_diff($print_area['variant_ids'], $removed_variant_ids);
+                if (empty($variant_ids)) {
+                    // If no variant IDs are left, skip this print area
+                    continue;
+                }
+                // Update the 'variant_ids' with the remaining IDs
+                $print_area['variant_ids'] = array_values($variant_ids); // Re-index array
+            }
+
+            // Process the 'placeholders' array within the print area
+            if (isset($print_area['placeholders']) && is_array($print_area['placeholders'])) {
+                $new_placeholders = array();
+                foreach ($print_area['placeholders'] as $placeholder) {
+                    // Check if the 'images' array is not empty
+                    if (isset($placeholder['images']) && is_array($placeholder['images']) && !empty($placeholder['images'])) {
+                        // Add the placeholder to the new placeholders array
+                        $new_placeholders[] = $placeholder;
+                    }
+                    // If 'images' is empty, skip this placeholder
+                }
+                if (!empty($new_placeholders)) {
+                    // Update the 'placeholders' with the new placeholders
+                    $print_area['placeholders'] = $new_placeholders;
+                } else {
+                    // Remove the 'placeholders' key if it's empty
+                    unset($print_area['placeholders']);
+                }
+            }
+
+            // Add the processed print area to the new print areas array
+            $new_print_areas[] = $print_area;
+        }
+        // Replace the 'print_areas' array with the new print areas
+        $product['print_areas'] = $new_print_areas;
+    }
+
+    // Remove keys that have empty arrays, even if they were specified for removal
+    $keys_with_empty_arrays = array('external', 'print_details', 'sales_channel_properties');
+    foreach ($keys_with_empty_arrays as $key) {
+        if (isset($product[$key]) && empty($product[$key])) {
+            unset($product[$key]);
+        }
+    }
+
+    // Return the transformed product data
+    return $product;
 }
