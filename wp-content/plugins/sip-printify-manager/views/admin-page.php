@@ -174,8 +174,20 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
     <?php endif; ?>
 </div>
 
-<textarea id="template-editor-textarea" name="template_content" rows="20" cols="100"><?php echo esc_textarea($template_content); ?></textarea>
-
+<!-- The CodeMirrot Modal -->
+<div id="template-editor-modal" class="template-editor-overlay" style="display: none;">
+    <div id="template-editor-content" class="template-editor-content">
+        <div id="template-editor-header" class="template-editor-header">
+            <h2 id="template-editor-title">Edit Template</h2>
+            <span id="template-editor-close" class="template-editor-close">&times;</span>
+        </div>
+        <textarea id="template-editor-textarea" name="template_content"></textarea>
+        <div id="template-editor-buttons" class="template-editor-buttons">
+            <button id="template-editor-save" class="button button-primary">Save</button>
+            <button id="template-editor-cancel" class="button button-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
 
 
 <div id="product-creation-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>

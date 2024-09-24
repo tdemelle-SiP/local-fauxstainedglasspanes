@@ -326,41 +326,75 @@ jQuery(document).ready(function ($) {
 
 ///////////////////////////////////////////TEMPLATE EDITOR////////////////////////////////////////
 
-// Initialize CodeMirror
-var editor;
-
 $(document).ready(function($) {
-    // Initialize CodeMirror
-    editor = wp.codeEditor.initialize($('#template-editor-textarea'), {
-        mode: 'application/json', // Set to 'application/json' or 'javascript' for JSON files
-        lineNumbers: true,
-        matchBrackets: true,
-        autoCloseBrackets: true,
-        theme: 'default', // You can change the theme
+    var editor;
+    var isDragging = false;
+    var offsetX, offsetY;
+
+    // Handle dragging functionality
+    $('#template-editor-header').on('mousedown', function(e) {
+        e.preventDefault(); // Prevent default behavior to avoid unintended effects
+        isDragging = true;
+        var modal = $('#template-editor-content');
+        offsetX = e.clientX - modal.offset().left;
+        offsetY = e.clientY - modal.offset().top;
+        $('body').on('mousemove', onDrag);
+        $('body').on('mouseup', function() {
+            isDragging = false;
+            $('body').off('mousemove', onDrag);
+        });
     });
 
-    // Handle template editing
+    function onDrag(e) {
+        if (isDragging) {
+            var left = e.clientX - offsetX;
+            var top = e.clientY - offsetY;
+            $('#template-editor-content').css({
+                top: top + 'px',
+                left: left + 'px',
+                position: 'absolute',
+                margin: 0 // Ensure no unwanted margins are added
+            });
+        }
+    }
+
+    // Open the modal and initialize CodeMirror
     $('.edit-template-content').on('click', function() {
         var $row = $(this).closest('tr');
         var templateName = $row.find('.template-name-cell').data('template-name');
+
+        $('#template-editor-modal').show();
+        $('#template-editor-title').text(templateName);
 
         // Load template content via AJAX
         $.ajax({
             url: ajaxurl,
             method: 'POST',
             data: {
-                sip_printify_manager_nonce_field: sipAjax.nonce, // Updated nonce field
-                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager', // Updated referer field
-                template_action: 'edit_template', // Updated action type
-                'selected_templates[]': [templateName], // Array notation for selected templates
-                action: 'sip_handle_ajax_request', // Action field
-                action_type: 'template_action', // Action type field
-                nonce: sipAjax.nonce // Include nonce as a separate field as well
+                sip_printify_manager_nonce_field: sipAjax.nonce,
+                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
+                template_action: 'edit_template',
+                'selected_templates[]': [templateName],
+                action: 'sip_handle_ajax_request',
+                action_type: 'template_action',
+                nonce: sipAjax.nonce
             },
             success: function(response) {
                 if (response.success) {
-                    $('#template-editor-title').text(templateName); // Update the title
-                    editor.codemirror.setValue(response.data.template_content); // Load content into CodeMirror
+                    if (!editor) {
+                        editor = wp.codeEditor.initialize($('#template-editor-textarea'), {
+                            mode: 'application/json',
+                            lineNumbers: true,
+                            matchBrackets: true,
+                            autoCloseBrackets: true,
+                            theme: 'default',
+                        });
+                    }
+                    editor.codemirror.setValue(response.data.template_content);
+
+                    // Ensure the textarea fills the modal properly
+                    $('#template-editor-textarea').css('height', 'calc(100% - 60px)');
+                    $('#template-editor-content').css('height', 'auto');
                 } else {
                     alert('Error: ' + response.data);
                 }
@@ -371,12 +405,16 @@ $(document).ready(function($) {
         });
     });
 
-    // Save the edited template directly from CodeMirror
+    // Close modal on cancel or close button click
+    $('#template-editor-cancel, #template-editor-close').on('click', function() {
+        $('#template-editor-modal').hide();
+    });
+
+    // Save the edited template
     $('#template-editor-save').on('click', function() {
         var templateName = $('#template-editor-title').text();
-        var templateContent = editor.codemirror.getValue(); // Get content from CodeMirror
+        var templateContent = editor.codemirror.getValue();
 
-        // Save template content via AJAX
         $.ajax({
             url: ajaxurl,
             method: 'POST',
@@ -384,11 +422,12 @@ $(document).ready(function($) {
                 action: 'sip_save_template_content',
                 template_name: templateName,
                 template_content: templateContent,
-                _ajax_nonce: sip_ajax_object.ajax_nonce
+                _ajax_nonce: sipAjax.nonce
             },
             success: function(response) {
                 if (response.success) {
                     alert('Template saved successfully.');
+                    $('#template-editor-modal').hide();
                 } else {
                     alert('Error: ' + response.data);
                 }
@@ -399,8 +438,6 @@ $(document).ready(function($) {
         });
     });
 });
-
-
 
 
 ///////////////////////////////////////////IMAGE UPLOAD FUNCTIONALITY////////////////////////////////////////

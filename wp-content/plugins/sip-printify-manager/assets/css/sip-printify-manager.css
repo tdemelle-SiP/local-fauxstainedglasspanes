@@ -175,31 +175,109 @@ table tbody tr:nth-child(even) {
     color: #00a0d2;
 }
 
-/* Template Editor Modal overlay */
-.template-editor-overlay {
+/* Overlay */
+#template-editor-modal.template-editor-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 1000;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999; /* Ensure modal is above everything else */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* Modal content */
-.template-editor-content {
-    position: fixed;
-    top: 50%;
-    left: 50%;
+/* Modal Content */
+#template-editor-modal .template-editor-content {
+    background-color: #fff;
     width: 80%;
-    max-width: 800px;
-    height: 80%;
-    transform: translate(-50%, -50%);
-    background: #fff;
-    padding: 20px;
-    z-index: 1001;
-    overflow: auto;
+    max-width: 100%; /* Allow the modal to scale to full screen width */
+    height: 80%; /* Takes up 80% of the viewport height */
+    max-height: 100%; /* Allow the modal to scale to full screen height */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0; /* Removed rounded corners */
+    resize: both; /* Enable resizing on both axes */
+    overflow: hidden; /* Ensure the content stays within the modal */
+    z-index: 10000; /* Ensure content is above the overlay */
 }
+
+/* Header */
+#template-editor-modal .template-editor-header {
+    background-color: #f0f0f0;
+    padding: 10px;
+    cursor: move;
+    display: flex;
+    justify-content: center; /* Center the title */
+    align-items: center;
+    border-bottom: 1px solid #ccc; /* Adds a border to separate header from content */
+    position: relative;
+    z-index: 10001; /* Ensure header is above the content */
+}
+
+/* Title */
+#template-editor-modal .template-editor-header h2 {
+    margin: 0;
+    flex-grow: 1; /* Ensure title takes up available space */
+    text-align: center; /* Center the text */
+}
+
+/* Close Button */
+#template-editor-modal .template-editor-close {
+    position: absolute;
+    right: 10px;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+/* Textarea */
+#template-editor-modal #template-editor-textarea {
+    flex-grow: 1;
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    padding: 10px;
+    resize: none;
+    overflow: auto;
+    font-family: monospace; /* Ensures consistent font in code editors */
+    height: 100%; /* Fill the remaining vertical space */
+    margin: 0; /* Remove margin to avoid extra space */
+}
+
+/* Buttons Container */
+#template-editor-modal .template-editor-buttons {
+    padding: 10px;
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 10px; /* Space between buttons */
+    position: absolute; /* Position absolutely within the modal */
+    bottom: 0;
+    right: 0;
+    left: 0;
+    z-index: 10001; /* Ensure buttons are above the content */
+}
+
+/* Button Styles */
+#template-editor-modal .template-editor-buttons button {
+    min-width: 100px;
+    flex-shrink: 0; /* Prevents buttons from shrinking */
+    cursor: pointer;
+}
+
+/* Optional: Style for the Save and Cancel Buttons */
+#template-editor-save {
+    background-color: #007cba;
+    color: white;
+}
+
+#template-editor-cancel {
+    background-color: #ccc;
+}
+
 
 /* Styling for the Images Section */
 #images-section {
