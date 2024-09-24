@@ -237,24 +237,29 @@ function sip_handle_template_action() {
 
         
 
-    } elseif ($template_action === 'edit_template') {
-        $selected_templates = isset($_POST['selected_templates']) ? $_POST['selected_templates'] : array();
-
-        if (!empty($selected_templates)) {
-            $template_name = sanitize_text_field($selected_templates[0]);
-            $file_path = sip_get_template_dir() . $template_name . '.json';
-
-            if (file_exists($file_path)) {
-                $template_content = file_get_contents($file_path);
-                wp_send_json_success(array(
-                    'template_content' => $template_content,
-                    'template_name'    => $template_name
-                ));
+    } elseif ($template_action === 'rename_template') {
+        $old_template_name = isset($_POST['old_template_name']) ? sanitize_text_field($_POST['old_template_name']) : '';
+        $new_template_name = isset($_POST['new_template_name']) ? sanitize_text_field($_POST['new_template_name']) : '';
+    
+        if (!empty($old_template_name) && !empty($new_template_name)) {
+            $old_file_path = sip_get_template_dir() . $old_template_name . '.json';
+            $new_file_path = sip_get_template_dir() . $new_template_name . '.json';
+    
+            if (file_exists($old_file_path)) {
+                // Rename the template file
+                if (rename($old_file_path, $new_file_path)) {
+                    wp_send_json_success(array(
+                        'old_template_name' => $old_template_name,
+                        'new_template_name' => $new_template_name
+                    ));
+                } else {
+                    wp_send_json_error('Error renaming the template file.');
+                }
             } else {
-                wp_send_json_error('Template file not found.');
+                wp_send_json_error('Old template file not found.');
             }
         } else {
-            wp_send_json_error('No template selected.');
+            wp_send_json_error('Template names cannot be empty.');
         }
 
 

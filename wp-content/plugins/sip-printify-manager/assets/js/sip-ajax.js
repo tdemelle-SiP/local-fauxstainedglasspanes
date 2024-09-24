@@ -289,12 +289,15 @@ jQuery(document).ready(function ($) {
 
                 if (newName && newName !== oldName) {
                     var formData = new FormData();
-                    formData.append('action', 'sip_handle_ajax_request');
-                    formData.append('action_type', 'rename_template');
+                    formData.append('sip_printify_manager_nonce_field', sipAjax.nonce); // Add nonce field
+                    formData.append('_wp_http_referer', '/wp-admin/admin.php?page=sip-printify-manager'); // Add referer field
+                    formData.append('template_action', 'rename_template'); // Add template action field
                     formData.append('old_template_name', oldName);
                     formData.append('new_template_name', newName);
-                    formData.append('nonce', sipAjax.nonce);
-                
+                    formData.append('action', 'sip_handle_ajax_request');
+                    formData.append('action_type', 'template_action');
+                    formData.append('nonce', sipAjax.nonce); // Add nonce again for consistency
+    
                     $.ajax({
                         url: sipAjax.ajax_url,
                         method: 'POST',
