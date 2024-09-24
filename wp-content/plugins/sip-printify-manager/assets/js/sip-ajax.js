@@ -270,45 +270,131 @@ jQuery(document).ready(function ($) {
         handleAjaxAction('new_token', formData, '#new-token-button', '#loading-spinner');
     });
 
-    /**
-     * Show or hide the rename template input based on the selected action.
-     */
-    $('#template_action').on('change', function () {
-        if ($(this).val() === 'rename_template') {
-            $('#rename-template-input').show();
-        } else {
-            $('#rename-template-input').hide();
-        }
+
+
+///////////////////////////////////////////RENAME TEMPLATE////////////////////////////////////////
+
+    // Handle inline renaming
+    $('.rename-template').on('click', function() {
+        var $cell = $(this).closest('tr').find('.template-name-cell');
+        var oldName = $cell.data('template-name');
+        var $input = $('<input type="text" class="rename-input" />').val(oldName);
+
+        $cell.empty().append($input);
+        $input.focus();
+
+        $input.on('blur keyup', function(e) {
+            if (e.type === 'blur' || e.keyCode === 13) {
+                var newName = $input.val();
+
+                if (newName && newName !== oldName) {
+                    var formData = new FormData();
+                    formData.append('action', 'sip_handle_ajax_request');
+                    formData.append('action_type', 'rename_template');
+                    formData.append('old_template_name', oldName);
+                    formData.append('new_template_name', newName);
+                    formData.append('nonce', sipAjax.nonce);
+                
+                    $.ajax({
+                        url: sipAjax.ajax_url,
+                        method: 'POST',
+                        data: formData,
+                        processData: false, // Important for FormData
+                        contentType: false, // Important for FormData
+                        success: function(response) {
+                            if (response.success) {
+                                $cell.text(newName).data('template-name', newName);
+                            } else {
+                                alert('Error: ' + response.data);
+                                $cell.text(oldName);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            alert('AJAX Error: ' + error);
+                            $cell.text(oldName);
+                        }
+                    });
+                } else {
+                    $cell.text(oldName);
+                }
+            }
+        });
     });
 
-    /**
-     * Close the template editor when the close button is clicked.
-     */
-    $('#close-editor').on('click', function () {
-        $('#template-editor').hide();
+
+
+
+///////////////////////////////////////////TEMPLATE EDITOR////////////////////////////////////////
+
+$(document).ready(function($) {
+    // Open the template editor modal
+    $('.edit-template-content').on('click', function() {
+        var $row = $(this).closest('tr');
+        var templateName = $row.find('.template-name-cell').data('template-name');
+
+        // Load template content via AJAX
+        $.ajax({
+            url: ajaxurl,
+            method: 'POST',
+            data: {
+                action: 'sip_handle_template_action',
+                action_type: 'edit_template',
+                selected_templates: [templateName],
+                nonce: sipAjax.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#template-editor-title').text(templateName);
+                    $('#template-editor-textarea').val(response.data.template_content);
+                    $('#template-editor-modal').show();
+                } else {
+                    alert('Error: ' + response.data);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('AJAX Error: ' + error);
+            }
+        });
     });
 
-    /**
-     * Revert changes in the template editor to the original content.
-     */
-    $('#revert-changes').on('click', function () {
-        $('#template-content').val(originalContent);
+    // Save the edited template
+    $('#template-editor-save').on('click', function() {
+        var templateName = $('#template-editor-title').text();
+        var templateContent = $('#template-editor-textarea').val();
+
+        // Save template content via AJAX
+        $.ajax({
+            url: ajaxurl,
+            method: 'POST',
+            data: {
+                action: 'sip_save_template_content',
+                template_name: templateName,
+                template_content: templateContent,
+                _ajax_nonce: sip_ajax_object.ajax_nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('Template saved successfully.');
+                    $('#template-editor-modal').hide();
+                } else {
+                    alert('Error: ' + response.data);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('AJAX Error: ' + error);
+            }
+        });
     });
 
-    /**
-     * Save the changes made to a template.
-     * Sends an AJAX request to save the template content.
-     */
-    $('#save-template').on('click', function () {
-        var formData = new FormData();
-        formData.append('action', 'sip_handle_ajax_request');
-        formData.append('action_type', 'save_template');
-        formData.append('nonce', sipAjax.nonce);
-        formData.append('template_name', $('#editing-template-name').text());
-        formData.append('template_content', $('#template-content').val());
-
-        handleAjaxAction('save_template', formData, '#save-template', '#loading-spinner');
+    // Close the modal
+    $('#template-editor-cancel, .template-editor-overlay').on('click', function() {
+        $('#template-editor-modal').hide();
     });
+});
+
+
+///////////////////////////////////////////IMAGE UPLOAD FUNCTIONALITY////////////////////////////////////////
+
 
     /**
      * Handle drag over event on the image upload area.

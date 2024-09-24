@@ -24,7 +24,6 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 <div class="header-section">
     <h1 class="header-title"><?php esc_html_e('Welcome to SIP Printify Manager!', 'sip-printify-manager'); ?></h1>
     <div id="button-container" <?php echo empty($token) ? 'style="display:none;"' : ''; ?>>
-        <!-- Removed Re-authorize Button -->
         <button id="new-token-button" class="button button-primary"><?php esc_html_e('New Store Token', 'sip-printify-manager'); ?></button>
     </div>
 </div>
@@ -112,15 +111,8 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                 <label for="template_action"><?php esc_html_e('Template Actions:', 'sip-printify-manager'); ?> </label>
                 <select name="template_action" id="template_action">
                     <option value="delete_template"><?php esc_html_e('Delete Template', 'sip-printify-manager'); ?></option>
-                    <option value="rename_template"><?php esc_html_e('Rename Template', 'sip-printify-manager'); ?></option>
-                    <option value="edit_template"><?php esc_html_e('Edit Template', 'sip-printify-manager'); ?></option>
                 </select>
                 <input type="submit" name="execute_template_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary"/>
-
-                <!-- Rename Template Input -->
-                <div id="rename-template-input" class="rename-template-input">
-                    <input type="text" name="new_template_name" placeholder="<?php esc_attr_e('New template name', 'sip-printify-manager'); ?>">
-                </div>
             </form>
 
             <!-- Ensure the container itself doesn't scroll -->
@@ -134,17 +126,6 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                         echo '<p>' . esc_html__('No templates found.', 'sip-printify-manager') . '</p>';
                     }
                     ?>
-                </div>
-            </div>
-
-            <!-- Template Editor Section -->
-            <div id="template-editor" class="template-editor">
-                <h3><?php esc_html_e('Edit Template:', 'sip-printify-manager'); ?> <span id="editing-template-name"></span></h3>
-                <textarea id="template-content" rows="20"></textarea>
-                <div class="template-editor-buttons">
-                    <button id="close-editor" class="button"><?php esc_html_e('Close', 'sip-printify-manager'); ?></button>
-                    <button id="revert-changes" class="button"><?php esc_html_e('Revert Changes', 'sip-printify-manager'); ?></button>
-                    <button id="save-template" class="button button-primary"><?php esc_html_e('Save Changes', 'sip-printify-manager'); ?></button>
                 </div>
             </div>
         </div>
@@ -191,6 +172,16 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
     <?php else : ?>
         <h2><?php esc_html_e('Shop could not be loaded. Please try re-authorizing.', 'sip-printify-manager'); ?></h2>
     <?php endif; ?>
+</div>
+
+<div id="template-editor-modal" style="display:none;">
+    <div class="template-editor-overlay"></div>
+    <div class="template-editor-content">
+        <h2>Edit Template: <span id="template-editor-title"></span></h2>
+        <textarea id="template-editor-textarea" style="width:100%; height:400px;"></textarea>
+        <button id="template-editor-save" class="button button-primary">Save</button>
+        <button id="template-editor-cancel" class="button">Cancel</button>
+    </div>
 </div>
 
 <div id="product-creation-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>

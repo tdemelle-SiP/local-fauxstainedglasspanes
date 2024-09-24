@@ -163,19 +163,42 @@ table tbody tr:nth-child(even) {
 }
 
 /* Styling for the Rename Template Input */
-.rename-template-input {
-    display: none; /* Hides the input field by default */
-    margin-top: 10px; /* Adds space above the input field */
+.rename-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+.edit-template i {
+    font-size: 16px;
+    color: #0073aa;
+}
+.edit-template i:hover {
+    color: #00a0d2;
 }
 
-/* Template Editor Section Styling */
-.template-editor {
-    display: none; /* Hides the editor by default */
-    margin-top: 20px; /* Adds space above the editor */
+/* Template Editor Modal overlay */
+.template-editor-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
 }
 
-.template-editor-buttons {
-    margin-top: 10px; /* Adds space above the buttons */
+/* Modal content */
+.template-editor-content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 80%;
+    max-width: 800px;
+    height: 80%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 20px;
+    z-index: 1001;
+    overflow: auto;
 }
 
 /* Styling for the Images Section */

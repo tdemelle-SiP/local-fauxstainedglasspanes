@@ -96,7 +96,9 @@ function sip_display_template_list($templates) {
         // Define column widths to prevent horizontal scrollbar
         echo '<colgroup>';
         echo '<col style="width: 8%;">';   // Select checkbox
-        echo '<col style="width: 92%;">';  // Template Name
+        echo '<col style="width: 76%;">';  // Template Name
+        echo '<col style="width: 8%;">';   // Actions (pencil icon)
+        echo '<col style="width: 8%;">';  // Edit (edit doc icon)
         echo '</colgroup>';
 
         // Table Header
@@ -104,6 +106,8 @@ function sip_display_template_list($templates) {
         echo '<tr>';
         echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-templates"></th>';
         echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: left; padding: 2px;">Template Name</th>';
+        echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2;"></th>';
+        echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2;"></th>';
         echo '</tr>';
         echo '</thead>';
 
@@ -113,7 +117,13 @@ function sip_display_template_list($templates) {
             echo '<tr>';
             echo '<td style="text-align: center; padding: 2px;">';
             echo '<input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '" /></td>';
-            echo '<td style="text-align: left; padding: 2px;">' . esc_html($template) . '</td>';
+            echo '<td class="template-name-cell" style="text-align: left; padding: 2px;" data-template-name="' . esc_attr($template) . '">' . esc_html($template) . '</td>';
+            echo '<td style="text-align: center; padding: 2px;">';
+            echo '<span class="rename-template" style="cursor: pointer;" title="Rename Template"><i class="dashicons dashicons-edit"></i></span>';
+            echo '</td>';
+            echo '<td style="text-align: center; padding: 2px;">';
+            echo '<span class="edit-template-content" style="cursor: pointer;" title="Edit Template"><i class="dashicons dashicons-edit-page"></i></span>';
+            echo '</td>';
             echo '</tr>';
         }
         echo '</tbody>';
@@ -162,24 +172,43 @@ function sip_delete_template($template_name) {
  * @param string $new_name The new name to assign to the template.
  * @return bool True on success, false on failure.
  */
-function sip_rename_template($old_name, $new_name) {
-    $template_dir = sip_get_template_dir();
-    $old_path = $template_dir . sanitize_file_name($old_name) . '.json';
-    $new_path = $template_dir . sanitize_file_name($new_name) . '.json';
 
-    if (file_exists($old_path)) {
-        if (rename($old_path, $new_path)) {
-            error_log("Template $old_name renamed to $new_name.");
-            return true;
-        } else {
-            error_log("Failed to rename template from $old_name to $new_name.");
-            return false;
-        }
-    } else {
-        error_log("Template $old_name not found.");
+ function sip_rename_template($old_name, $new_name) {
+    $template_dir = sip_get_template_dir();
+    $old_file = $template_dir . $old_name . '.json';
+    $new_file = $template_dir . $new_name . '.json';
+
+    if (!file_exists($old_file)) {
         return false;
     }
+
+    return rename($old_file, $new_file);
 }
+
+
+// function sip_rename_template($old_name, $new_name) {
+//     $template_dir = sip_get_template_dir();
+//     $old_path = $template_dir . sanitize_file_name($old_name) . '.json';
+//     $new_path = $template_dir . sanitize_file_name($new_name) . '.json';
+
+//     if (!file_exists($old_path)) {
+//         error_log("Template $old_name not found.");
+//         return false;
+//     }
+
+//     if (file_exists($new_path)) {
+//         error_log("Template $new_name already exists.");
+//         return false;
+//     }
+
+//     if (rename($old_path, $new_path)) {
+//         error_log("Template $old_name renamed to $new_name.");
+//         return true;
+//     } else {
+//         error_log("Failed to rename template from $old_name to $new_name.");
+//         return false;
+//     }
+// }
 
 /**
  * Handle template actions triggered via AJAX.
@@ -205,7 +234,12 @@ function sip_handle_template_action() {
         // Send a JSON response back to the AJAX call with the updated HTML content
         wp_send_json_success(array('template_list_html' => $template_list_html));
 
+
+        
+
     } elseif ($template_action === 'edit_template') {
+        $selected_templates = isset($_POST['selected_templates']) ? $_POST['selected_templates'] : array();
+
         if (!empty($selected_templates)) {
             $template_name = sanitize_text_field($selected_templates[0]);
             $file_path = sip_get_template_dir() . $template_name . '.json';
@@ -223,10 +257,15 @@ function sip_handle_template_action() {
             wp_send_json_error('No template selected.');
         }
 
+
+
+
+
     } elseif ($template_action === 'rename_template') {
         if (!empty($selected_templates)) {
-            $old_name  = sanitize_text_field($selected_templates[0]);
-            $new_name  = sanitize_text_field($_POST['new_template_name']);
+            $old_name = sanitize_text_field($_POST['old_template_name']);
+            $new_name = sanitize_text_field($_POST['new_template_name']);
+    
             if (sip_rename_template($old_name, $new_name)) {
                 wp_send_json_success('Template renamed successfully.');
             } else {
@@ -246,13 +285,19 @@ function sip_handle_template_action() {
  * This function saves the edited template content back to the JSON file.
  */
 function sip_save_template_content() {
+    check_ajax_referer('sip_ajax_nonce', '_ajax_nonce');
+
     $template_name    = sanitize_text_field($_POST['template_name']);
     $template_content = wp_unslash($_POST['template_content']);
     $file_path        = sip_get_template_dir() . $template_name . '.json';
 
-    if (file_put_contents($file_path, $template_content)) {
-        wp_send_json_success('Template saved successfully.');
+    if (file_exists($file_path)) {
+        if (file_put_contents($file_path, $template_content)) {
+            wp_send_json_success('Template saved successfully.');
+        } else {
+            wp_send_json_error('Failed to save template.');
+        }
     } else {
-        wp_send_json_error('Failed to save template.');
+        wp_send_json_error('Template file not found.');
     }
 }

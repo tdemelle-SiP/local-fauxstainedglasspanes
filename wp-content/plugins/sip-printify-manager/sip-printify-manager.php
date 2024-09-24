@@ -76,6 +76,9 @@ class SiP_Printify_Manager {
         // Handle AJAX requests for image uploads
         add_action('wp_ajax_sip_upload_images', 'sip_handle_image_upload');
 
+        // Hook for saving template content
+        add_action('wp_ajax_sip_save_template_content', 'sip_save_template_content');
+
         // Register the shortcode for displaying products (if needed)
         // The rendering function can be offloaded if it grows in complexity
         add_shortcode('sip_printify_products', 'render_products_shortcode');
@@ -195,7 +198,6 @@ SiP_Plugin_Framework::init_plugin(
  */
 function sip_handle_ajax_request() {
     // Verify the AJAX nonce for security
-    // Verify nonce
     if (!check_ajax_referer('sip_printify_manager_nonce', 'nonce', false)) {
         wp_send_json_error('Security check failed');
         wp_die();

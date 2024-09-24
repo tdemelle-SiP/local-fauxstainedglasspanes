@@ -1,14 +1,8 @@
-Error Log suggests delete is working, but it ain't actually deleting anything in the frontend
-
-[23-Sep-2024 16:54:23 UTC] Attempting to delete template file: C:\Users\tdeme\Local Sites\fauxstainedglasspanes\app\public/wp-content/uploads/sip-printify-manager/templates/fsgp_abstract_04_tee_template_01.json
-[23-Sep-2024 16:54:23 UTC] Template fsgp_abstract_04_tee_template_01 deleted successfully.
-
-CHECK TEMPLATE-FUNCTIONS.PHP - StemplateId??? or $template_name??/
-THAT AIN'T IT - IT'S $template_name
-
-NEXT IDEA... put together the sequence of code that is run when a template is selected and the delete action is executed in a single doc to see the flow without having to jump around all over the place!!!!!!!!!
+sequence of code that is run when a template is selected and the delete action is executed in a single doc to see the flow without having to jump around all over the place!!!!!!!!!
 
 v     v     v     v     v     v     v     v     v     v     v     v     v     v     v     
+
+    
 
 User Clicks selection box next to a template.
 User Selects 'Delete Template' from pulldown and presses execute button.
@@ -30,12 +24,20 @@ sip-ajax.js - this code is triggered? is this a listener?
                 break;
 
 The template_action asspciated with the delete template pulldown is established in the template-functions.php here:
-	
-
+            <form id="template-action-form" method="post" action="">
+                <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+                <label for="template_action"><?php esc_html_e('Template Actions:', 'sip-printify-manager'); ?> </label>
+                <select name="template_action" id="template_action">
+                    <option value="delete_template"><?php esc_html_e('Delete Template', 'sip-printify-manager'); ?></option>
+                    <option value="rename_template"><?php esc_html_e('Rename Template', 'sip-printify-manager'); ?></option>
+                    <option value="edit_template"><?php esc_html_e('Edit Template', 'sip-printify-manager'); ?></option>
+                </select>
+                <input type="submit" name="execute_template_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary"/>
 
 sip-ajax.js - handleAjaxAction is triggered with the following data:
-	-actionType //where is a particular actionType associated with the 'Delete Template; pulldown selection?
-	-selectedTemplates
+	-actionType // "template_action"
+	-option-value // "delete_template" (is this the case? I'm only assuming it is, but where is it specified in the code?)
+	-selectedTemplates //templateId
 
 	-spinnerSelector is shown (is buttonSelector disabling not needed since the spinner overlay prevents button clicks?)
 	-spinner-overlay is shown (what's the difference between this and spinnerSelector?)
@@ -44,21 +46,30 @@ sip-ajax.js - handleAjaxAction is triggered with the following data:
 		        $.ajax({
             			url: sipAjax.ajax_url,
             			type: 'POST',
-            			data: formData, // formData would include action: 'sip_handle_ajax_request', action_type: 'template_action', template_action: 'delete_template', nonce: sipAjax.nonce, selected_templates[]: [template_id].
+            			data: formData, // formData would include action: 'sip_handle_ajax_request', action_type: 'template_action', template_action: 'delete_template', nonce: sipAjax.nonce, selected_templates[]: [template_id]. (is this accurate? again, not sure where the option value is specified to be included in the code.  Should template_id actually be templateId?)
             			processData: false, // Don't process the files (important for file uploads)
             			contentType: false, // Let jQuery set the content type
 
+sip-printify-manager.php - sip_handle_ajax_action() receives the server call
+	case 'template_action':
+            /**
+             * Template-related actions are handled in 'includes/template-functions.php'.
+             * This includes deleting, renaming, and editing templates.
+             */
+            sip_handle_template_action();
+            break;
 
+template-functions.php sip_handle_template_action() is called - 
+	function sip_handle_template_action() {
+    		$template_action = isset($_POST['template_action']) ? sanitize_text_field($_POST['template_action']) : '';
 
+    		$selected_templates = isset($_POST['selected_templates']) ? $_POST['selected_templates'] : array();
 
-
-
-
-
-
-
-
-
+    		if ($template_action === 'delete_template') {
+        		foreach ($selected_templates as $templateId) {
+            		sip_delete_template(sanitize_text_field($templateId));
+        		}
+        		wp_send_json_success('Templates deleted successfully.');
 
 response is returned to sip-ajax.js
 	                case 'template_action':
@@ -85,23 +96,81 @@ response is returned to sip-ajax.js
                             break;
 
 
+^     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^ 
+
+
+v     v     v     v     v     v     v     v     v     v     v     v     v     v     v 
+
+template-functions.php
+The template_action associated with pulldown execute_template_action is established here
+                    <option value="delete_template"><?php esc_html_e('Delete Template', 'sip-printify-manager'); ?></option>
+                    <option value="rename_template"><?php esc_html_e('Rename Template', 'sip-printify-manager'); ?></option>
+                    <option value="edit_template"><?php esc_html_e('Edit Template', 'sip-printify-manager'); ?></option>
+
+frontend
+User executes option
+
+sip-ajax.js
+	$('#template-action-form').on('submit', function (e) {
+
+            case 'template-action-form':
+                actionType = 'template_action';
+
+sip-ajax.js
+    handleAjaxAction
+        -actionType // "template_action"
+        -option-value // "delete_template"
+        -selectedTemplates //templateId
+
+	-ajax call to server is made
+		        $.ajax({
+            			url: sipAjax.ajax_url,
+            			type: 'POST',
+            			data: formData,
+                        
+sip-printify-manager.php - sip_handle_ajax_action() receives the server call
+	case 'template_action':
+             * Template-related actions are handled in 'includes/template-functions.php'.
+             * This includes deleting, renaming, and editing templates.
+            sip_handle_template_action();
+
+template-functions.php sip_handle_template_action() is called - 
+	function sip_handle_template_action() {
+    		$template_action = isset($_POST['template_action']) ? sanitize_text_field($_POST['template_action']) : '';
+
+    		if ($template_action === 'delete_template') {
+            		sip_delete_template(sanitize_text_field($templateId));
+        		wp_send_json_success('Templates deleted successfully.');
+
+sip-ajax.js  - response is returned
+	                case 'template_action':
+                            if (formData.get('template_action') === 'edit_template') {
+                                if (response.data && response.data.template_content) {
+                                    $('#editing-template-name').text(response.data.template_name);
+                                    $('#template-content').val(response.data.template_content);
+                                    originalContent = response.data.template_content;
+                                    $('#template-editor').show();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ^     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^     ^     
 ==================================================================================
-AJAX
-
-user interacts with UI
-
-javascript, sip-ajax.js, sends AJAX request to PHP file.
-
-PHP file executes code on the server side and sends response.
-
-javascript receives response and executes code on the front end.
-
-
-
-explain what forms are why theyre needed and what theyre doing
-
-explain what actionTypes are, why theyre needed and what theyre doing.
-
-what's the meaning of "handle" in handleAjaxAction()?
-
