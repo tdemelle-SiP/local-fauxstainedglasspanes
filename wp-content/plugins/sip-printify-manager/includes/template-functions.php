@@ -133,8 +133,6 @@ function sip_display_template_list($templates) {
     }
 }
 
-
-
 /**
  * Delete a specific template by name.
  *
@@ -185,31 +183,6 @@ function sip_delete_template($template_name) {
     return rename($old_file, $new_file);
 }
 
-
-// function sip_rename_template($old_name, $new_name) {
-//     $template_dir = sip_get_template_dir();
-//     $old_path = $template_dir . sanitize_file_name($old_name) . '.json';
-//     $new_path = $template_dir . sanitize_file_name($new_name) . '.json';
-
-//     if (!file_exists($old_path)) {
-//         error_log("Template $old_name not found.");
-//         return false;
-//     }
-
-//     if (file_exists($new_path)) {
-//         error_log("Template $new_name already exists.");
-//         return false;
-//     }
-
-//     if (rename($old_path, $new_path)) {
-//         error_log("Template $old_name renamed to $new_name.");
-//         return true;
-//     } else {
-//         error_log("Failed to rename template from $old_name to $new_name.");
-//         return false;
-//     }
-// }
-
 /**
  * Handle template actions triggered via AJAX.
  *
@@ -233,9 +206,6 @@ function sip_handle_template_action() {
 
         // Send a JSON response back to the AJAX call with the updated HTML content
         wp_send_json_success(array('template_list_html' => $template_list_html));
-
-
-        
 
     } elseif ($template_action === 'rename_template') {
         $old_template_name = isset($_POST['old_template_name']) ? sanitize_text_field($_POST['old_template_name']) : '';
@@ -261,26 +231,24 @@ function sip_handle_template_action() {
         } else {
             wp_send_json_error('Template names cannot be empty.');
         }
+    } elseif ($template_action === 'edit_template') {
 
-
-
-
-
-    } elseif ($template_action === 'rename_template') {
         if (!empty($selected_templates)) {
-            $old_name = sanitize_text_field($_POST['old_template_name']);
-            $new_name = sanitize_text_field($_POST['new_template_name']);
-    
-            if (sip_rename_template($old_name, $new_name)) {
-                wp_send_json_success('Template renamed successfully.');
+            $template_name = sanitize_text_field($selected_templates[0]);
+            $file_path = sip_get_template_dir() . $template_name . '.json';
+
+            if (file_exists($file_path)) {
+                $template_content = file_get_contents($file_path);
+                wp_send_json_success(array(
+                    'template_content' => $template_content,
+                    'template_name'    => $template_name
+                ));
             } else {
-                wp_send_json_error('Failed to rename template.');
+                wp_send_json_error('Template file not found.');
             }
         } else {
             wp_send_json_error('No template selected.');
         }
-    } else {
-        wp_send_json_error('Invalid template action.');
     }
 }
 

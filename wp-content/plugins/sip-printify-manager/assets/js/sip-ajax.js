@@ -324,13 +324,22 @@ jQuery(document).ready(function ($) {
         });
     });
 
-
-
-
 ///////////////////////////////////////////TEMPLATE EDITOR////////////////////////////////////////
 
+// Initialize CodeMirror
+var editor;
+
 $(document).ready(function($) {
-    // Open the template editor modal
+    // Initialize CodeMirror
+    editor = wp.codeEditor.initialize($('#template-editor-textarea'), {
+        mode: 'application/json', // Set to 'application/json' or 'javascript' for JSON files
+        lineNumbers: true,
+        matchBrackets: true,
+        autoCloseBrackets: true,
+        theme: 'default', // You can change the theme
+    });
+
+    // Handle template editing
     $('.edit-template-content').on('click', function() {
         var $row = $(this).closest('tr');
         var templateName = $row.find('.template-name-cell').data('template-name');
@@ -340,16 +349,18 @@ $(document).ready(function($) {
             url: ajaxurl,
             method: 'POST',
             data: {
-                action: 'sip_handle_template_action',
-                action_type: 'edit_template',
-                selected_templates: [templateName],
-                nonce: sipAjax.nonce
+                sip_printify_manager_nonce_field: sipAjax.nonce, // Updated nonce field
+                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager', // Updated referer field
+                template_action: 'edit_template', // Updated action type
+                'selected_templates[]': [templateName], // Array notation for selected templates
+                action: 'sip_handle_ajax_request', // Action field
+                action_type: 'template_action', // Action type field
+                nonce: sipAjax.nonce // Include nonce as a separate field as well
             },
             success: function(response) {
                 if (response.success) {
-                    $('#template-editor-title').text(templateName);
-                    $('#template-editor-textarea').val(response.data.template_content);
-                    $('#template-editor-modal').show();
+                    $('#template-editor-title').text(templateName); // Update the title
+                    editor.codemirror.setValue(response.data.template_content); // Load content into CodeMirror
                 } else {
                     alert('Error: ' + response.data);
                 }
@@ -360,10 +371,10 @@ $(document).ready(function($) {
         });
     });
 
-    // Save the edited template
+    // Save the edited template directly from CodeMirror
     $('#template-editor-save').on('click', function() {
         var templateName = $('#template-editor-title').text();
-        var templateContent = $('#template-editor-textarea').val();
+        var templateContent = editor.codemirror.getValue(); // Get content from CodeMirror
 
         // Save template content via AJAX
         $.ajax({
@@ -378,7 +389,6 @@ $(document).ready(function($) {
             success: function(response) {
                 if (response.success) {
                     alert('Template saved successfully.');
-                    $('#template-editor-modal').hide();
                 } else {
                     alert('Error: ' + response.data);
                 }
@@ -388,12 +398,9 @@ $(document).ready(function($) {
             }
         });
     });
-
-    // Close the modal
-    $('#template-editor-cancel, .template-editor-overlay').on('click', function() {
-        $('#template-editor-modal').hide();
-    });
 });
+
+
 
 
 ///////////////////////////////////////////IMAGE UPLOAD FUNCTIONALITY////////////////////////////////////////

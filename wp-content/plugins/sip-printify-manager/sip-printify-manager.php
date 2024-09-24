@@ -115,6 +115,10 @@ class SiP_Printify_Manager {
         // Enqueue scripts
         wp_enqueue_script('sip-ajax-script', plugin_dir_url(__FILE__) . 'assets/js/sip-ajax.js', array('jquery'), null, true);
 
+        // Enqueue the CodeMirror scripts and styles
+        wp_enqueue_script('wp-codemirror');
+        wp_enqueue_style('wp-codemirror');
+
         // Localize script to pass AJAX URL and nonce
         wp_localize_script('sip-ajax-script', 'sipAjax', array(
             'ajax_url' => admin_url('admin-ajax.php'),

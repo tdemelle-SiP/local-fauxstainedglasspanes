@@ -174,15 +174,9 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
     <?php endif; ?>
 </div>
 
-<div id="template-editor-modal" style="display:none;">
-    <div class="template-editor-overlay"></div>
-    <div class="template-editor-content">
-        <h2>Edit Template: <span id="template-editor-title"></span></h2>
-        <textarea id="template-editor-textarea" style="width:100%; height:400px;"></textarea>
-        <button id="template-editor-save" class="button button-primary">Save</button>
-        <button id="template-editor-cancel" class="button">Cancel</button>
-    </div>
-</div>
+<textarea id="template-editor-textarea" name="template_content" rows="20" cols="100"><?php echo esc_textarea($template_content); ?></textarea>
+
+
 
 <div id="product-creation-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>
     <hr class="divider" style="margin-top: 20px; background-color: #c0bfbf;">
