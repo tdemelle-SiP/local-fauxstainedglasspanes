@@ -113,11 +113,7 @@ class SiP_Printify_Manager {
         wp_enqueue_style('sip-printify-manager-style', plugin_dir_url(__FILE__) . 'assets/css/sip-printify-manager.css');
 
         // Enqueue scripts
-        wp_enqueue_script('sip-printify-manager-script', plugin_dir_url(__FILE__) . 'assets/js/sip-printify-manager.js', array('jquery'), null, true);
         wp_enqueue_script('sip-ajax-script', plugin_dir_url(__FILE__) . 'assets/js/sip-ajax.js', array('jquery'), null, true);
-
-        // Enqueue scripts for drag and drop file upload
-        wp_enqueue_script('sip-drag-drop-upload', plugin_dir_url(__FILE__) . 'assets/js/sip-drag-drop-upload.js', array('jquery'), null, true);
 
         // Localize script to pass AJAX URL and nonce
         wp_localize_script('sip-ajax-script', 'sipAjax', array(
