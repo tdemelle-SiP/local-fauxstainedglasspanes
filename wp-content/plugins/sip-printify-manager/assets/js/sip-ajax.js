@@ -545,7 +545,41 @@ $(document).ready(function($) {
         $('#template-editor-modal').hide();
     });
 
-     // Handle dragging functionality (original version)
+    // Handle scaling between html and json windows
+    $(document).ready(function($) {
+        var isResizing = false;
+        var lastDownY = 0;
+    
+        var container = $('#template-editor-content');
+        var topSection = $('#description-editor-container');
+        var bottomSection = $('#json-editor-container');
+        var divider = $('#json-header-divider');
+    
+        divider.on('mousedown', function(e) {
+            isResizing = true;
+            lastDownY = e.clientY;
+            $('body').on('mousemove.resizeEditor', onMouseMove);
+            $('body').on('mouseup.resizeEditor', stopResizing);
+            e.preventDefault();
+        });
+    
+        function onMouseMove(e) {
+            if (!isResizing) return;
+    
+            var offsetBottom = container.height() - (e.clientY - container.offset().top);
+    
+            topSection.css('height', (container.height() - offsetBottom) + 'px');
+            bottomSection.css('height', offsetBottom + 'px');
+        }
+    
+        function stopResizing() {
+            isResizing = false;
+            $('body').off('mousemove.resizeEditor mouseup.resizeEditor');
+        }
+    });
+
+
+     // Handle dragging functionality
      var isDragging = false;
      var offsetX, offsetY;
  

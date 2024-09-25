@@ -198,6 +198,8 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                 <div id="html-rendered-output"></div>
             </div>
         </div>
+        <!-- JSON Data Header (used as a draggable divider) -->
+        <h4 id="json-header-divider" class="json-header-divider">JSON Data:</h4>
         <div id="json-editor-container" class="editor-container">
             <h4>JSON Data:</h4>
             <textarea id="json-editor-textarea"></textarea>
