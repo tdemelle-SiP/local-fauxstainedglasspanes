@@ -206,6 +206,10 @@ table tbody tr:nth-child(even) {
     z-index: 10000; /* Ensure content is above the overlay */
 }
 
+.CodeMirror {
+    height: 90%;
+}
+
 /* Header */
 #template-editor-modal .template-editor-header {
     background-color: #f0f0f0;

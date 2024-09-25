@@ -179,12 +179,14 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
     <div id="template-editor-content" class="template-editor-content">
         <div id="template-editor-header" class="template-editor-header">
             <h2 id="template-editor-title">Edit Template</h2>
-            <span id="template-editor-close" class="template-editor-close">&times;</span>
+            <div>
+                <button id="template-editor-save" class="button button-primary">Save</button>
+                <button id="template-editor-cancel" class="button button-secondary">Cancel</button>
+            </div>
         </div>
         <textarea id="template-editor-textarea"></textarea>
         <div id="template-editor-buttons" class="template-editor-buttons">
-            <button id="template-editor-save" class="button button-primary">Save</button>
-            <button id="template-editor-cancel" class="button button-secondary">Cancel</button>
+
         </div>
     </div>
 </div>
