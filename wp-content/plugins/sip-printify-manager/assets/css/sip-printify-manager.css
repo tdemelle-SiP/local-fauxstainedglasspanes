@@ -191,15 +191,33 @@ table tbody tr:nth-child(even) {
 }
 
 #template-editor-content {
+    resize: both; /* Allow resizing */
+    overflow: hidden; /* Ensure content stays within the modal when resized */
+    min-width: 300px; /* Set a minimum width to prevent it from becoming too small */
+    min-height: 300px; /* Set a minimum height */
     background: #fff;
     width: 80%;
-    max-width: 1000px;
+    max-width: 90vw;
     height: 80%;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     position: relative;
+    margin: auto;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    cursor: se-resize; /* Change cursor to show that resizing is available from the corner */
+}
+
+/* Additional styling for better resizing handle visibility (optional) */
+#template-editor-content::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    background: transparent;
+    cursor: se-resize; /* Ensure the cursor shows the correct resize direction */
 }
 
 #template-editor-header {
@@ -219,7 +237,21 @@ table tbody tr:nth-child(even) {
     flex-direction: column;
     margin: 10px;
     overflow: hidden;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    background-color: #fff;
 }
+
+/* Ensure the rendered HTML view is scrollable */
+#html-output-view {
+    height: 100%; /* Take full height of the container */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border: 1px solid #ccc; /* Add a border for consistency */
+    padding: 10px; /* Add padding for better readability */
+    background-color: #fff; /* Keep background white for contrast */
+}
+
 
 textarea {
     flex: 1;

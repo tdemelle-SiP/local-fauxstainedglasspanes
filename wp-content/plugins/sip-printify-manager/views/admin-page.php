@@ -184,9 +184,19 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                 <button id="template-editor-cancel" class="button button-secondary">Cancel</button>
             </div>
         </div>
-        <div id="description-editor-container" class="editor-container">
-            <h4>Description:</h4>
-            <textarea id="description-editor-textarea"></textarea>
+        <div id="description-editor-container" style="margin-top: 20px;">
+            <h4>Description:
+                <label for="toggle-view">
+                    <input type="checkbox" id="toggle-view">
+                    Toggle View
+                </label>
+            </h4>
+            <div id="html-editor-view">
+                <textarea id="description-editor-textarea"></textarea>
+            </div>
+            <div id="html-output-view" style="display: none;">
+                <div id="html-rendered-output"></div>
+            </div>
         </div>
         <div id="json-editor-container" class="editor-container">
             <h4>JSON Data:</h4>

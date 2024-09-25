@@ -358,6 +358,19 @@ $(document).ready(function($) {
         }
     }
 
+    function resizeEditors() {
+        if (editorDescription && typeof editorDescription.codemirror.refresh === 'function') {
+            editorDescription.codemirror.refresh();
+        }
+        if (editorJSON && typeof editorJSON.codemirror.refresh === 'function') {
+            editorJSON.codemirror.refresh();
+        }
+    }
+
+    // Listen to the resize event on the modal
+    var resizeObserver = new ResizeObserver(resizeEditors);
+    resizeObserver.observe(document.getElementById('template-editor-content'));
+
     // Function to separate the description (HTML) from the rest of the JSON data
     function separateContent(content) {
         try {
@@ -563,6 +576,22 @@ $(document).ready(function($) {
                 isDragging = false;
                 $(document).off('mousemove.dragModal mouseup.dragModal');
             });
+        });
+    });
+    // Handle render html toggle
+    $(document).ready(function($) {
+        $('#toggle-view').on('change', function() {
+            if ($(this).is(':checked')) {
+                // Switch to HTML output view
+                $('#html-editor-view').hide();
+                var htmlContent = editorDescription.codemirror.getValue();
+                $('#html-rendered-output').html(htmlContent);
+                $('#html-output-view').show();
+            } else {
+                // Switch to HTML code view
+                $('#html-output-view').hide();
+                $('#html-editor-view').show();
+            }
         });
     });
  });
