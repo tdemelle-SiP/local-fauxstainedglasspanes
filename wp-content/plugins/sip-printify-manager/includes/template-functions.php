@@ -232,22 +232,27 @@ function sip_handle_template_action() {
             wp_send_json_error('Template names cannot be empty.');
         }
     } elseif ($template_action === 'edit_template') {
-
-        if (!empty($selected_templates)) {
-            $template_name = sanitize_text_field($selected_templates[0]);
+        // Extract the template name directly from the POST data
+        if (!empty($_POST['template_name'])) {
+            $template_name = sanitize_text_field($_POST['template_name']);
             $file_path = sip_get_template_dir() . $template_name . '.json';
-
+    
+            // Check if the template file exists
             if (file_exists($file_path)) {
+                // Get the content of the template file
                 $template_content = file_get_contents($file_path);
+                // Send the template content back to the AJAX call
                 wp_send_json_success(array(
                     'template_content' => $template_content,
                     'template_name'    => $template_name
                 ));
             } else {
+                // Send an error if the file is not found
                 wp_send_json_error('Template file not found.');
             }
         } else {
-            wp_send_json_error('No template selected.');
+            // Send an error if no template name is provided
+            wp_send_json_error('No template name provided.');
         }
     }
 }

@@ -331,6 +331,95 @@ $(document).ready(function($) {
     var isDragging = false;
     var offsetX, offsetY;
 
+    function initializeEditor() {
+        if (typeof wp.codeEditor === 'undefined') {
+            console.error('wp.codeEditor is not loaded.');
+            return;
+        }
+
+        if (!editor) {
+            var settings = wp.codeEditor.defaultSettings ? _.clone(wp.codeEditor.defaultSettings) : {};
+            settings.codemirror = _.extend({}, settings.codemirror, {
+                lineNumbers: true,
+                mode: 'application/json',
+                theme: 'default',
+                extraKeys: { "Ctrl-Space": "autocomplete" }
+            });
+            editor = wp.codeEditor.initialize($('#template-editor-textarea'), settings);
+        }
+    }
+
+    // Open the modal and load the template content
+    $('.edit-template-content').on('click', function() {
+        var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
+
+        $('#template-editor-modal').show();
+        $('#template-editor-title').text(templateName);
+
+        // AJAX request to load the template content
+        $.ajax({
+            url: sipAjax.ajax_url, // Use localized AJAX URL
+            method: 'POST',
+            data: {
+                sip_printify_manager_nonce_field: sipAjax.nonce,
+                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
+                template_action: 'edit_template',
+                template_name: templateName,
+                action: 'sip_handle_ajax_request',
+                action_type: 'template_action',
+                nonce: sipAjax.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    initializeEditor(); // Initialize CodeMirror if not already initialized
+                    editor.codemirror.setValue(response.data.template_content); // Set the content in the CodeMirror editor
+                    editor.codemirror.refresh(); // Refresh the editor to ensure the content displays correctly
+                } else {
+                    alert('Error: ' + response.data);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('AJAX Error: ' + error);
+            }
+        });
+    });
+
+    // Close modal on cancel or close button click
+    $('#template-editor-cancel, #template-editor-close').on('click', function() {
+        $('#template-editor-modal').hide();
+    });
+
+    // Save the edited template
+    $('#template-editor-save').on('click', function() {
+        var templateName = $('#template-editor-title').text();
+        var templateContent = editor.codemirror.getValue();
+
+        // AJAX request to save template content
+        $.ajax({
+            url: sipAjax.ajax_url, // Use localized AJAX URL
+            method: 'POST',
+            data: {
+                sip_printify_manager_nonce_field: sipAjax.nonce,
+                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
+                template_action: 'save_template',
+                template_name: templateName, // Use the template name from the modal title
+                template_content: templateContent,
+                action: 'sip_save_template_content'
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('Template saved successfully.');
+                    $('#template-editor-modal').hide();
+                } else {
+                    alert('Error: ' + response.data);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('AJAX Error: ' + error);
+            }
+        });
+    });
+
     // Handle dragging functionality
     $('#template-editor-header').on('mousedown', function(e) {
         e.preventDefault(); // Prevent default behavior to avoid unintended effects
@@ -357,87 +446,8 @@ $(document).ready(function($) {
             });
         }
     }
-
-    // Open the modal and initialize CodeMirror
-    $('.edit-template-content').on('click', function() {
-        var $row = $(this).closest('tr');
-        var templateName = $row.find('.template-name-cell').data('template-name');
-
-        $('#template-editor-modal').show();
-        $('#template-editor-title').text(templateName);
-
-        // Load template content via AJAX
-        $.ajax({
-            url: ajaxurl,
-            method: 'POST',
-            data: {
-                sip_printify_manager_nonce_field: sipAjax.nonce,
-                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
-                template_action: 'edit_template',
-                'selected_templates[]': [templateName],
-                action: 'sip_handle_ajax_request',
-                action_type: 'template_action',
-                nonce: sipAjax.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    if (!editor) {
-                        editor = wp.codeEditor.initialize($('#template-editor-textarea'), {
-                            mode: 'application/json',
-                            lineNumbers: true,
-                            matchBrackets: true,
-                            autoCloseBrackets: true,
-                            theme: 'default',
-                        });
-                    }
-                    editor.codemirror.setValue(response.data.template_content);
-
-                    // Ensure the textarea fills the modal properly
-                    $('#template-editor-textarea').css('height', 'calc(100% - 60px)');
-                    $('#template-editor-content').css('height', 'auto');
-                } else {
-                    alert('Error: ' + response.data);
-                }
-            },
-            error: function(xhr, status, error) {
-                alert('AJAX Error: ' + error);
-            }
-        });
-    });
-
-    // Close modal on cancel or close button click
-    $('#template-editor-cancel, #template-editor-close').on('click', function() {
-        $('#template-editor-modal').hide();
-    });
-
-    // Save the edited template
-    $('#template-editor-save').on('click', function() {
-        var templateName = $('#template-editor-title').text();
-        var templateContent = editor.codemirror.getValue();
-
-        $.ajax({
-            url: ajaxurl,
-            method: 'POST',
-            data: {
-                action: 'sip_save_template_content',
-                template_name: templateName,
-                template_content: templateContent,
-                _ajax_nonce: sipAjax.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    alert('Template saved successfully.');
-                    $('#template-editor-modal').hide();
-                } else {
-                    alert('Error: ' + response.data);
-                }
-            },
-            error: function(xhr, status, error) {
-                alert('AJAX Error: ' + error);
-            }
-        });
-    });
 });
+
 
 
 ///////////////////////////////////////////IMAGE UPLOAD FUNCTIONALITY////////////////////////////////////////

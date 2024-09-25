@@ -154,9 +154,13 @@ Selecting An installed sip plugin entry in the SiP Plugins tab will bring up it'
 /wp-content/plugins/
 	├── sip-plugins-core/
 	│   ├──  assets
-	│   │	└── images/
-	│	│		└── spinner.webp
-	│	│		└── SiP-Logo-24px.svg	
+	│ 	│ 	├── css
+	│ 	│ 	│ 	└── sip-plugins-core.css
+	│   │	├── images/
+	│	│	│	└── spinner.webp
+	│	│	│	└── SiP-Logo-24px.svg
+	│	│	└──lib
+	│	│		└── cm-resize.js
 	│	├── README.md
 	│	├── sip-core-plugin-integration.php
 	│	└── sip-plugins-core.php
@@ -170,6 +174,7 @@ Selecting An installed sip plugin entry in the SiP Plugins tab will bring up it'
 	│	│   ├── shop-functions.php
 	│	│   ├── product-functions.php
 	│	│   └── template-functions.php
+	│	│   ├── image-functions.php	
 	│	├── views/
 	│	│   └── admin-page.php
 	│	├── sip-printify-manager.php

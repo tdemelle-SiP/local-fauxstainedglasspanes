@@ -108,23 +108,23 @@ class SiP_Printify_Manager {
      * The actual CSS and JS files are located in the 'assets' directory.
      */
     public function enqueue_admin_scripts($hook) {
+
+        // Enqueue the CodeMirror scripts and styles provided by WordPress
+        wp_enqueue_script('wp-codemirror');
+        wp_enqueue_style('wp-codemirror');
+    
+        // Enqueue the cm-resize.js file with dependency on wp-codemirror
+        wp_enqueue_script('sip-cm-resize-js', plugins_url('sip-plugins-core/lib/cm-resize.js', __DIR__), array(), null, true);
+
         // Enqueue styles
         wp_enqueue_style('dashicons');
         wp_enqueue_style('sip-printify-manager-style', plugin_dir_url(__FILE__) . 'assets/css/sip-printify-manager.css');
-
-        // Enqueue scripts
-        wp_enqueue_script('sip-ajax-script', plugin_dir_url(__FILE__) . 'assets/js/sip-ajax.js', array('jquery'), null, true);
-
-        // Enqueue the CodeMirror scripts and styles
-        wp_enqueue_script('wp-codemirror');
-        wp_enqueue_style('wp-codemirror');
-
+    
+        // Enqueue the sip-ajax.js script with dependencies on jQuery, wp-codemirror, and cm-resize.js
+        wp_enqueue_script('sip-ajax-script', plugin_dir_url(__FILE__) . 'assets/js/sip-ajax.js', array('jquery', 'wp-codemirror', 'sip-cm-resize-js'), null, true);
+    
         // Localize script to pass AJAX URL and nonce
         wp_localize_script('sip-ajax-script', 'sipAjax', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce'    => wp_create_nonce('sip_printify_manager_nonce')
-        ));
-        wp_localize_script('sip-drag-drop-upload', 'sipAjax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce'    => wp_create_nonce('sip_printify_manager_nonce')
         ));
