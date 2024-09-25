@@ -175,85 +175,70 @@ table tbody tr:nth-child(even) {
     color: #00a0d2;
 }
 
-/* Overlay */
-#template-editor-modal.template-editor-overlay {
+/* STYLING FOR THE TEMPLATE EDITOR MODAL */
+
+#template-editor-modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
-    z-index: 9999; /* Ensure modal is above everything else */
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    z-index: 9999;
 }
 
-/* Modal Content */
-#template-editor-modal .template-editor-content {
-    background-color: #fff;
+#template-editor-content {
+    background: #fff;
     width: 80%;
-    max-width: 100%; /* Allow the modal to scale to full screen width */
-    height: 80%; /* Takes up 80% of the viewport height */
-    max-height: 100%; /* Allow the modal to scale to full screen height */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    position: relative;
+    max-width: 1000px;
+    height: 80%;
+    max-height: 90vh;
     display: flex;
     flex-direction: column;
-    border-radius: 0; /* Removed rounded corners */
-    resize: both; /* Enable resizing on both axes */
-    overflow: hidden; /* Ensure the content stays within the modal */
-    z-index: 10000; /* Ensure content is above the overlay */
-}
-
-.CodeMirror {
-    height: 90%;
-}
-
-/* Header */
-#template-editor-modal .template-editor-header {
-    background-color: #f0f0f0;
-    padding: 10px;
-    cursor: move;
-    display: flex;
-    justify-content: center; /* Center the title */
-    align-items: center;
-    border-bottom: 1px solid #ccc; /* Adds a border to separate header from content */
+    overflow: hidden;
     position: relative;
-    z-index: 10001; /* Ensure header is above the content */
 }
 
-/* Title */
-#template-editor-modal .template-editor-header h2 {
-    margin: 0;
-    flex-grow: 1; /* Ensure title takes up available space */
-    text-align: center; /* Center the text */
-}
-
-/* Close Button */
-#template-editor-modal .template-editor-close {
-    position: absolute;
-    right: 10px;
-    font-size: 1.5em;
-    cursor: pointer;
-}
-
-/* Textarea */
-#template-editor-modal #template-editor-textarea {
-    flex-grow: 1;
-    width: 100%;
-    box-sizing: border-box;
-    border: none;
+#template-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 10px;
-    resize: none;
-    overflow: auto;
-    font-family: monospace; /* Ensures consistent font in code editors */
-    height: 100%; /* Fill the remaining vertical space */
-    margin: 0; /* Remove margin to avoid extra space */
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    cursor: move; /* Change cursor to indicate draggable area */
+}
+
+#description-editor-container,
+#json-editor-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+    overflow: hidden;
+}
+
+textarea {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    border: 1px solid #ddd; /* Add border for clarity */
+    padding: 10px; /* Padding inside the textarea for better readability */
+    box-sizing: border-box; /* Ensure padding does not affect overall size */
+}
+
+h4 {
+    margin: 0;
+    padding-bottom: 5px;
+    font-weight: bold;
 }
 
 /* Buttons Container */
-#template-editor-modal .template-editor-buttons {
+.template-editor-buttons {
     padding: 10px;
     display: flex;
     justify-content: flex-end; /* Align buttons to the right */
@@ -261,12 +246,11 @@ table tbody tr:nth-child(even) {
     position: absolute; /* Position absolutely within the modal */
     bottom: 0;
     right: 0;
-    left: 0;
     z-index: 10001; /* Ensure buttons are above the content */
 }
 
 /* Button Styles */
-#template-editor-modal .template-editor-buttons button {
+.template-editor-buttons button {
     min-width: 100px;
     flex-shrink: 0; /* Prevents buttons from shrinking */
     cursor: pointer;
@@ -281,6 +265,7 @@ table tbody tr:nth-child(even) {
 #template-editor-cancel {
     background-color: #ccc;
 }
+
 
 
 /* Styling for the Images Section */

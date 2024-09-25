@@ -327,25 +327,50 @@ jQuery(document).ready(function ($) {
 ///////////////////////////////////////////TEMPLATE EDITOR////////////////////////////////////////
 
 $(document).ready(function($) {
-    var editor;
-    var isDragging = false;
-    var offsetX, offsetY;
+    var editorDescription, editorJSON;
 
-    function initializeEditor() {
+    function initializeEditors() {
         if (typeof wp.codeEditor === 'undefined') {
             console.error('wp.codeEditor is not loaded.');
             return;
         }
 
-        if (!editor) {
-            var settings = wp.codeEditor.defaultSettings ? _.clone(wp.codeEditor.defaultSettings) : {};
-            settings.codemirror = _.extend({}, settings.codemirror, {
-                lineNumbers: true,
-                mode: 'application/json',
+        // Initialize the CodeMirror editor for the description (HTML)
+        if (!editorDescription) {
+            var descriptionSettings = wp.codeEditor.defaultSettings ? _.clone(wp.codeEditor.defaultSettings) : {};
+            descriptionSettings.codemirror = _.extend({}, descriptionSettings.codemirror, {
+                mode: 'htmlmixed',  // Use HTML mixed mode
                 theme: 'default',
-                extraKeys: { "Ctrl-Space": "autocomplete" }
+                lineNumbers: true
             });
-            editor = wp.codeEditor.initialize($('#template-editor-textarea'), settings);
+            editorDescription = wp.codeEditor.initialize($('#description-editor-textarea'), descriptionSettings);
+        }
+
+        // Initialize the CodeMirror editor for JSON data
+        if (!editorJSON) {
+            var jsonSettings = wp.codeEditor.defaultSettings ? _.clone(wp.codeEditor.defaultSettings) : {};
+            jsonSettings.codemirror = _.extend({}, jsonSettings.codemirror, {
+                mode: 'application/json',  // Use JSON mode
+                theme: 'default',
+                lineNumbers: true
+            });
+            editorJSON = wp.codeEditor.initialize($('#json-editor-textarea'), jsonSettings);
+        }
+    }
+
+    // Function to separate the description (HTML) from the rest of the JSON data
+    function separateContent(content) {
+        try {
+            var parsedContent = JSON.parse(content);
+            var description = parsedContent.description || '';
+            delete parsedContent.description;
+            return {
+                html: description,
+                json: JSON.stringify(parsedContent, null, 2)
+            };
+        } catch (e) {
+            console.error('Error separating content:', e);
+            return { html: '', json: content };
         }
     }
 
@@ -358,7 +383,7 @@ $(document).ready(function($) {
 
         // AJAX request to load the template content
         $.ajax({
-            url: sipAjax.ajax_url, // Use localized AJAX URL
+            url: sipAjax.ajax_url,
             method: 'POST',
             data: {
                 sip_printify_manager_nonce_field: sipAjax.nonce,
@@ -371,9 +396,13 @@ $(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
-                    initializeEditor(); // Initialize CodeMirror if not already initialized
-                    editor.codemirror.setValue(response.data.template_content); // Set the content in the CodeMirror editor
-                    editor.codemirror.refresh(); // Refresh the editor to ensure the content displays correctly
+                    initializeEditors();
+                    var content = response.data.template_content;
+
+                    // Separate HTML description and JSON data
+                    var separatedContent = separateContent(content);
+                    editorDescription.codemirror.setValue(separatedContent.html); // Set HTML content in the HTML editor
+                    editorJSON.codemirror.setValue(separatedContent.json); // Set JSON content in the JSON editor
                 } else {
                     alert('Error: ' + response.data);
                 }
@@ -392,18 +421,30 @@ $(document).ready(function($) {
     // Save the edited template
     $('#template-editor-save').on('click', function() {
         var templateName = $('#template-editor-title').text();
-        var templateContent = editor.codemirror.getValue();
+        var descriptionContent = editorDescription.codemirror.getValue();
+        var jsonContent = editorJSON.codemirror.getValue();
+
+        // Re-integrate HTML description back into JSON
+        try {
+            var parsedJson = JSON.parse(jsonContent);
+            parsedJson.description = descriptionContent;
+            var finalContent = JSON.stringify(parsedJson);
+        } catch (e) {
+            console.error('Error re-integrating content:', e);
+            alert('There was an error saving your template.');
+            return;
+        }
 
         // AJAX request to save template content
         $.ajax({
-            url: sipAjax.ajax_url, // Use localized AJAX URL
+            url: sipAjax.ajax_url,
             method: 'POST',
             data: {
                 sip_printify_manager_nonce_field: sipAjax.nonce,
                 _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
                 template_action: 'save_template',
-                template_name: templateName, // Use the template name from the modal title
-                template_content: templateContent,
+                template_name: templateName,
+                template_content: finalContent,
                 action: 'sip_save_template_content'
             },
             success: function(response) {
@@ -420,33 +461,112 @@ $(document).ready(function($) {
         });
     });
 
-    // Handle dragging functionality
-    $('#template-editor-header').on('mousedown', function(e) {
-        e.preventDefault(); // Prevent default behavior to avoid unintended effects
-        isDragging = true;
-        var modal = $('#template-editor-content');
-        offsetX = e.clientX - modal.offset().left;
-        offsetY = e.clientY - modal.offset().top;
-        $('body').on('mousemove', onDrag);
-        $('body').on('mouseup', function() {
-            isDragging = false;
-            $('body').off('mousemove', onDrag);
+
+
+    $('#template-editor-save').on('click', function () {
+        var templateName = $('#template-editor-title').text();
+        var templateContent = editorJson.codemirror.getValue();
+        var descriptionContent = editorHtml.codemirror.getValue();
+
+        $.ajax({
+            url: sipAjax.ajax_url,
+            method: 'POST',
+            data: {
+                sip_printify_manager_nonce_field: sipAjax.nonce,
+                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
+                template_action: 'save_template',
+                template_name: templateName,
+                template_content: templateContent,
+                description: descriptionContent, // Ensure this is processed correctly
+                action: 'sip_save_template_content'
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert('Template saved successfully.');
+                    $('#template-editor-modal').hide();
+                } else {
+                    alert('Error: ' + response.data);
+                }
+            },
+            error: function (xhr, status, error) {
+                alert('AJAX Error: ' + error);
+            }
         });
     });
 
-    function onDrag(e) {
-        if (isDragging) {
-            var left = e.clientX - offsetX;
-            var top = e.clientY - offsetY;
-            $('#template-editor-content').css({
-                top: top + 'px',
-                left: left + 'px',
-                position: 'absolute',
-                margin: 0 // Ensure no unwanted margins are added
+    $('#template-editor-save').on('click', function() {
+        var templateContent = {
+            description: descriptionEditor.codemirror.getValue(),
+            json: JSON.parse(jsonEditor.codemirror.getValue())
+        };
+
+        // Merge HTML description into JSON object
+        templateContent.json.description = templateContent.description;
+
+        $.ajax({
+            url: sipAjax.ajax_url,
+            method: 'POST',
+            data: {
+                sip_printify_manager_nonce_field: sipAjax.nonce,
+                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
+                template_action: 'save_template',
+                template_name: $('#template-editor-title').text(),
+                template_content: JSON.stringify(templateContent.json),
+                action: 'sip_save_template_content'
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('Template saved successfully.');
+                    $('#template-editor-modal').hide();
+                } else {
+                    alert('Error: ' + response.data);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('AJAX Error: ' + error);
+            }
+        });
+    });
+
+    $('#template-editor-cancel, #template-editor-close').on('click', function() {
+        $('#template-editor-modal').hide();
+    });
+
+     // Handle dragging functionality (original version)
+     var isDragging = false;
+     var offsetX, offsetY;
+ 
+     // Handle dragging functionality
+     $(document).ready(function($) {
+        var isDragging = false;
+        var offsetX, offsetY;
+        
+        $('#template-editor-header').on('mousedown', function(e) {
+            e.preventDefault();
+            isDragging = true;
+            var modal = $('#template-editor-content');
+            offsetX = e.clientX - modal.offset().left;
+            offsetY = e.clientY - modal.offset().top;
+            
+            $(document).on('mousemove.dragModal', function(e) {
+                if (isDragging) {
+                    var left = e.clientX - offsetX;
+                    var top = e.clientY - offsetY;
+                    modal.css({
+                        top: top + 'px',
+                        left: left + 'px',
+                        position: 'fixed', // Ensures it's fixed to the viewport
+                        margin: 0
+                    });
+                }
+            }).on('mouseup.dragModal', function() {
+                isDragging = false;
+                $(document).off('mousemove.dragModal mouseup.dragModal');
             });
-        }
-    }
-});
+        });
+    });
+ });
+
 
 
 

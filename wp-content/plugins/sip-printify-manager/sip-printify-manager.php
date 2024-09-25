@@ -108,6 +108,9 @@ class SiP_Printify_Manager {
      * The actual CSS and JS files are located in the 'assets' directory.
      */
     public function enqueue_admin_scripts($hook) {
+        if ($hook !== 'sip-plugins_page_sip-printify-manager') {
+            return;
+        }
 
         // Enqueue the CodeMirror scripts and styles provided by WordPress
         wp_enqueue_script('wp-codemirror');
@@ -115,6 +118,11 @@ class SiP_Printify_Manager {
     
         // Enqueue the cm-resize.js file with dependency on wp-codemirror
         wp_enqueue_script('sip-cm-resize-js', plugins_url('sip-plugins-core/lib/cm-resize.js', __DIR__), array(), null, true);
+
+        // Prettier Standalone and Babel Parser Scripts
+        wp_enqueue_script('prettier-standalone', 'https://cdn.jsdelivr.net/npm/prettier@2.3.2/standalone.js', array(), null, true);
+        wp_enqueue_script('prettier-parser-babel', 'https://cdn.jsdelivr.net/npm/prettier@2.3.2/parser-babel.js', array('prettier-standalone'), null, true);
+        wp_enqueue_script('prettier-parser-html', 'https://cdn.jsdelivr.net/npm/prettier@2.3.2/parser-html.js', array('prettier-standalone'), null, true);
 
         // Enqueue styles
         wp_enqueue_style('dashicons');
