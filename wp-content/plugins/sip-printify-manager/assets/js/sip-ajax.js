@@ -582,8 +582,6 @@ $(document).ready(function($) {
     });
 
 
-    /* Handle proportional vertical resizing of the editor panes within the template editor modal */
-
     $(document).ready(function($) {
         var isResizing = false;
         var lastDownY = 0;
@@ -592,8 +590,7 @@ $(document).ready(function($) {
         var topSection = $('#description-editor-container');
         var bottomSection = $('#json-editor-container');
         var divider = $('#json-header-divider');
-        
-
+    
         // Initialize ResizeObserver here
         const resizeObserver = new ResizeObserver(entries => {
             for (let entry of entries) {
@@ -603,20 +600,21 @@ $(document).ready(function($) {
                 }
             }
         });
-
+    
         // Observe the editor containers
         resizeObserver.observe(topSection[0]);
         resizeObserver.observe(bottomSection[0]);
-
+    
         // Mouse down event on the divider
         divider.on('mousedown', function(e) {
             isResizing = true;
             lastDownY = e.clientY;
+            $('body').addClass('resizing'); // Add the 'resizing' class to the body
             $('body').on('mousemove.resizeEditor', onMouseMove);
             $('body').on('mouseup.resizeEditor', stopResizing);
             e.preventDefault();
         });
-        
+    
         // Handle the movement during resize
         function onMouseMove(e) {
             if (!isResizing) return;
@@ -626,6 +624,7 @@ $(document).ready(function($) {
     
             topSection.css('height', offsetTop + 'px');
             bottomSection.css('height', offsetBottom + 'px');
+    
             // Ensure CodeMirror updates its layout
             topSection.find('.CodeMirror').each(function() {
                 this.CodeMirror.refresh();
@@ -634,10 +633,11 @@ $(document).ready(function($) {
                 this.CodeMirror.refresh();
             });
         }
-        
+    
         // Stop resizing
         function stopResizing() {
             isResizing = false;
+            $('body').removeClass('resizing'); // Remove the 'resizing' class from the body
             $('body').off('mousemove.resizeEditor mouseup.resizeEditor');
         }
 
@@ -649,9 +649,9 @@ $(document).ready(function($) {
                 // Your resize handling logic here
             }, 250); // Adjust the delay as needed
         });
-    });    
+    });
 
-    // Handle toggle view for HTML editor
+    /* Handle toggle view for HTML editor */
     $('#toggle-view').on('change', function() {
         if ($(this).is(':checked')) {
             $('#html-editor-view').hide();
@@ -662,18 +662,18 @@ $(document).ready(function($) {
         }
     });
 
-     // Handle dragging functionality
-     $(document).ready(function($) {
+    /* Handle dragging functionality */
+    $(document).ready(function($) {
         var isDragging = false;
         var offsetX, offsetY;
-        
+
         $('#template-editor-header').on('mousedown', function(e) {
             e.preventDefault();
             isDragging = true;
             var modal = $('#template-editor-content');
             offsetX = e.clientX - modal.offset().left;
             offsetY = e.clientY - modal.offset().top;
-            
+
             $(document).on('mousemove.dragModal', function(e) {
                 if (isDragging) {
                     var left = e.clientX - offsetX;
@@ -691,6 +691,7 @@ $(document).ready(function($) {
             });
         });
     });
+
  });
 
 

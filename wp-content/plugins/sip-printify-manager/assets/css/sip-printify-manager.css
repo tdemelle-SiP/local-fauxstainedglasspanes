@@ -177,6 +177,15 @@ table tbody tr:nth-child(even) {
 
 /* STYLING FOR THE TEMPLATE EDITOR MODAL */
 
+/* Class for forcing the cursor to remain as ns-resize */
+.resizing {
+    cursor: ns-resize !important;
+}
+
+#template-editor-content textarea {
+    cursor: ns-resize !important;
+}
+
 #template-editor-modal {
     display: flex;
     justify-content: center;
