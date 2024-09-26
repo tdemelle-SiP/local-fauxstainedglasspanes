@@ -348,49 +348,45 @@ jQuery(document).ready(function ($) {
 $(document).ready(function($) {
     var editorDescription, editorJSON;
 
+    // Initialize the CodeMirror editors
     function initializeEditors() {
         if (typeof wp.codeEditor === 'undefined') {
             console.error('wp.codeEditor is not loaded.');
             return;
         }
 
-        // Initialize the CodeMirror editor for the description (HTML)
+        // Initialize HTML editor
         if (!editorDescription) {
-            var descriptionSettings = wp.codeEditor.defaultSettings ? _.clone(wp.codeEditor.defaultSettings) : {};
-            descriptionSettings.codemirror = _.extend({}, descriptionSettings.codemirror, {
-                mode: 'htmlmixed',  // Use HTML mixed mode
-                theme: 'default',
+            editorDescription = wp.codeEditor.initialize($('#description-editor-textarea'), {
+                mode: 'htmlmixed',
                 lineNumbers: true
             });
-            editorDescription = wp.codeEditor.initialize($('#description-editor-textarea'), descriptionSettings);
         }
 
-        // Initialize the CodeMirror editor for JSON data
+        // Initialize JSON editor
         if (!editorJSON) {
-            var jsonSettings = wp.codeEditor.defaultSettings ? _.clone(wp.codeEditor.defaultSettings) : {};
-            jsonSettings.codemirror = _.extend({}, jsonSettings.codemirror, {
-                mode: 'application/json',  // Use JSON mode
-                theme: 'default',
+            editorJSON = wp.codeEditor.initialize($('#json-editor-textarea'), {
+                mode: 'application/json',
                 lineNumbers: true
             });
-            editorJSON = wp.codeEditor.initialize($('#json-editor-textarea'), jsonSettings);
         }
     }
 
+    // Resize editors when containers change size
     function resizeEditors() {
-        if (editorDescription && typeof editorDescription.codemirror.refresh === 'function') {
+        if (editorDescription && editorDescription.codemirror) {
             editorDescription.codemirror.refresh();
         }
-        if (editorJSON && typeof editorJSON.codemirror.refresh === 'function') {
+        if (editorJSON && editorJSON.codemirror) {
             editorJSON.codemirror.refresh();
         }
     }
 
-    // Listen to the resize event on the modal
-    var resizeObserver = new ResizeObserver(resizeEditors);
+    // Observe resize changes in the modal content
+    const resizeObserver = new ResizeObserver(resizeEditors);
     resizeObserver.observe(document.getElementById('template-editor-content'));
 
-    // Function to separate the description (HTML) from the rest of the JSON data
+    // Function to separate HTML and JSON data
     function separateContent(content) {
         try {
             var parsedContent = JSON.parse(content);
@@ -406,14 +402,12 @@ $(document).ready(function($) {
         }
     }
 
-    // Open the modal and load the template content
+    // Open modal and load template content
     $('.edit-template-content').on('click', function() {
         var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
-
         $('#template-editor-modal').show();
         $('#template-editor-title').text(templateName);
 
-        // AJAX request to load the template content
         $.ajax({
             url: sipAjax.ajax_url,
             method: 'POST',
@@ -430,11 +424,9 @@ $(document).ready(function($) {
                 if (response.success) {
                     initializeEditors();
                     var content = response.data.template_content;
-
-                    // Separate HTML description and JSON data
                     var separatedContent = separateContent(content);
-                    editorDescription.codemirror.setValue(separatedContent.html); // Set HTML content in the HTML editor
-                    editorJSON.codemirror.setValue(separatedContent.json); // Set JSON content in the JSON editor
+                    editorDescription.codemirror.setValue(separatedContent.html);
+                    editorJSON.codemirror.setValue(separatedContent.json);
                 } else {
                     alert('Error: ' + response.data);
                 }
@@ -445,18 +437,12 @@ $(document).ready(function($) {
         });
     });
 
-    // Close modal on cancel or close button click
-    $('#template-editor-cancel, #template-editor-close').on('click', function() {
-        $('#template-editor-modal').hide();
-    });
-
-    // Save the edited template
+    // Save template content
     $('#template-editor-save').on('click', function() {
         var templateName = $('#template-editor-title').text();
         var descriptionContent = editorDescription.codemirror.getValue();
         var jsonContent = editorJSON.codemirror.getValue();
 
-        // Re-integrate HTML description back into JSON
         try {
             var parsedJson = JSON.parse(jsonContent);
             parsedJson.description = descriptionContent;
@@ -467,7 +453,6 @@ $(document).ready(function($) {
             return;
         }
 
-        // AJAX request to save template content
         $.ajax({
             url: sipAjax.ajax_url,
             method: 'POST',
@@ -477,7 +462,8 @@ $(document).ready(function($) {
                 template_action: 'save_template',
                 template_name: templateName,
                 template_content: finalContent,
-                action: 'sip_save_template_content'
+                action: 'sip_save_template_content',
+                nonce: sipAjax.nonce
             },
             success: function(response) {
                 if (response.success) {
@@ -493,206 +479,62 @@ $(document).ready(function($) {
         });
     });
 
-
-
-    $('#template-editor-save').on('click', function () {
-        var templateName = $('#template-editor-title').text();
-        var templateContent = editorJson.codemirror.getValue();
-        var descriptionContent = editorHtml.codemirror.getValue();
-
-        $.ajax({
-            url: sipAjax.ajax_url,
-            method: 'POST',
-            data: {
-                sip_printify_manager_nonce_field: sipAjax.nonce,
-                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
-                template_action: 'save_template',
-                template_name: templateName,
-                template_content: templateContent,
-                description: descriptionContent, // Ensure this is processed correctly
-                action: 'sip_save_template_content'
-            },
-            success: function (response) {
-                if (response.success) {
-                    alert('Template saved successfully.');
-                    $('#template-editor-modal').hide();
-                } else {
-                    alert('Error: ' + response.data);
-                }
-            },
-            error: function (xhr, status, error) {
-                alert('AJAX Error: ' + error);
-            }
-        });
-    });
-
-    $('#template-editor-save').on('click', function() {
-        var templateContent = {
-            description: descriptionEditor.codemirror.getValue(),
-            json: JSON.parse(jsonEditor.codemirror.getValue())
-        };
-
-        // Merge HTML description into JSON object
-        templateContent.json.description = templateContent.description;
-
-        $.ajax({
-            url: sipAjax.ajax_url,
-            method: 'POST',
-            data: {
-                sip_printify_manager_nonce_field: sipAjax.nonce,
-                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
-                template_action: 'save_template',
-                template_name: $('#template-editor-title').text(),
-                template_content: JSON.stringify(templateContent.json),
-                action: 'sip_save_template_content'
-            },
-            success: function(response) {
-                if (response.success) {
-                    alert('Template saved successfully.');
-                    $('#template-editor-modal').hide();
-                } else {
-                    alert('Error: ' + response.data);
-                }
-            },
-            error: function(xhr, status, error) {
-                alert('AJAX Error: ' + error);
-            }
-        });
-    });
-
-    $('#template-editor-cancel, #template-editor-close').on('click', function() {
-        $('#template-editor-modal').hide();
-    });
-
-    // Handle render html toggle
-    $(document).ready(function($) {
-        $('#toggle-view').on('change', function() {
-            if ($(this).is(':checked')) {
-                // Switch to HTML output view
-                $('#html-editor-view').hide();
-                var htmlContent = editorDescription.codemirror.getValue();
-                $('#html-rendered-output').html(htmlContent);
-                $('#html-output-view').show();
-            } else {
-                // Switch to HTML code view
-                $('#html-output-view').hide();
-                $('#html-editor-view').show();
-            }
-        });
-    });
-
-
-    $(document).ready(function($) {
-        var isResizing = false;
-        var lastDownY = 0;
-        
-        var container = $('#template-editor-content');
-        var topSection = $('#description-editor-container');
-        var bottomSection = $('#json-editor-container');
-        var divider = $('#json-header-divider');
-    
-        // Initialize ResizeObserver here
-        const resizeObserver = new ResizeObserver(entries => {
-            for (let entry of entries) {
-                const textarea = entry.target.querySelector('textarea');
-                if (textarea) {
-                    textarea.style.height = `${entry.contentRect.height}px`;
-                }
-            }
-        });
-    
-        // Observe the editor containers
-        resizeObserver.observe(topSection[0]);
-        resizeObserver.observe(bottomSection[0]);
-    
-        // Mouse down event on the divider
-        divider.on('mousedown', function(e) {
-            isResizing = true;
-            lastDownY = e.clientY;
-            $('body').addClass('resizing'); // Add the 'resizing' class to the body
-            $('body').on('mousemove.resizeEditor', onMouseMove);
-            $('body').on('mouseup.resizeEditor', stopResizing);
-            e.preventDefault();
-        });
-    
-        // Handle the movement during resize
-        function onMouseMove(e) {
-            if (!isResizing) return;
-    
-            var offsetBottom = container.height() - (e.clientY - container.offset().top);
-            var offsetTop = container.height() - offsetBottom;
-    
-            topSection.css('height', offsetTop + 'px');
-            bottomSection.css('height', offsetBottom + 'px');
-    
-            // Ensure CodeMirror updates its layout
-            topSection.find('.CodeMirror').each(function() {
-                this.CodeMirror.refresh();
-            });
-            bottomSection.find('.CodeMirror').each(function() {
-                this.CodeMirror.refresh();
-            });
-        }
-    
-        // Stop resizing
-        function stopResizing() {
-            isResizing = false;
-            $('body').removeClass('resizing'); // Remove the 'resizing' class from the body
-            $('body').off('mousemove.resizeEditor mouseup.resizeEditor');
-        }
-
-        // Throttling function for resize events
-        let resizeTimer;
-        window.addEventListener('resize', function() {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(function() {
-                // Your resize handling logic here
-            }, 250); // Adjust the delay as needed
-        });
-    });
-
-    /* Handle toggle view for HTML editor */
+    // Toggle between HTML code and rendered view
     $('#toggle-view').on('change', function() {
         if ($(this).is(':checked')) {
             $('#html-editor-view').hide();
+            $('#html-rendered-output').html(editorDescription.codemirror.getValue());
             $('#html-output-view').show();
         } else {
-            $('#html-editor-view').show();
             $('#html-output-view').hide();
+            $('#html-editor-view').show();
         }
     });
 
-    /* Handle dragging functionality */
-    $(document).ready(function($) {
-        var isDragging = false;
-        var offsetX, offsetY;
+    // Handle resizing of editor containers
+    var isResizing = false, lastDownY = 0;
 
-        $('#template-editor-header').on('mousedown', function(e) {
-            e.preventDefault();
-            isDragging = true;
-            var modal = $('#template-editor-content');
-            offsetX = e.clientX - modal.offset().left;
-            offsetY = e.clientY - modal.offset().top;
-
-            $(document).on('mousemove.dragModal', function(e) {
-                if (isDragging) {
-                    var left = e.clientX - offsetX;
-                    var top = e.clientY - offsetY;
-                    modal.css({
-                        top: top + 'px',
-                        left: left + 'px',
-                        position: 'fixed', // Ensures it's fixed to the viewport
-                        margin: 0
-                    });
-                }
-            }).on('mouseup.dragModal', function() {
-                isDragging = false;
-                $(document).off('mousemove.dragModal mouseup.dragModal');
-            });
-        });
+    $('#json-header-divider').on('mousedown', function(e) {
+        isResizing = true;
+        lastDownY = e.clientY;
+        $('body').addClass('resizing');
+        $('body').on('mousemove.resizeEditor', onMouseMove);
+        $('body').on('mouseup.resizeEditor', stopResizing);
+        e.preventDefault();
     });
 
- });
+    function onMouseMove(e) {
+        if (!isResizing) return;
+        var offsetBottom = $('#template-editor-content').height() - (e.clientY - $('#template-editor-content').offset().top);
+        var offsetTop = $('#template-editor-content').height() - offsetBottom;
+
+        $('#description-editor-container').css('height', offsetTop + 'px');
+        $('#json-editor-container').css('height', offsetBottom + 'px');
+
+        resizeEditors();
+    }
+
+    function stopResizing() {
+        isResizing = false;
+        $('body').removeClass('resizing');
+        $('body').off('mousemove.resizeEditor mouseup.resizeEditor');
+    }
+
+    // Handle modal dragging
+    $('#template-editor-header').on('mousedown', function(e) {
+        var modal = $('#template-editor-content');
+        var offsetX = e.clientX - modal.offset().left;
+        var offsetY = e.clientY - modal.offset().top;
+        $('body').on('mousemove.dragModal', function(e) {
+            modal.css({
+                top: (e.clientY - offsetY) + 'px',
+                left: (e.clientX - offsetX) + 'px'
+            });
+        }).on('mouseup.dragModal', function() {
+            $('body').off('mousemove.dragModal mouseup.dragModal');
+        });
+    });
+});
 
 
 ///////////////////////////////////////////IMAGE UPLOAD FUNCTIONALITY////////////////////////////////////////
