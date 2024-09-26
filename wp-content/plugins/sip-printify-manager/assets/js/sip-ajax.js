@@ -374,12 +374,8 @@ $(document).ready(function($) {
 
     // Resize editors when containers change size
     function resizeEditors() {
-        if (editorDescription && editorDescription.codemirror) {
-            editorDescription.codemirror.refresh();
-        }
-        if (editorJSON && editorJSON.codemirror) {
-            editorJSON.codemirror.refresh();
-        }
+        editorDescription.codemirror.refresh();
+        editorJSON.codemirror.refresh();
     }
 
     // Observe resize changes in the modal content
@@ -443,6 +439,7 @@ $(document).ready(function($) {
         var descriptionContent = editorDescription.codemirror.getValue();
         var jsonContent = editorJSON.codemirror.getValue();
 
+        // Re-integrate HTML description back into JSON
         try {
             var parsedJson = JSON.parse(jsonContent);
             parsedJson.description = descriptionContent;
@@ -453,6 +450,7 @@ $(document).ready(function($) {
             return;
         }
 
+        // AJAX request to save template content
         $.ajax({
             url: sipAjax.ajax_url,
             method: 'POST',
@@ -463,6 +461,7 @@ $(document).ready(function($) {
                 template_name: templateName,
                 template_content: finalContent,
                 action: 'sip_save_template_content',
+                action_type: 'template_action',
                 nonce: sipAjax.nonce
             },
             success: function(response) {
@@ -479,21 +478,12 @@ $(document).ready(function($) {
         });
     });
 
-    // Toggle between HTML code and rendered view
-    $('#toggle-view').on('change', function() {
-        if ($(this).is(':checked')) {
-            $('#html-editor-view').hide();
-            $('#html-rendered-output').html(editorDescription.codemirror.getValue());
-            $('#html-output-view').show();
-        } else {
-            $('#html-output-view').hide();
-            $('#html-editor-view').show();
-        }
-    });
+    //WHERE IS THE SCALING FROM THE CORNER CODE HANDLED?
 
-    // Handle resizing of editor containers
+    // Handle resizing of editor containers - THIS IS FOR THE PROPORTIONAL VERTICAL HEIGHT SCALING OF THE TWO WINDOWS
     var isResizing = false, lastDownY = 0;
 
+    // ONMOUSEDOWN - 
     $('#json-header-divider').on('mousedown', function(e) {
         isResizing = true;
         lastDownY = e.clientY;
@@ -503,6 +493,7 @@ $(document).ready(function($) {
         e.preventDefault();
     });
 
+    // ONMOUSEMOVE - this looks like where that which is dragged's location is set on mousemove. the place where the POPPING HAPPENS
     function onMouseMove(e) {
         if (!isResizing) return;
         var offsetBottom = $('#template-editor-content').height() - (e.clientY - $('#template-editor-content').offset().top);
@@ -520,20 +511,50 @@ $(document).ready(function($) {
         $('body').off('mousemove.resizeEditor mouseup.resizeEditor');
     }
 
-    // Handle modal dragging
+    // Handle modal dragging - TRANSLATE BY DRAGGING HEADER - 
+    //ONMOUSEDOWN
+    var isDragging = false, offsetX, offsetY;
     $('#template-editor-header').on('mousedown', function(e) {
+        e.preventDefault();
+        isDragging = true;
         var modal = $('#template-editor-content');
-        var offsetX = e.clientX - modal.offset().left;
-        var offsetY = e.clientY - modal.offset().top;
+        offsetX = e.clientX - modal.offset().left;
+        offsetY = e.clientY - modal.offset().top;
         $('body').on('mousemove.dragModal', function(e) {
-            modal.css({
-                top: (e.clientY - offsetY) + 'px',
-                left: (e.clientX - offsetX) + 'px'
-            });
+            if (isDragging) {
+                modal.css({
+                    top: (e.clientY - offsetY) + 'px',
+                    left: (e.clientX - offsetX) + 'px',
+                    position: 'fixed' // Ensures it's fixed to the viewport
+                });
+            }
         }).on('mouseup.dragModal', function() {
+            isDragging = false;
             $('body').off('mousemove.dragModal mouseup.dragModal');
         });
     });
+
+    // Apply jQuery UI Resizable to allow corner resizing
+    $('#template-editor-content').resizable({
+        alsoResize: '#description-editor-container, #json-editor-container',
+        stop: function(event, ui) {
+            resizeEditors();  // Refresh editors after resizing
+        }
+    });
+
+    // Handle toggle view for HTML editor
+    $('#toggle-view').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#html-editor-view').hide();
+            $('#html-rendered-output').html(editorDescription.codemirror.getValue());
+            $('#html-output-view').show();
+        } else {
+            $('#html-output-view').hide();
+            $('#html-editor-view').show();
+        }
+    });
+
+
 });
 
 
