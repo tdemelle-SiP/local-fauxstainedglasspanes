@@ -203,13 +203,10 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         <!-- JSON Data Header (used as a draggable divider) -->
         <h4 id="json-header-divider" class="json-header-divider">JSON Data:</h4>
         <div id="json-editor-container" class="editor-container">
-            <h4>JSON Data:</h4>
             <textarea id="json-editor-textarea"></textarea>
         </div>
     </div>
 </div>
-
-
 
 <div id="product-creation-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>
     <hr class="divider" style="margin-top: 20px; background-color: #c0bfbf;">

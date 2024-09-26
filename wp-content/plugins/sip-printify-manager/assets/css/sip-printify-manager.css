@@ -190,6 +190,16 @@ table tbody tr:nth-child(even) {
     z-index: 9999;
 }
 
+#template-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    cursor: move; /* Change cursor to indicate draggable area */
+}
+
 #template-editor-content {
     resize: both; /* Allow resizing */
     overflow: hidden; /* Ensure content stays within the modal when resized */
@@ -197,18 +207,17 @@ table tbody tr:nth-child(even) {
     min-height: 300px; /* Set a minimum height */
     background: #fff;
     width: 80%;
-    max-width: 90vw;
+    max-width: 98vw;
     height: 80%;
-    max-height: 90vh;
+    max-height: 98vh;
     display: flex;
     flex-direction: column;
     position: relative;
     margin: auto;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    cursor: se-resize; /* Change cursor to show that resizing is available from the corner */
 }
 
-/* Additional styling for better resizing handle visibility (optional) */
+/* Additional styling for bottom right corner resizing handle visibility */
 #template-editor-content::after {
     content: "";
     position: absolute;
@@ -220,48 +229,38 @@ table tbody tr:nth-child(even) {
     cursor: se-resize; /* Ensure the cursor shows the correct resize direction */
 }
 
-#template-editor-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
+/* Divider between editors */
+.json-header-divider {
+    cursor: ns-resize;
     background-color: #f1f1f1;
+    border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
-    cursor: move; /* Change cursor to indicate draggable area */
+    padding: 5px;
+    text-align: center;
 }
 
+/* Add a small handle in the center of the header for visual feedback */
+.json-header-divider::after {
+    content: '≡';
+    display: inline-block;
+    font-size: 16px;
+    cursor: ns-resize;
+    padding-left: 10px;
+}
+
+/* Editor Containers */
 #description-editor-container,
 #json-editor-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    margin: 10px;
+    flex-grow: 1;
     overflow: hidden;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    position: relative;
     padding: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
     background-color: #fff;
 }
 
-#description-editor-container {
-    resize: vertical; /* Allow vertical resizing */
-    min-height: 100px; /* Prevent the container from collapsing */
-}
-
-#json-header-divider {
-    background: #ccc;
-    cursor: row-resize;
-    padding: 10px;
-    text-align: center;
-    margin: 0;
-}
-
-#json-editor-container {
-    flex: 1;
-    overflow: auto;
-    height: 100%;
-}
-
+/* HTML Output View */
 #html-output-view {
     height: 100%; /* Take full height of the container */
     overflow-y: auto; /* Enable vertical scrolling */
@@ -270,14 +269,19 @@ table tbody tr:nth-child(even) {
     background-color: #fff; /* Keep background white for contrast */
 }
 
+/* Textarea Style */
 textarea {
-    flex: 1;
-    width: 100%;
     height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
     overflow-y: auto;
-    border: 1px solid #ddd; /* Add border for clarity */
-    padding: 10px; /* Padding inside the textarea for better readability */
-    box-sizing: border-box; /* Ensure padding does not affect overall size */
+    border: 1px solid #ddd;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
 h4 {
@@ -314,7 +318,6 @@ h4 {
 #template-editor-cancel {
     background-color: #ccc;
 }
-
 
 
 

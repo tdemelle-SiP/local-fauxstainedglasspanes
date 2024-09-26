@@ -581,16 +581,34 @@ $(document).ready(function($) {
         });
     });
 
-    // Handle scaling between html and json windows
+
+    /* Handle proportional vertical resizing of the editor panes within the template editor modal */
+
     $(document).ready(function($) {
         var isResizing = false;
         var lastDownY = 0;
-    
+        
         var container = $('#template-editor-content');
         var topSection = $('#description-editor-container');
         var bottomSection = $('#json-editor-container');
         var divider = $('#json-header-divider');
-    
+        
+
+        // Initialize ResizeObserver here
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                const textarea = entry.target.querySelector('textarea');
+                if (textarea) {
+                    textarea.style.height = `${entry.contentRect.height}px`;
+                }
+            }
+        });
+
+        // Observe the editor containers
+        resizeObserver.observe(topSection[0]);
+        resizeObserver.observe(bottomSection[0]);
+
+        // Mouse down event on the divider
         divider.on('mousedown', function(e) {
             isResizing = true;
             lastDownY = e.clientY;
@@ -598,26 +616,52 @@ $(document).ready(function($) {
             $('body').on('mouseup.resizeEditor', stopResizing);
             e.preventDefault();
         });
-    
+        
+        // Handle the movement during resize
         function onMouseMove(e) {
             if (!isResizing) return;
     
             var offsetBottom = container.height() - (e.clientY - container.offset().top);
+            var offsetTop = container.height() - offsetBottom;
     
-            topSection.css('height', (container.height() - offsetBottom) + 'px');
+            topSection.css('height', offsetTop + 'px');
             bottomSection.css('height', offsetBottom + 'px');
+            // Ensure CodeMirror updates its layout
+            topSection.find('.CodeMirror').each(function() {
+                this.CodeMirror.refresh();
+            });
+            bottomSection.find('.CodeMirror').each(function() {
+                this.CodeMirror.refresh();
+            });
         }
-    
+        
+        // Stop resizing
         function stopResizing() {
             isResizing = false;
             $('body').off('mousemove.resizeEditor mouseup.resizeEditor');
         }
+
+        // Throttling function for resize events
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                // Your resize handling logic here
+            }, 250); // Adjust the delay as needed
+        });
+    });    
+
+    // Handle toggle view for HTML editor
+    $('#toggle-view').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#html-editor-view').hide();
+            $('#html-output-view').show();
+        } else {
+            $('#html-editor-view').show();
+            $('#html-output-view').hide();
+        }
     });
 
-     // Handle dragging functionality
-     var isDragging = false;
-     var offsetX, offsetY;
- 
      // Handle dragging functionality
      $(document).ready(function($) {
         var isDragging = false;
