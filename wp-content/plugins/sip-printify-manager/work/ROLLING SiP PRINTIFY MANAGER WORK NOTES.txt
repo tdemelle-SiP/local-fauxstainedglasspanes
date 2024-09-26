@@ -1,0 +1,54 @@
+The idea would be to use the CSS of the parent element to change the editor’s size in response to user actions (or using browsers’ resize CSS support), and then call requestMeasure to make sure the editor picks up on any layout changes it needs to make. 
+
+You are right. Changing the CSS of the parent element achieved the result. And it seems there is no need to call requestMeasure() , as everything works fine after resizing.
+
+/* it parent node */
+.a-demo-cm6  {
+  resize: vertical;
+  overflow: auto;
+}
+/* let .cm-editor auto grow */
+.a-demo-cm6 .cm-editor {
+  height: 100%;
+  max-height: 400px;
+}
+/* give cm6 a minimal height*/
+.a-demo-cm6 .cm-gutter, .a-demo-cm6 .cm-contnet {
+  min-height: 100px;
+}
+And here is the detailed and interactive demo:
+https://pagehelper.lets-script.com/blog/codemirror6-resize/ 73
+
+
+
+https://stackoverflow.com/questions/78639389/problem-with-adjusting-the-size-of-codemirror-within-its-parent
+----------------------------------------------------------------
+If cm-resize fully handles editor refreshes upon container resizing, you can remove the manual refreshEditors and optimizedRefreshEditors functions to further simplify the code.
+----------------------------------------------------------------
+phpcs: Request workspace/configuration failed with message: Unable to locate phpcs. Please add phpcs to your global path or use composer dependency manager to install it in your project locally.
+----------------------------------------------------------------
+the lower right corner dragger ui element is gone
+----------------------------------------------------------------
+scaling between the two windows in template editor looks like it's effecting the textareas now, but it's pretty borked.
+----------------------------------------------------------------
+
+$('#toggle-view').on('change', function() {
+    // Debugging: Check if the event fires
+    console.log('Toggle View Change Event Triggered');
+
+    // Ensure editorDescription is initialized
+    if (editorDescription && editorDescription.codemirror) {
+        if ($(this).is(':checked')) {
+            console.log('Switching to Output View');
+            $('#html-editor-view').hide();
+            $('#html-rendered-output').html(editorDescription.codemirror.getValue());
+            $('#html-output-view').show();
+        } else {
+            console.log('Switching to Editor View');
+            $('#html-output-view').hide();
+            $('#html-editor-view').show();
+        }
+    } else {
+        console.error('editorDescription or CodeMirror instance is not initialized.');
+    }
+});

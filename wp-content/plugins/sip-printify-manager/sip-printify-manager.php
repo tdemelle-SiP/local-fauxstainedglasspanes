@@ -76,6 +76,9 @@ class SiP_Printify_Manager {
         // Handle AJAX requests for image uploads
         add_action('wp_ajax_sip_upload_images', 'sip_handle_image_upload');
 
+        // Removed the undefined enqueue_jquery_ui hook to prevent PHP fatal error
+        // add_action('wp_enqueue_scripts', 'enqueue_jquery_ui');
+
         // Hook for saving template content
         add_action('wp_ajax_sip_save_template_content', 'sip_save_template_content');
 
@@ -112,13 +115,17 @@ class SiP_Printify_Manager {
             return;
         }
 
+        // Enqueue jQuery UI CSS (choose a theme or custom CSS as needed)
+        wp_enqueue_style( 'jquery-ui-css', 'https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css' );
+
+        // Enqueue jQuery UI scripts for resizable and draggable functionality
+        wp_enqueue_script('jquery-ui-resizable');
+        wp_enqueue_script('jquery-ui-draggable');
+
         // Enqueue the CodeMirror scripts and styles provided by WordPress
         wp_enqueue_script('wp-codemirror');
         wp_enqueue_style('wp-codemirror');
     
-        // Enqueue the cm-resize.js file with dependency on wp-codemirror
-        wp_enqueue_script('sip-cm-resize-js', plugins_url('sip-plugins-core/lib/cm-resize.js', __DIR__), array(), null, true);
-
         // Prettier Standalone and Babel Parser Scripts
         wp_enqueue_script('prettier-standalone', 'https://cdn.jsdelivr.net/npm/prettier@2.3.2/standalone.js', array(), null, true);
         wp_enqueue_script('prettier-parser-babel', 'https://cdn.jsdelivr.net/npm/prettier@2.3.2/parser-babel.js', array('prettier-standalone'), null, true);
@@ -128,8 +135,8 @@ class SiP_Printify_Manager {
         wp_enqueue_style('dashicons');
         wp_enqueue_style('sip-printify-manager-style', plugin_dir_url(__FILE__) . 'assets/css/sip-printify-manager.css');
     
-        // Enqueue the sip-ajax.js script with dependencies on jQuery, wp-codemirror, and cm-resize.js
-        wp_enqueue_script('sip-ajax-script', plugin_dir_url(__FILE__) . 'assets/js/sip-ajax.js', array('jquery', 'wp-codemirror', 'sip-cm-resize-js'), null, true);
+        // Enqueue the sip-ajax.js script with dependencies on jQuery, wp-codemirror
+        wp_enqueue_script('sip-ajax-script', plugin_dir_url(__FILE__) . 'assets/js/sip-ajax.js', array('jquery', 'wp-codemirror', 'jquery-ui-resizable'), null, true);
     
         // Localize script to pass AJAX URL and nonce
         wp_localize_script('sip-ajax-script', 'sipAjax', array(

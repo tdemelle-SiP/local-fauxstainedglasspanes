@@ -5,6 +5,7 @@
 /wp-content/advanced-cache.php
 /wp-content/advanced-cache-backup.php
 /wp-content/cache
+/wp-content/debug.log
 /wp-content/docket-cache-data/
 /wp-content/ewww/
 /wp-content/languages/

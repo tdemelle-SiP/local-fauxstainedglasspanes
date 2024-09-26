@@ -175,17 +175,12 @@ table tbody tr:nth-child(even) {
     color: #00a0d2;
 }
 
+/*//////////////////////////////////////////////////////////////////////////////////////*/
+/*////////////////////// STYLING FOR THE TEMPLATE EDITOR MODAL /////////////////////////*/
+/*//////////////////////////////////////////////////////////////////////////////////////*/
 /* STYLING FOR THE TEMPLATE EDITOR MODAL */
 
-/* Class for forcing the cursor to remain as ns-resize */
-.resizing {
-    cursor: ns-resize !important;
-}
-
-#template-editor-content textarea {
-    cursor: ns-resize !important;
-}
-
+/* Modal Overlay */
 #template-editor-modal {
     display: flex;
     justify-content: center;
@@ -199,6 +194,7 @@ table tbody tr:nth-child(even) {
     z-index: 9999;
 }
 
+/* Modal Header */
 #template-editor-header {
     display: flex;
     justify-content: space-between;
@@ -206,14 +202,14 @@ table tbody tr:nth-child(even) {
     padding: 10px;
     background-color: #f1f1f1;
     border-bottom: 1px solid #ddd;
-    cursor: move; /* Change cursor to indicate draggable area */
+    cursor: move; /* Indicates draggable area */
 }
 
+/* Modal Content */
 #template-editor-content {
-    resize: both; /* Allow resizing */
     overflow: hidden; /* Ensure content stays within the modal when resized */
-    min-width: 300px; /* Set a minimum width to prevent it from becoming too small */
-    min-height: 300px; /* Set a minimum height */
+    min-width: 300px; /* Prevent it from becoming too small */
+    min-height: 300px; /* Prevent it from becoming too small */
     background: #fff;
     width: 80%;
     max-width: 98vw;
@@ -240,15 +236,17 @@ table tbody tr:nth-child(even) {
 
 /* Divider between editors */
 .json-header-divider {
-    cursor: ns-resize;
+    cursor: ns-resize; /* Change cursor to indicate resizable area */
     background-color: #f1f1f1;
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
     padding: 5px;
     text-align: center;
+    position: relative; /* Required for resizable handles */
+    height: 20px; /* Increased height for better usability */
 }
 
-/* Add a small handle in the center of the header for visual feedback */
+/* Add a small handle in the center of the divider for visual feedback */
 .json-header-divider::after {
     content: '≡';
     display: inline-block;
@@ -293,6 +291,7 @@ textarea {
     box-sizing: border-box;
 }
 
+/* Heading Style */
 h4 {
     margin: 0;
     padding-bottom: 5px;
@@ -322,13 +321,43 @@ h4 {
 #template-editor-save {
     background-color: #007cba;
     color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
 }
 
 #template-editor-cancel {
     background-color: #ccc;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
 }
 
+/* Ensure resizable handle visibility */
+.ui-resizable-n {
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    cursor: ns-resize;
+    background: transparent; /* Make the handle invisible or style as needed */
+}
 
+.ui-resizable-se {
+    width: 20px;
+    height: 20px;
+    bottom: 0;
+    right: 0;
+    background: transparent;
+    cursor: se-resize;
+}
+
+.ui-resizable-handle {
+    background: transparent; /* Make the default handle transparent */
+}
+
+/*//////////////////////////////////////////////////////////////////////////////////////*/
+/*//////////////////////////////////////////////////////////////////////////////////////*/
 
 /* Styling for the Images Section */
 #images-section {

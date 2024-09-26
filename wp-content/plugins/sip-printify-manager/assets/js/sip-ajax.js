@@ -345,10 +345,12 @@ jQuery(document).ready(function ($) {
 
 ///////////////////////////////////////////TEMPLATE EDITOR////////////////////////////////////////
 
-$(document).ready(function($) {
+jQuery(document).ready(function ($) {
     var editorDescription, editorJSON;
 
-    // Initialize the CodeMirror editors
+    /**
+     * Initialize the CodeMirror editors.
+     */
     function initializeEditors() {
         if (typeof wp.codeEditor === 'undefined') {
             console.error('wp.codeEditor is not loaded.');
@@ -359,7 +361,9 @@ $(document).ready(function($) {
         if (!editorDescription) {
             editorDescription = wp.codeEditor.initialize($('#description-editor-textarea'), {
                 mode: 'htmlmixed',
-                lineNumbers: true
+                lineNumbers: true,
+                lineWrapping: true,
+                extraKeys: { "Ctrl-Space": "autocomplete" }
             });
         }
 
@@ -367,22 +371,41 @@ $(document).ready(function($) {
         if (!editorJSON) {
             editorJSON = wp.codeEditor.initialize($('#json-editor-textarea'), {
                 mode: 'application/json',
-                lineNumbers: true
+                lineNumbers: true,
+                lineWrapping: true,
+                extraKeys: { "Ctrl-Space": "autocomplete" }
             });
         }
     }
 
-    // Resize editors when containers change size
-    function resizeEditors() {
-        editorDescription.codemirror.refresh();
-        editorJSON.codemirror.refresh();
+    /**
+     * Manually refresh CodeMirror editors.
+     */
+    function refreshEditors() {
+        if (editorDescription && editorDescription.codemirror) {
+            editorDescription.codemirror.refresh();
+        }
+        if (editorJSON && editorJSON.codemirror) {
+            editorJSON.codemirror.refresh();
+        }
     }
 
-    // Observe resize changes in the modal content
-    const resizeObserver = new ResizeObserver(resizeEditors);
-    resizeObserver.observe(document.getElementById('template-editor-content'));
+    /**
+     * Throttled function to refresh editors using requestAnimationFrame.
+     */
+    let resizeAnimationFrame;
+    function optimizedRefreshEditors() {
+        if (resizeAnimationFrame) {
+            cancelAnimationFrame(resizeAnimationFrame);
+        }
+        resizeAnimationFrame = requestAnimationFrame(refreshEditors);
+    }
 
-    // Function to separate HTML and JSON data
+    /**
+     * Function to separate HTML and JSON data from the content.
+     * @param {string} content - The JSON string containing both HTML and JSON data.
+     * @returns {Object} - An object with separate HTML and JSON strings.
+     */
     function separateContent(content) {
         try {
             var parsedContent = JSON.parse(content);
@@ -398,8 +421,22 @@ $(document).ready(function($) {
         }
     }
 
-    // Open modal and load template content
-    $('.edit-template-content').on('click', function() {
+    /**
+     * Handle window resize events with throttling.
+     */
+    let windowResizeTimer;
+    $(window).on('resize', function () {
+        clearTimeout(windowResizeTimer);
+        windowResizeTimer = setTimeout(function () {
+            // Refresh editors to adjust to new window size
+            refreshEditors();
+        }, 250); // Adjust the delay as needed
+    });
+
+    /**
+     * Open modal and load template content via AJAX.
+     */
+    $('.edit-template-content').on('click', function () {
         var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
         $('#template-editor-modal').show();
         $('#template-editor-title').text(templateName);
@@ -416,25 +453,35 @@ $(document).ready(function($) {
                 action_type: 'template_action',
                 nonce: sipAjax.nonce
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     initializeEditors();
                     var content = response.data.template_content;
                     var separatedContent = separateContent(content);
                     editorDescription.codemirror.setValue(separatedContent.html);
                     editorJSON.codemirror.setValue(separatedContent.json);
+                    refreshEditors(); // Initial refresh after loading content
                 } else {
                     alert('Error: ' + response.data);
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 alert('AJAX Error: ' + error);
             }
         });
     });
 
-    // Save template content
-    $('#template-editor-save').on('click', function() {
+    /**
+     * Close modal on cancel or close button click.
+     */
+    $('#template-editor-cancel, #template-editor-close').on('click', function () {
+        $('#template-editor-modal').hide();
+    });
+
+    /**
+     * Save template content via AJAX.
+     */
+    $('#template-editor-save').on('click', function () {
         var templateName = $('#template-editor-title').text();
         var descriptionContent = editorDescription.codemirror.getValue();
         var jsonContent = editorJSON.codemirror.getValue();
@@ -460,11 +507,11 @@ $(document).ready(function($) {
                 template_action: 'save_template',
                 template_name: templateName,
                 template_content: finalContent,
-                action: 'sip_save_template_content',
+                action: 'sip_handle_ajax_request',
                 action_type: 'template_action',
                 nonce: sipAjax.nonce
             },
-            success: function(response) {
+            success: function (response) {
                 if (response.success) {
                     alert('Template saved successfully.');
                     $('#template-editor-modal').hide();
@@ -472,55 +519,24 @@ $(document).ready(function($) {
                     alert('Error: ' + response.data);
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 alert('AJAX Error: ' + error);
             }
         });
     });
 
-    //WHERE IS THE SCALING FROM THE CORNER CODE HANDLED?
-
-    // Handle resizing of editor containers - THIS IS FOR THE PROPORTIONAL VERTICAL HEIGHT SCALING OF THE TWO WINDOWS
-    var isResizing = false, lastDownY = 0;
-
-    // ONMOUSEDOWN - 
-    $('#json-header-divider').on('mousedown', function(e) {
-        isResizing = true;
-        lastDownY = e.clientY;
-        $('body').addClass('resizing');
-        $('body').on('mousemove.resizeEditor', onMouseMove);
-        $('body').on('mouseup.resizeEditor', stopResizing);
-        e.preventDefault();
-    });
-
-    // ONMOUSEMOVE - this looks like where that which is dragged's location is set on mousemove. the place where the POPPING HAPPENS
-    function onMouseMove(e) {
-        if (!isResizing) return;
-        var offsetBottom = $('#template-editor-content').height() - (e.clientY - $('#template-editor-content').offset().top);
-        var offsetTop = $('#template-editor-content').height() - offsetBottom;
-
-        $('#description-editor-container').css('height', offsetTop + 'px');
-        $('#json-editor-container').css('height', offsetBottom + 'px');
-
-        resizeEditors();
-    }
-
-    function stopResizing() {
-        isResizing = false;
-        $('body').removeClass('resizing');
-        $('body').off('mousemove.resizeEditor mouseup.resizeEditor');
-    }
-
-    // Handle modal dragging - TRANSLATE BY DRAGGING HEADER - 
-    //ONMOUSEDOWN
+    /**
+     * Handle modal dragging by dragging the header.
+     */
     var isDragging = false, offsetX, offsetY;
-    $('#template-editor-header').on('mousedown', function(e) {
+    $('#template-editor-header').on('mousedown', function (e) {
         e.preventDefault();
         isDragging = true;
         var modal = $('#template-editor-content');
         offsetX = e.clientX - modal.offset().left;
         offsetY = e.clientY - modal.offset().top;
-        $('body').on('mousemove.dragModal', function(e) {
+
+        $('body').on('mousemove.dragModal', function (e) {
             if (isDragging) {
                 modal.css({
                     top: (e.clientY - offsetY) + 'px',
@@ -528,34 +544,67 @@ $(document).ready(function($) {
                     position: 'fixed' // Ensures it's fixed to the viewport
                 });
             }
-        }).on('mouseup.dragModal', function() {
+        }).on('mouseup.dragModal', function () {
             isDragging = false;
             $('body').off('mousemove.dragModal mouseup.dragModal');
         });
     });
 
-    // Apply jQuery UI Resizable to allow corner resizing
-    $('#template-editor-content').resizable({
-        alsoResize: '#description-editor-container, #json-editor-container',
-        stop: function(event, ui) {
-            resizeEditors();  // Refresh editors after resizing
-        }
-    });
+    /**
+     * Apply jQuery UI Resizable for modal scaling and editor sections resizing.
+     */
+    if ($.fn.resizable) {
+        // Make the entire modal resizable from the bottom-right corner
+        $('#template-editor-content').resizable({
+            handles: 'se', // South-East corner handle for scaling
+            minHeight: 300, // Set a minimum height as needed
+            minWidth: 400,  // Set a minimum width as needed
+            maxHeight: $(window).height() - 100, // Set a maximum height as needed
+            maxWidth: $(window).width() - 100,    // Set a maximum width as needed
+            stop: function (event, ui) {
+                refreshEditors(); // Final refresh after resizing
+            },
+            resize: function (event, ui) {
+                optimizedRefreshEditors(); // Throttled refresh during resize
+            }
+        });
 
-    // Handle toggle view for HTML editor
-    $('#toggle-view').on('change', function() {
-        if ($(this).is(':checked')) {
-            $('#html-editor-view').hide();
-            $('#html-rendered-output').html(editorDescription.codemirror.getValue());
-            $('#html-output-view').show();
+        // Make the divider resizable to adjust editor sections
+        $('.json-header-divider').resizable({
+            handles: 'n', // North handle to adjust height upwards and downwards
+            minHeight: 50, // Minimum height for the HTML editor
+            maxHeight: $('#template-editor-content').height() - 100, // Maximum height to allow space for JSON editor
+            alsoResize: '#description-editor-container, #json-editor-container',
+            stop: function (event, ui) {
+                refreshEditors(); // Final refresh after resizing
+            },
+            resize: function (event, ui) {
+                optimizedRefreshEditors(); // Throttled refresh during resize
+            }
+        });
+    } else {
+        console.error('jQuery UI Resizable is not available.');
+    }
+
+    /**
+     * Handle toggle view for HTML editor.
+     */
+    $('#toggle-view').on('change', function () {
+        if (editorDescription && editorDescription.codemirror) {
+            if ($(this).is(':checked')) {
+                $('#html-editor-view').hide();
+                $('#html-rendered-output').html(editorDescription.codemirror.getValue());
+                $('#html-output-view').show();
+            } else {
+                $('#html-output-view').hide();
+                $('#html-editor-view').show();
+            }
         } else {
-            $('#html-output-view').hide();
-            $('#html-editor-view').show();
+            console.error('editorDescription or CodeMirror instance is not initialized.');
         }
     });
-
-
 });
+
 
 
 ///////////////////////////////////////////IMAGE UPLOAD FUNCTIONALITY////////////////////////////////////////
