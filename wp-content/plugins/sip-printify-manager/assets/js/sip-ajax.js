@@ -343,7 +343,10 @@ jQuery(document).ready(function ($) {
         });
     });
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////TEMPLATE EDITOR////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 jQuery(document).ready(function ($) {
     var editorDescription, editorJSON;
@@ -428,10 +431,60 @@ jQuery(document).ready(function ($) {
     $(window).on('resize', function () {
         clearTimeout(windowResizeTimer);
         windowResizeTimer = setTimeout(function () {
+            // Adjust max dimensions based on new window size
+            $('#template-editor-content').resizable('option', 'maxHeight', $(window).height() * 0.98);
+            $('#template-editor-content').resizable('option', 'maxWidth', $(window).width() * 0.98);
             // Refresh editors to adjust to new window size
             refreshEditors();
         }, 250); // Adjust the delay as needed
     });
+
+    /**
+     * Make the modal draggable using jQuery UI
+     */
+    $('#template-editor-content').draggable({
+        handle: '#template-editor-header',
+        containment: 'window', // Allows full movement within the browser window
+        cursor: 'move',
+        scroll: false
+    });
+
+    /**
+     * Apply jQuery UI Resizable for modal scaling and editor sections resizing.
+     */
+    if ($.fn.resizable) {
+        // Make the entire modal resizable using the footer as the handle
+        $('#template-editor-content').resizable({
+            handles: { se: '.template-editor-footer' }, // Use footer as South-East handle
+            minHeight: 300, // Set a minimum height as needed
+            minWidth: 400,  // Set a minimum width as needed
+            maxHeight: $(window).height() * 0.98, // 98% of window height
+            maxWidth: $(window).width() * 0.98,   // 98% of window width
+            alsoResize: '#description-editor-container, #json-editor-container', // Resize editors proportionally
+            stop: function (event, ui) {
+                refreshEditors(); // Final refresh after resizing
+            },
+            resize: function (event, ui) {
+                optimizedRefreshEditors(); // Throttled refresh during resize
+            }
+        });
+
+        // Make the divider resizable to adjust editor sections
+        $('#editor-divider').resizable({
+            handles: 'n', // North handle to adjust height upwards and downwards
+            minHeight: 50, // Minimum height for the top editor
+            // Removed maxHeight to allow sliding editors out completely
+            alsoResize: '#description-editor-container, #json-editor-container', // Resize editors proportionally
+            stop: function (event, ui) {
+                refreshEditors(); // Final refresh after resizing
+            },
+            resize: function (event, ui) {
+                optimizedRefreshEditors(); // Throttled refresh during resize
+            }
+        });
+    } else {
+        console.error('jQuery UI Resizable is not available.');
+    }
 
     /**
      * Open modal and load template content via AJAX.
@@ -526,67 +579,6 @@ jQuery(document).ready(function ($) {
     });
 
     /**
-     * Handle modal dragging by dragging the header.
-     */
-    var isDragging = false, offsetX, offsetY;
-    $('#template-editor-header').on('mousedown', function (e) {
-        e.preventDefault();
-        isDragging = true;
-        var modal = $('#template-editor-content');
-        offsetX = e.clientX - modal.offset().left;
-        offsetY = e.clientY - modal.offset().top;
-
-        $('body').on('mousemove.dragModal', function (e) {
-            if (isDragging) {
-                modal.css({
-                    top: (e.clientY - offsetY) + 'px',
-                    left: (e.clientX - offsetX) + 'px',
-                    position: 'fixed' // Ensures it's fixed to the viewport
-                });
-            }
-        }).on('mouseup.dragModal', function () {
-            isDragging = false;
-            $('body').off('mousemove.dragModal mouseup.dragModal');
-        });
-    });
-
-    /**
-     * Apply jQuery UI Resizable for modal scaling and editor sections resizing.
-     */
-    if ($.fn.resizable) {
-        // Make the entire modal resizable from the bottom-right corner
-        $('#template-editor-content').resizable({
-            handles: 'se', // South-East corner handle for scaling
-            minHeight: 300, // Set a minimum height as needed
-            minWidth: 400,  // Set a minimum width as needed
-            maxHeight: $(window).height() - 100, // Set a maximum height as needed
-            maxWidth: $(window).width() - 100,    // Set a maximum width as needed
-            stop: function (event, ui) {
-                refreshEditors(); // Final refresh after resizing
-            },
-            resize: function (event, ui) {
-                optimizedRefreshEditors(); // Throttled refresh during resize
-            }
-        });
-
-        // Make the divider resizable to adjust editor sections
-        $('.json-header-divider').resizable({
-            handles: 'n', // North handle to adjust height upwards and downwards
-            minHeight: 50, // Minimum height for the HTML editor
-            maxHeight: $('#template-editor-content').height() - 100, // Maximum height to allow space for JSON editor
-            alsoResize: '#description-editor-container, #json-editor-container',
-            stop: function (event, ui) {
-                refreshEditors(); // Final refresh after resizing
-            },
-            resize: function (event, ui) {
-                optimizedRefreshEditors(); // Throttled refresh during resize
-            }
-        });
-    } else {
-        console.error('jQuery UI Resizable is not available.');
-    }
-
-    /**
      * Handle toggle view for HTML editor.
      */
     $('#toggle-view').on('change', function () {
@@ -606,9 +598,9 @@ jQuery(document).ready(function ($) {
 });
 
 
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////IMAGE UPLOAD FUNCTIONALITY////////////////////////////////////////
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * Handle drag over event on the image upload area.

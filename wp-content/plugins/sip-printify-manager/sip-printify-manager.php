@@ -7,7 +7,9 @@ Author: Stuff is Parts, LLC
 */
 
 // Prevent direct access to the file for security reasons
-if (!defined('ABSPATH')) exit;
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 /**
  * Main Plugin File: sip-printify-manager.php
@@ -56,7 +58,11 @@ require_once plugin_dir_path(__FILE__) . 'includes/template-functions.php';  // 
  * together, making future maintenance and updates more manageable.
  */
 class SiP_Printify_Manager {
-    // Singleton instance
+    /**
+     * Singleton instance
+     *
+     * @var SiP_Printify_Manager|null
+     */
     private static $instance = null;
 
     /**
@@ -75,9 +81,6 @@ class SiP_Printify_Manager {
 
         // Handle AJAX requests for image uploads
         add_action('wp_ajax_sip_upload_images', 'sip_handle_image_upload');
-
-        // Removed the undefined enqueue_jquery_ui hook to prevent PHP fatal error
-        // add_action('wp_enqueue_scripts', 'enqueue_jquery_ui');
 
         // Hook for saving template content
         add_action('wp_ajax_sip_save_template_content', 'sip_save_template_content');
@@ -108,37 +111,113 @@ class SiP_Printify_Manager {
      * Enqueue Admin Scripts and Styles
      *
      * Enqueues necessary CSS and JavaScript files for the admin page.
-     * The actual CSS and JS files are located in the 'assets' directory.
+     * Ensures that jQuery UI is properly integrated for resizable and draggable functionalities.
      */
     public function enqueue_admin_scripts($hook) {
+        // Ensure scripts are only loaded on the specific admin page
         if ($hook !== 'sip-plugins_page_sip-printify-manager') {
             return;
         }
 
-        // Enqueue jQuery UI CSS (choose a theme or custom CSS as needed)
-        wp_enqueue_style( 'jquery-ui-css', 'https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css' );
+        /**
+         * Enqueue jQuery UI CSS
+         *
+         * Loads the jQuery UI CSS from the official CDN.
+         * It's important to enqueue this before your own CSS to allow overrides.
+         */
+        wp_enqueue_style(
+            'jquery-ui-css',
+            'https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css',
+            array(),
+            '1.13.2'
+        );
 
-        // Enqueue jQuery UI scripts for resizable and draggable functionality
+        /**
+         * Enqueue jQuery UI Scripts
+         *
+         * Loads the jQuery UI Resizable and Draggable scripts provided by WordPress.
+         * These are essential for the modal's resizable and draggable functionalities.
+         */
         wp_enqueue_script('jquery-ui-resizable');
         wp_enqueue_script('jquery-ui-draggable');
 
-        // Enqueue the CodeMirror scripts and styles provided by WordPress
+        /**
+         * Enqueue CodeMirror Scripts and Styles
+         *
+         * WordPress provides built-in CodeMirror scripts and styles for syntax highlighting in textareas.
+         * These are used in the plugin's editors.
+         */
         wp_enqueue_script('wp-codemirror');
         wp_enqueue_style('wp-codemirror');
-    
-        // Prettier Standalone and Babel Parser Scripts
-        wp_enqueue_script('prettier-standalone', 'https://cdn.jsdelivr.net/npm/prettier@2.3.2/standalone.js', array(), null, true);
-        wp_enqueue_script('prettier-parser-babel', 'https://cdn.jsdelivr.net/npm/prettier@2.3.2/parser-babel.js', array('prettier-standalone'), null, true);
-        wp_enqueue_script('prettier-parser-html', 'https://cdn.jsdelivr.net/npm/prettier@2.3.2/parser-html.js', array('prettier-standalone'), null, true);
 
-        // Enqueue styles
+        /**
+         * Enqueue Prettier Scripts
+         *
+         * Prettier is used for code formatting within the plugin's editors.
+         * The standalone script and necessary parsers are loaded from the CDN.
+         */
+        wp_enqueue_script(
+            'prettier-standalone',
+            'https://cdn.jsdelivr.net/npm/prettier@2.3.2/standalone.js',
+            array(),
+            '2.3.2',
+            true
+        );
+        wp_enqueue_script(
+            'prettier-parser-babel',
+            'https://cdn.jsdelivr.net/npm/prettier@2.3.2/parser-babel.js',
+            array('prettier-standalone'),
+            '2.3.2',
+            true
+        );
+        wp_enqueue_script(
+            'prettier-parser-html',
+            'https://cdn.jsdelivr.net/npm/prettier@2.3.2/parser-html.js',
+            array('prettier-standalone'),
+            '2.3.2',
+            true
+        );
+
+        /**
+         * Enqueue Dashicons
+         *
+         * Dashicons are used for iconography within the plugin's admin interface.
+         */
         wp_enqueue_style('dashicons');
-        wp_enqueue_style('sip-printify-manager-style', plugin_dir_url(__FILE__) . 'assets/css/sip-printify-manager.css');
-    
-        // Enqueue the sip-ajax.js script with dependencies on jQuery, wp-codemirror
-        wp_enqueue_script('sip-ajax-script', plugin_dir_url(__FILE__) . 'assets/js/sip-ajax.js', array('jquery', 'wp-codemirror', 'jquery-ui-resizable'), null, true);
-    
-        // Localize script to pass AJAX URL and nonce
+
+        /**
+         * Enqueue Plugin's Custom CSS
+         *
+         * Loads the plugin's custom CSS after jQuery UI CSS to allow overrides.
+         * This ensures that any custom styles can modify or enhance the default jQuery UI styles as needed.
+         */
+        wp_enqueue_style(
+            'sip-printify-manager-style',
+            plugin_dir_url(__FILE__) . 'assets/css/sip-printify-manager.css',
+            array('jquery-ui-css', 'wp-codemirror'),
+            '1.0.0'
+        );
+
+        /**
+         * Enqueue Plugin's Custom JavaScript
+         *
+         * Loads the plugin's main JavaScript file, which handles modal interactions, AJAX requests, and editor functionalities.
+         * Dependencies include jQuery, CodeMirror, and jQuery UI's Resizable and Draggable scripts.
+         */
+        wp_enqueue_script(
+            'sip-ajax-script',
+            plugin_dir_url(__FILE__) . 'assets/js/sip-ajax.js',
+            array('jquery', 'wp-codemirror', 'jquery-ui-resizable', 'jquery-ui-draggable'),
+            '1.0.0',
+            true
+        );
+
+        /**
+         * Localize Script
+         *
+         * Passes PHP data to the JavaScript file, including the AJAX URL and a security nonce.
+         * This allows the JavaScript to make secure AJAX requests to the server.
+         */
         wp_localize_script('sip-ajax-script', 'sipAjax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce'    => wp_create_nonce('sip_printify_manager_nonce')
@@ -149,12 +228,20 @@ class SiP_Printify_Manager {
      * Hide Admin Notices with CSS
      *
      * Adds inline CSS to hide admin notices on the plugin's admin page.
-     * This helps in providing a cleaner interface to the user.
+     * This helps in providing a cleaner interface to the user by removing unnecessary alerts or messages.
      */
     public function hide_admin_notices_with_css() {
+        // Get the current admin screen
         $current_screen = get_current_screen();
-        if ($current_screen && $current_screen->id === 'toplevel_page_sip-printify-manager') {
-            echo '<style>.notice { display: none !important; }</style>';
+
+        // Check if we are on the plugin's admin page
+        if ($current_screen && $current_screen->id === 'sip-plugins_page_sip-printify-manager') {
+            echo '<style>
+                /* Hide all admin notices */
+                .notice, .updated, .error, .success {
+                    display: none !important;
+                }
+            </style>';
         }
     }
 
@@ -183,22 +270,27 @@ class SiP_Printify_Manager {
     }
 }
 
-/**
- * Initialize the Plugin
- *
- * Creates an instance of the main plugin class and sets up the plugin using the SiP Plugin Framework.
- * By initializing the plugin here, we ensure that all necessary actions and filters are registered.
- */
+// Initialize the plugin instance
 SiP_Printify_Manager::get_instance();
 
-// Register activation hook
+/**
+ * Register Activation Hook
+ *
+ * Registers the plugin's activation hook to run specific functions upon activation.
+ * In this case, it generates an encryption key necessary for the plugin's operations.
+ */
 register_activation_hook(__FILE__, array('SiP_Printify_Manager', 'activate_plugin'));
 
-// Initialize the plugin with the SiP Plugin Framework
+/**
+ * Initialize the Plugin with the SiP Plugin Framework
+ *
+ * This initializes the plugin using the SiP Plugin Framework, which handles plugin setup, admin menu integration,
+ * and ensures that all necessary components are loaded.
+ */
 SiP_Plugin_Framework::init_plugin(
-    'SiP Printify Manager',
-    __FILE__,
-    'SiP_Printify_Manager'
+    'SiP Printify Manager',        // Plugin Name
+    __FILE__,                      // Plugin File
+    'SiP_Printify_Manager'        // Main Class Name
 );
 
 /**
@@ -213,14 +305,13 @@ SiP_Plugin_Framework::init_plugin(
  */
 function sip_handle_ajax_request() {
     // Verify the AJAX nonce for security
-    if (!check_ajax_referer('sip_printify_manager_nonce', 'nonce', false)) {
+    if (!isset($_POST['nonce']) || !check_ajax_referer('sip_printify_manager_nonce', 'nonce', false)) {
         wp_send_json_error('Security check failed');
         wp_die();
     }
 
     // Get the action type from the AJAX request
     $action_type = isset($_POST['action_type']) ? sanitize_text_field($_POST['action_type']) : '';
-
 
     // Switch based on the action type to delegate to the appropriate function
     switch ($action_type) {
@@ -286,15 +377,29 @@ function sip_handle_ajax_request() {
  * (Optional) Function to render products via a shortcode.
  * This function could be offloaded to 'includes/product-functions.php' if preferred.
  * By keeping it here, we maintain visibility of the shortcode registration.
+ *
+ * @param array $atts Shortcode attributes.
+ * @return string HTML content to display products.
  */
 function render_products_shortcode($atts) {
-    // This function could be offloaded to 'includes/product-functions.php' if it grows in complexity
+    // Extract shortcode attributes, if any (currently none)
+    $atts = shortcode_atts(array(), $atts, 'sip_printify_products');
+
+    // Retrieve products from the database or an API
     $products = get_option('sip_printify_products');
+
+    // Start output buffering to capture HTML output
     ob_start();
+
+    // Check if products exist
     if (!empty($products)) {
+        // Display the product list using a helper function from 'includes/product-functions.php'
         sip_display_product_list($products);
     } else {
+        // Display a message if no products are found
         echo '<p>No products found.</p>';
     }
+
+    // Return the buffered content
     return ob_get_clean();
 }

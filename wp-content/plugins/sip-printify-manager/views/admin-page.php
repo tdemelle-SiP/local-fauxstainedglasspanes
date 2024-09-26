@@ -179,34 +179,54 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 <!-- The CodeMirror Modal -->
 <div id="template-editor-modal" class="template-editor-overlay" style="display: none;">
     <div id="template-editor-content" class="template-editor-content">
+        <!-- Modal Header -->
         <div id="template-editor-header" class="template-editor-header">
             <h2 id="template-editor-title">Edit Template</h2>
-            <div>
+            <div class="template-editor-buttons">
                 <button id="template-editor-save" class="button button-primary">Save</button>
                 <button id="template-editor-cancel" class="button button-secondary">Cancel</button>
             </div>
         </div>
-        <div id="description-editor-container" style="margin-top: 20px;">
-            <h4>Description:
+        
+        <!-- Description Container -->
+        <div id="description-editor-container" class="editor-container">
+            <div class="editor-header">
+                <h4>PRODUCT DESCRIPTION</h4>
                 <label for="toggle-view">
                     <input type="checkbox" id="toggle-view">
                     Toggle View
                 </label>
-            </h4>
-            <div id="html-editor-view">
+            </div>
+            <div id="html-editor-view" class="editor-view">
                 <textarea id="description-editor-textarea"></textarea>
             </div>
-            <div id="html-output-view" style="display: none;">
+            <div id="html-output-view" class="editor-output" style="display: none;">
                 <div id="html-rendered-output"></div>
             </div>
         </div>
-        <!-- JSON Data Header (used as a draggable divider) -->
-        <h4 id="json-header-divider" class="json-header-divider">JSON Data:</h4>
+        
+        <!-- Divider with Resizable Handle -->
+        <div id="editor-divider" class="editor-divider"></div>
+        
+        <!-- JSON Editor Container -->
         <div id="json-editor-container" class="editor-container">
-            <textarea id="json-editor-textarea"></textarea>
+            <div class="editor-header">
+                <h4>PRODUCT JSON</h4>
+            </div>
+            <div id="json-editor-view" class="editor-view">
+                <textarea id="json-editor-textarea"></textarea>
+            </div>
         </div>
+        
+        <!-- Modal Footer with Resizable Handle -->
+        <div class="template-editor-footer"></div>
     </div>
 </div>
+
+
+
+
+
 
 <div id="product-creation-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>
     <hr class="divider" style="margin-top: 20px; background-color: #c0bfbf;">

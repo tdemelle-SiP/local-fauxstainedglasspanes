@@ -175,17 +175,26 @@ table tbody tr:nth-child(even) {
     color: #00a0d2;
 }
 
+
 /*//////////////////////////////////////////////////////////////////////////////////////*/
-/*////////////////////// STYLING FOR THE TEMPLATE EDITOR MODAL /////////////////////////*/
+/*////////////////////// UNIVERSAL BOX MODEL RESET /////////////////////////////////*/
 /*//////////////////////////////////////////////////////////////////////////////////////*/
-/* STYLING FOR THE TEMPLATE EDITOR MODAL */
+
+/* Apply a universal box-sizing rule for consistency */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/*//////////////////////////////////////////////////////////////////////////////////////*/
+/*////////////////////// STYLING FOR THE TEMPLATE EDITOR MODAL ////////////////////////*/
+/*//////////////////////////////////////////////////////////////////////////////////////*/
 
 /* Modal Overlay */
 #template-editor-modal {
     display: flex;
     justify-content: center;
     align-items: center;
-    position: fixed;
+    position: fixed; /* Ensure it covers the entire viewport */
     top: 0;
     left: 0;
     width: 100%;
@@ -194,22 +203,8 @@ table tbody tr:nth-child(even) {
     z-index: 9999;
 }
 
-/* Modal Header */
-#template-editor-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background-color: #f1f1f1;
-    border-bottom: 1px solid #ddd;
-    cursor: move; /* Indicates draggable area */
-}
-
 /* Modal Content */
 #template-editor-content {
-    overflow: hidden; /* Ensure content stays within the modal when resized */
-    min-width: 300px; /* Prevent it from becoming too small */
-    min-height: 300px; /* Prevent it from becoming too small */
     background: #fff;
     width: 80%;
     max-width: 98vw;
@@ -217,63 +212,135 @@ table tbody tr:nth-child(even) {
     max-height: 98vh;
     display: flex;
     flex-direction: column;
-    position: relative;
-    margin: auto;
+    position: fixed; /* Relative positioning for child elements */
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 8px; /* Adds rounded corners */
+    overflow: hidden; /* Prevent content from overflowing */
 }
 
-/* Additional styling for bottom right corner resizing handle visibility */
-#template-editor-content::after {
-    content: "";
+/* Modal Header */
+#template-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px; /* Increased padding for better touch targets */
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    cursor: move; /* Indicates draggable area */
+}
+
+/* Editor Divider */
+.editor-divider {
+    height: 10px; /* Height of the divider */
+    background-color: #e1e1e1;
+    cursor: ns-resize; /* Change cursor to indicate vertical resizing */
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Ensure it's above other elements */
+}
+
+/* Resizable Handle for the Divider */
+.editor-divider .ui-resizable-n {
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    cursor: ns-resize;
+    background: transparent; /* Invisible handle */
+}
+
+/* Optional: Visual Indicator for the Divider Handle */
+.editor-divider::before {
+    content: '';
+    width: 30px;
+    height: 4px;
+    background-color: #ccc;
+    border-radius: 2px;
+    position: absolute;
+    /* Center the indicator */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Resizable Handle at the Bottom-Right Corner of the Modal */
+.ui-resizable-se {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: transparent; /* Can be styled for visibility */
+    cursor: se-resize;
+    z-index: 10000; /* Ensure it's above other elements */
+}
+
+/* Modal Footer */
+.template-editor-footer {
     position: absolute;
     bottom: 0;
     right: 0;
     width: 20px;
     height: 20px;
-    background: transparent;
-    cursor: se-resize; /* Ensure the cursor shows the correct resize direction */
+    cursor: se-resize; /* South-East resize cursor */
+    z-index: 10000; /* Ensure it's above other elements */
 }
 
-/* Divider between editors */
-.json-header-divider {
-    cursor: ns-resize; /* Change cursor to indicate resizable area */
-    background-color: #f1f1f1;
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-    padding: 5px;
-    text-align: center;
-    position: relative; /* Required for resizable handles */
-    height: 20px; /* Increased height for better usability */
-}
-
-/* Add a small handle in the center of the divider for visual feedback */
-.json-header-divider::after {
-    content: '≡';
-    display: inline-block;
-    font-size: 16px;
-    cursor: ns-resize;
-    padding-left: 10px;
+/* Add a small triangle to indicate the resizable handle */
+.template-editor-footer::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid #ccc;
+    border-bottom: 2px solid #ccc;
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    transform: rotate(45deg);
+    pointer-events: none; /* Allows dragging without interference */
 }
 
 /* Editor Containers */
-#description-editor-container,
-#json-editor-container {
+.editor-container {
     flex-grow: 1;
     overflow: hidden;
     position: relative;
     padding: 10px;
     border: 1px solid #ccc;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Editor Headers */
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 10px;
+}
+
+/* Editor Views */
+.editor-view {
+    flex-grow: 1;
+    position: relative;
+}
+
+/* Editor Outputs */
+.editor-output {
+    flex-grow: 1;
+    position: relative;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
     background-color: #fff;
 }
 
 /* HTML Output View */
 #html-output-view {
-    height: 100%; /* Take full height of the container */
-    overflow-y: auto; /* Enable vertical scrolling */
-    border: 1px solid #ccc; /* Add a border for consistency */
-    padding: 10px; /* Add padding for better readability */
-    background-color: #fff; /* Keep background white for contrast */
+    display: none; /* Hidden by default, toggled via JavaScript */
 }
 
 /* Textarea Style */
@@ -288,7 +355,8 @@ textarea {
     overflow-y: auto;
     border: 1px solid #ddd;
     padding: 10px;
-    box-sizing: border-box;
+    background-color: #fff;
+    resize: none; /* Disable native resizing */
 }
 
 /* Heading Style */
@@ -300,60 +368,29 @@ h4 {
 
 /* Buttons Container */
 .template-editor-buttons {
-    padding: 10px;
     display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
     gap: 10px; /* Space between buttons */
-    position: absolute; /* Position absolutely within the modal */
-    bottom: 0;
-    right: 0;
-    z-index: 10001; /* Ensure buttons are above the content */
 }
 
 /* Button Styles */
 .template-editor-buttons button {
     min-width: 100px;
-    flex-shrink: 0; /* Prevents buttons from shrinking */
+    flex-shrink: 0;
     cursor: pointer;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
 }
 
-/* Optional: Style for the Save and Cancel Buttons */
-#template-editor-save {
+/* Specific Button Styles */
+.button-primary {
     background-color: #007cba;
     color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
 }
 
-#template-editor-cancel {
+.button-secondary {
     background-color: #ccc;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-}
-
-/* Ensure resizable handle visibility */
-.ui-resizable-n {
-    height: 100%;
-    width: 100%;
-    top: 0;
-    left: 0;
-    cursor: ns-resize;
-    background: transparent; /* Make the handle invisible or style as needed */
-}
-
-.ui-resizable-se {
-    width: 20px;
-    height: 20px;
-    bottom: 0;
-    right: 0;
-    background: transparent;
-    cursor: se-resize;
-}
-
-.ui-resizable-handle {
-    background: transparent; /* Make the default handle transparent */
+    color: #333;
 }
 
 /*//////////////////////////////////////////////////////////////////////////////////////*/
