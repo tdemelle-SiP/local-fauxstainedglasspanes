@@ -7,7 +7,13 @@
  * form submissions, and user interface behaviors for the SIP Printify Manager plugin.
  */
 
+
 jQuery(document).ready(function ($) {
+    // Hide the spinner once the entire page has fully loaded
+    window.addEventListener('load', function() {
+        $('#spinner-overlay').hide();
+    });
+
     // Store the original content of the template editor for reverting changes
     var originalContent = '';
 
@@ -173,6 +179,19 @@ jQuery(document).ready(function ($) {
             }
         });
     }
+
+    
+    // For page load spinner
+    document.addEventListener('DOMContentLoaded', function() {
+        const spinnerSelector = '#spinner-overlay';  // Define your spinner selector here
+        $(spinnerSelector).show();  // Show spinner when the page starts loading
+    });
+
+    window.addEventListener('load', function() {
+        const spinnerSelector = '#spinner-overlay';  // Define your spinner selector here
+        $(spinnerSelector).hide();  // Hide spinner once the page is fully loaded
+    });
+
 
     /**
      * When the user pushes a button or makes a selection from a pulldown menu, a form submission event is triggered.
@@ -387,8 +406,22 @@ $(document).ready(function($) {
         }
     }
 
+    // Fully reset the modal’s position and size when it’s opened    
+    function resetModalPosition() {
+        $('#template-editor-content').css({
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '80%',
+            height: '80%',
+            margin: 'auto',
+            position: 'absolute'
+        });
+    }
+
     // Open the modal and load the template content
     $('.edit-template-content').on('click', function() {
+        resetModalPosition(); // Reset modal position and size
         var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
 
         $('#template-editor-modal').show();
@@ -577,7 +610,6 @@ $(document).ready(function($) {
             $('body').off('mousemove.resizeEditor mouseup.resizeEditor');
         }
     });
-
 
      // Handle dragging functionality
      var isDragging = false;

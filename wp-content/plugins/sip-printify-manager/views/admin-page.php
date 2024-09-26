@@ -21,6 +21,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 ?>
 
 <!-- Header Section -->
+<link rel="preload" href="<?php echo esc_url($sip_core_assets_url . '/images/spinner.webp'); ?>" as="image">
 <div class="header-section">
     <h1 class="header-title"><?php esc_html_e('Welcome to SIP Printify Manager!', 'sip-printify-manager'); ?></h1>
     <div id="button-container" <?php echo empty($token) ? 'style="display:none;"' : ''; ?>>
@@ -29,9 +30,10 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 </div>
 
 <!-- Spinner Overlay -->
-<div id="spinner-overlay" style="display: none;">
-    <img id="spinner" src="<?php echo esc_url($sip_core_assets_url . '/images/spinner.webp'); ?>" alt="<?php esc_attr_e('Loading...', 'sip-printify-manager'); ?>">
+<div id="spinner-overlay" style="display: flex; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 9999;">
+    <img id="spinner" src="<?php echo esc_url($sip_core_assets_url . '/images/spinner.webp'); ?>" alt="<?php esc_attr_e('Loading...', 'sip-printify-manager'); ?>" style="width: 50px; height: 50px;">
 </div>
+
 
 <!-- Auth Container for Token Entry -->
 <div id="auth-container" <?php echo empty($token) ? '' : 'style="display:none;"'; ?>>
