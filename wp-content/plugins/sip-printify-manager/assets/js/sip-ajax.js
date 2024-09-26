@@ -406,22 +406,8 @@ $(document).ready(function($) {
         }
     }
 
-    // Fully reset the modal’s position and size when it’s opened    
-    function resetModalPosition() {
-        $('#template-editor-content').css({
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '80%',
-            height: '80%',
-            margin: 'auto',
-            position: 'absolute'
-        });
-    }
-
     // Open the modal and load the template content
     $('.edit-template-content').on('click', function() {
-        resetModalPosition(); // Reset modal position and size
         var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
 
         $('#template-editor-modal').show();
@@ -578,6 +564,23 @@ $(document).ready(function($) {
         $('#template-editor-modal').hide();
     });
 
+    // Handle render html toggle
+    $(document).ready(function($) {
+        $('#toggle-view').on('change', function() {
+            if ($(this).is(':checked')) {
+                // Switch to HTML output view
+                $('#html-editor-view').hide();
+                var htmlContent = editorDescription.codemirror.getValue();
+                $('#html-rendered-output').html(htmlContent);
+                $('#html-output-view').show();
+            } else {
+                // Switch to HTML code view
+                $('#html-output-view').hide();
+                $('#html-editor-view').show();
+            }
+        });
+    });
+
     // Handle scaling between html and json windows
     $(document).ready(function($) {
         var isResizing = false;
@@ -644,25 +647,7 @@ $(document).ready(function($) {
             });
         });
     });
-    // Handle render html toggle
-    $(document).ready(function($) {
-        $('#toggle-view').on('change', function() {
-            if ($(this).is(':checked')) {
-                // Switch to HTML output view
-                $('#html-editor-view').hide();
-                var htmlContent = editorDescription.codemirror.getValue();
-                $('#html-rendered-output').html(htmlContent);
-                $('#html-output-view').show();
-            } else {
-                // Switch to HTML code view
-                $('#html-output-view').hide();
-                $('#html-editor-view').show();
-            }
-        });
-    });
  });
-
-
 
 
 ///////////////////////////////////////////IMAGE UPLOAD FUNCTIONALITY////////////////////////////////////////
