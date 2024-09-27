@@ -189,7 +189,8 @@ table tbody tr:nth-child(even) {
 /*////////////////////// STYLING FOR THE TEMPLATE EDITOR MODAL ////////////////////////*/
 /*//////////////////////////////////////////////////////////////////////////////////////*/
 
-/* Modal Overlay */
+
+/*[[[[[[[[[[[[[[[[[The CodeMirror Model]]]]]]]]]]]]]]]]]*/
 #template-editor-modal {
     display: flex;
     justify-content: center;
@@ -203,7 +204,6 @@ table tbody tr:nth-child(even) {
     z-index: 9999;
 }
 
-/* Modal Content */
 #template-editor-content {
     background: #fff;
     width: 80%;
@@ -212,13 +212,12 @@ table tbody tr:nth-child(even) {
     max-height: 98vh;
     display: flex;
     flex-direction: column;
-    position: fixed; /* Relative positioning for child elements */
+    position: fixed; /* fixed to scale from corner */
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     border-radius: 8px; /* Adds rounded corners */
     overflow: hidden; /* Prevent content from overflowing */
 }
 
-/* Modal Header */
 #template-editor-header {
     display: flex;
     justify-content: space-between;
@@ -228,6 +227,95 @@ table tbody tr:nth-child(even) {
     border-bottom: 1px solid #ddd;
     cursor: move; /* Indicates draggable area */
 }
+
+/* Buttons Container */
+.template-editor-buttons {
+    display: flex;
+    gap: 10px; /* Space between buttons */
+}
+
+/* Button Styles */
+.template-editor-buttons button {
+    min-width: 100px;
+    flex-shrink: 0;
+    cursor: pointer;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+}
+
+/* Specific Button Styles */
+.button-primary {
+    background-color: #007cba;
+    color: white;
+}
+
+.button-secondary {
+    background-color: #ccc;
+    color: #333;
+}
+
+/*[[[[[[[[[[[[[[[[[Product Description Container]]]]]]]]]]]]]]]]]*/
+
+/*description-editor-container*/
+.editor-container {
+    flex-grow: 1;
+    overflow: hidden;
+    position: relative;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Heading Style */
+h4 {
+    margin: 0;
+    padding-bottom: 5px;
+    font-weight: bold;
+}
+
+/*toggle-view*/
+
+/*html-editor-view*/
+.editor-view {
+    flex-grow: 1;
+    position: relative;
+}
+
+/*description-editor-textarea*/
+textarea {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    background-color: #fff;
+    resize: none; /* Disable native resizing */
+}
+
+/*html-output-view*/
+/* HTML Output View */
+#html-output-view {
+    display: none; /* Hidden by default, toggled via JavaScript */
+}
+
+.editor-output {
+    flex-grow: 1;
+    position: relative;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #fff;
+}
+
+/*[[[[[[[[[[[[[[[[[Interactive Divider]]]]]]]]]]]]]]]]]*/
 
 /* Editor Divider */
 .editor-divider {
@@ -265,17 +353,25 @@ table tbody tr:nth-child(even) {
     transform: translate(-50%, -50%);
 }
 
-/* Resizable Handle at the Bottom-Right Corner of the Modal */
-.ui-resizable-se {
-    width: 20px;
-    height: 20px;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background: transparent; /* Can be styled for visibility */
-    cursor: se-resize;
-    z-index: 10000; /* Ensure it's above other elements */
+/*[[[[[[[[[[[[[[[[[Product JSON Container]]]]]]]]]]]]]]]]]*/
+
+/*json-editor-container*/
+
+/*editor-header*/
+
+/*h4*/
+
+/*json-editor-textarea*/
+
+/* Editor Headers */
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
 }
+
+/*[[[[[[[[[[[[[[[[[Modal Footer]]]]]]]]]]]]]]]]]*/
 
 /* Modal Footer */
 .template-editor-footer {
@@ -302,95 +398,16 @@ table tbody tr:nth-child(even) {
     pointer-events: none; /* Allows dragging without interference */
 }
 
-/* Editor Containers */
-.editor-container {
-    flex-grow: 1;
-    overflow: hidden;
-    position: relative;
-    padding: 10px;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Editor Headers */
-.editor-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-/* Editor Views */
-.editor-view {
-    flex-grow: 1;
-    position: relative;
-}
-
-/* Editor Outputs */
-.editor-output {
-    flex-grow: 1;
-    position: relative;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    padding: 10px;
-    background-color: #fff;
-}
-
-/* HTML Output View */
-#html-output-view {
-    display: none; /* Hidden by default, toggled via JavaScript */
-}
-
-/* Textarea Style */
-textarea {
-    height: 100%;
-    width: 100%;
+/* Resizable Handle at the Bottom-Right Corner of the Modal */
+.ui-resizable-se {
+    width: 20px;
+    height: 20px;
     position: absolute;
-    top: 0;
     bottom: 0;
-    left: 0;
     right: 0;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    padding: 10px;
-    background-color: #fff;
-    resize: none; /* Disable native resizing */
-}
-
-/* Heading Style */
-h4 {
-    margin: 0;
-    padding-bottom: 5px;
-    font-weight: bold;
-}
-
-/* Buttons Container */
-.template-editor-buttons {
-    display: flex;
-    gap: 10px; /* Space between buttons */
-}
-
-/* Button Styles */
-.template-editor-buttons button {
-    min-width: 100px;
-    flex-shrink: 0;
-    cursor: pointer;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-}
-
-/* Specific Button Styles */
-.button-primary {
-    background-color: #007cba;
-    color: white;
-}
-
-.button-secondary {
-    background-color: #ccc;
-    color: #333;
+    background: transparent; /* Can be styled for visibility */
+    cursor: se-resize;
+    z-index: 10000; /* Ensure it's above other elements */
 }
 
 /*//////////////////////////////////////////////////////////////////////////////////////*/
