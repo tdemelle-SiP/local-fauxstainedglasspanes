@@ -365,7 +365,6 @@ jQuery(document).ready(function($) {
             mode: 'htmlmixed',
             lineNumbers: true,
             lineWrapping: true,
-            // scrollbarStyle: 'native',
             dragDrop: false,
             viewportMargin: Infinity
         });
@@ -374,7 +373,6 @@ jQuery(document).ready(function($) {
             mode: 'application/json',
             lineNumbers: true,
             lineWrapping: true,
-            // scrollbarStyle: 'native',
             dragDrop: false,
             viewportMargin: Infinity
         });
@@ -454,36 +452,6 @@ jQuery(document).ready(function($) {
             outerWindow.style.transition = '';
         }
 
-        // Corner resizing functionality (modified to match the original example)
-        let isResizing = false;
-        let startWidth, startHeight, startResizeX, startResizeY;
-
-        outerWindow.addEventListener('mousedown', function(e) {
-            if (e.offsetX > outerWindow.offsetWidth - 10 && e.offsetY > outerWindow.offsetHeight - 10) {
-                isResizing = true;
-                startWidth = outerWindow.offsetWidth;
-                startHeight = outerWindow.offsetHeight;
-                startResizeX = e.clientX;
-                startResizeY = e.clientY;
-                e.preventDefault();
-            }
-        });
-
-        document.addEventListener('mousemove', function(e) {
-            if (isResizing) {
-                const width = startWidth + (e.clientX - startResizeX);
-                const height = startHeight + (e.clientY - startResizeY);
-                outerWindow.style.width = `${width}px`;
-                outerWindow.style.height = `${height}px`;
-                descriptionEditor.refresh();
-                jsonEditor.refresh();
-            }
-        });
-
-        document.addEventListener('mouseup', function() {
-            isResizing = false;
-        });
-
         let isResizerDragging = false;
         let startResizerY, startTopHeight;
 
@@ -542,6 +510,7 @@ jQuery(document).ready(function($) {
             jsonEditor.refresh();
         }, 0);
     }
+
 
     function separateContent(content) {
         try {
