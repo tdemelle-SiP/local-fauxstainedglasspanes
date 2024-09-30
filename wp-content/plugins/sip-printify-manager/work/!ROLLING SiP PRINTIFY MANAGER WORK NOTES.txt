@@ -10,17 +10,15 @@ IDEAS AND NOTES
 ---------------------
 
 SCROLLBARS-----------
-commenting out the scrollbar initialization line has no effect
+commenting out the scrollbar initialization line - scrollbarStyle: 'native', - has no effect - the scrollbar remains and is broken in the same way
 
-If the issue is that the cm textareas initialize when the dom draws before they ate visible, can the code be changed to draw them after mouseclick and after the window content has been created and initialized?
+If the issue is that the cm textareas initialize when the dom draws before they are visible with content, can the code be changed to draw them after mouseclick and after the window content has been created and initialized?
 
 scroll/simplescrollbars.js
 Defines two additional scrollbar models, "simple" and "overlay" (see demo) that can be selected with the scrollbarStyle option. Depends on simplescrollbars.css, which can be further overridden to style your own scrollbars.
 scroll/annotatescrollbar.js
 Provides functionality for showing markers on the scrollbar to call out certain parts of the document. Adds a method annotateScrollbar to editor instances that can be called, with a CSS class name as argument, to create a set of annotations. The method returns an object whose update method can be called with a sorted array of {from: Pos, to: Pos} objects marking the ranges to be highlighted. To detach the annotations, call the object's clear method.
 
-TEMPLATE EDITOR scaling
-need to clean out the custom js corner scaling code (while making sure not break the separte divider scaling code) and just let the resize:both do the work
 
 
 
@@ -35,3 +33,4 @@ FIXED
 	-I might be wrong, but I don't think it's the CSS causing the corner handle to scale uniformly
 	-Please refer to the original example code in which the handles all worked as expected to try to diagnose why and fix the corner handle resulting in uniform scaling.
 		Fix was to take translate out of the css.
+need to clean out the custom js corner scaling code (while making sure not break the separte divider scaling code) and just let the resize:both do the work

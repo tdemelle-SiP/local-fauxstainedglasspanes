@@ -351,7 +351,7 @@ jQuery(document).ready(function ($) {
 jQuery(document).ready(function($) {
     let descriptionEditor, jsonEditor;
 
-    function initializeEditors() {
+    function initializeEditors(content) {
         const outerWindow = document.getElementById('product-editor-outer-window');
         const header = document.getElementById('product-editor-header');
         const resizer = document.getElementById('product-editor-resizer');
@@ -360,13 +360,17 @@ jQuery(document).ready(function($) {
         const bottomEditorContainer = document.getElementById('product-editor-bottom-editor');
         const renderedHtml = document.getElementById('product-editor-rendered-html');
 
-        // Initialize editors without immediately rendering them
+        const separatedContent = separateContent(content);
+
+        // Initialize editors with a fixed height initially
         descriptionEditor = wp.CodeMirror(topEditorContainer, {
             mode: 'htmlmixed',
             lineNumbers: true,
             lineWrapping: true,
             dragDrop: false,
-            viewportMargin: Infinity
+            viewportMargin: Infinity,
+            value: separatedContent.html,
+            height: "300px" // Set an initial height
         });
     
         jsonEditor = wp.CodeMirror(bottomEditorContainer, {
@@ -374,31 +378,39 @@ jQuery(document).ready(function($) {
             lineNumbers: true,
             lineWrapping: true,
             dragDrop: false,
-            viewportMargin: Infinity
+            viewportMargin: Infinity,
+            value: separatedContent.json,
+            height: "300px" // Set an initial height
         });
 
-        // Function to properly initialize editor
-        function initializeEditor(editor) {
-            editor.refresh();
-            editor.scrollTo(0, 0);
-            editor.refresh();
+        // Function to properly size and refresh editors
+        function adjustEditors() {
+            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+            const halfHeight = containerHeight / 2;
+            
+            descriptionEditor.setSize(null, halfHeight - 30);
+            jsonEditor.setSize(null, halfHeight - 30);
+            
+            descriptionEditor.refresh();
+            jsonEditor.refresh();
         }
 
-        // Initialize both editors when the modal is fully visible
-        function initializeBothEditors() {
-            initializeEditor(descriptionEditor);
-            initializeEditor(jsonEditor);
-        }
-
-        // Call this function when the modal is shown
-        $('#product-editor-outer-window').on('transitionend', function() {
-            if (this.style.display !== 'none') {
-                setTimeout(initializeBothEditors, 0);
+        // Throttle function for performance
+        function throttle(func, limit) {
+            let inThrottle;
+            return function() {
+                const args = arguments;
+                const context = this;
+                if (!inThrottle) {
+                    func.apply(context, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
             }
-        });
+        }
 
-        // Also initialize when window is resized
-        $(window).on('resize', initializeBothEditors);
+        // Throttled version of adjustEditors
+        const throttledAdjust = throttle(adjustEditors, 100);
 
         let isRendered = false;
         toggleButton.addEventListener('click', () => {
@@ -413,104 +425,83 @@ jQuery(document).ready(function($) {
                 topEditorContainer.style.display = 'block';
                 toggleButton.textContent = 'View Rendered';
             }
+            throttledAdjust();
         });
 
+        // Dragging functionality
         let isDragging = false;
-        let startX, startY, startLeft, startTop;
+        let startX, startY;
 
-        function setPosition(left, top) {
-            outerWindow.style.left = `${left}px`;
-            outerWindow.style.top = `${top}px`;
-        }
-
-        header.addEventListener("mousedown", dragStart);
-        document.addEventListener("mousemove", drag);
-        document.addEventListener("mouseup", dragEnd);
-
-        function dragStart(e) {
+        header.addEventListener("mousedown", (e) => {
             if (e.target === header) {
                 isDragging = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                startLeft = outerWindow.offsetLeft;
-                startTop = outerWindow.offsetTop;
-                outerWindow.style.transition = 'none';
+                startX = e.clientX - outerWindow.offsetLeft;
+                startY = e.clientY - outerWindow.offsetTop;
+                outerWindow.style.cursor = 'grabbing';
             }
-        }
+        });
 
-        function drag(e) {
-            if (isDragging) {
-                e.preventDefault();
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                setPosition(startLeft + dx, startTop + dy);
-            }
-        }
+        document.addEventListener("mousemove", (e) => {
+            if (!isDragging) return;
+            requestAnimationFrame(() => {
+                outerWindow.style.left = `${e.clientX - startX}px`;
+                outerWindow.style.top = `${e.clientY - startY}px`;
+            });
+        });
 
-        function dragEnd() {
+        document.addEventListener("mouseup", () => {
             isDragging = false;
-            outerWindow.style.transition = '';
-        }
+            outerWindow.style.cursor = '';
+        });
 
-        let isResizerDragging = false;
-        let startResizerY, startTopHeight;
+        // Vertical resizing functionality
+        let isResizing = false;
+        let startHeight, resizeStartY;
 
-        resizer.addEventListener('mousedown', initResize);
-        document.addEventListener('mousemove', resize);
-        document.addEventListener('mouseup', stopResize);
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            resizeStartY = e.clientY;
+            startHeight = topEditorContainer.offsetHeight;
+            document.body.style.cursor = 'row-resize';
+        });
 
-        function initResize(e) {
-            e.preventDefault();
-            isResizerDragging = true;
-            startResizerY = e.clientY;
-            startTopHeight = resizer.previousElementSibling.offsetHeight;
-            document.body.classList.add('resizing');
-        }
-
-        let resizeRAF;
-        function resize(e) {
-            if (!isResizerDragging) return;
-            
-            cancelAnimationFrame(resizeRAF);
-            resizeRAF = requestAnimationFrame(() => {
-                const difference = e.clientY - startResizerY;
-                const newTopHeight = startTopHeight + difference;
-                const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            requestAnimationFrame(() => {
+                const dy = e.clientY - resizeStartY;
+                const newTopHeight = startHeight + dy;
+                const bottomHeight = outerWindow.offsetHeight - newTopHeight - header.offsetHeight - resizer.offsetHeight;
                 
-                if (newTopHeight > 0 && newTopHeight < containerHeight) {
-                    resizer.previousElementSibling.style.height = `${newTopHeight}px`;
-                    resizer.nextElementSibling.style.height = `${containerHeight - newTopHeight}px`;
-                    descriptionEditor.setSize(null, newTopHeight - 30);
-                    jsonEditor.setSize(null, containerHeight - newTopHeight - 30);
-                    descriptionEditor.refresh();
-                    jsonEditor.refresh();
+                if (newTopHeight > 50 && bottomHeight > 50) {
+                    topEditorContainer.style.height = `${newTopHeight}px`;
+                    bottomEditorContainer.style.height = `${bottomHeight}px`;
+                    descriptionEditor.setSize(null, newTopHeight);
+                    jsonEditor.setSize(null, bottomHeight);
                 }
             });
-        }
+        });
 
-        function stopResize() {
-            isResizerDragging = false;
-            document.body.classList.remove('resizing');
-            cancelAnimationFrame(resizeRAF);
-        }
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = '';
+                descriptionEditor.refresh();
+                jsonEditor.refresh();
+            }
+        });
 
+        // Use ResizeObserver for efficient window resizing
         new ResizeObserver(() => {
-            descriptionEditor.refresh();
-            jsonEditor.refresh();
+            requestAnimationFrame(() => {
+                const topHeight = topEditorContainer.offsetHeight;
+                const bottomHeight = bottomEditorContainer.offsetHeight;
+                descriptionEditor.setSize(null, topHeight);
+                jsonEditor.setSize(null, bottomHeight);
+                descriptionEditor.refresh();
+                jsonEditor.refresh();
+            });
         }).observe(outerWindow);
-
-        setTimeout(() => {
-            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
-            const halfHeight = containerHeight / 2;
-            resizer.previousElementSibling.style.height = `${halfHeight}px`;
-            resizer.nextElementSibling.style.height = `${halfHeight}px`;
-            descriptionEditor.setSize(null, halfHeight - 30);
-            jsonEditor.setSize(null, halfHeight - 30);
-            descriptionEditor.refresh();
-            jsonEditor.refresh();
-        }, 0);
     }
-
 
     function separateContent(content) {
         try {
@@ -529,21 +520,9 @@ jQuery(document).ready(function($) {
 
     $('.edit-template-content').on('click', function () {
         var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
-        // Show the overlay
         $('#template-editor-overlay').show().addClass('active');
-
         $('#product-editor-header span').text('Edit Template: ' + templateName);
-    
-        if (!descriptionEditor || !jsonEditor) {
-            initializeEditors();
-        } else {
-            // Re-initialize editors if they already exist
-            setTimeout(function() {
-                descriptionEditor.refresh();
-                jsonEditor.refresh();
-            }, 0);
-        }
-    
+
         $.ajax({
             url: sipAjax.ajax_url,
             method: 'POST',
@@ -557,17 +536,22 @@ jQuery(document).ready(function($) {
             success: function (response) {
                 if (response.success) {
                     var content = response.data.template_content;
-                    var separatedContent = separateContent(content);
-                    descriptionEditor.setValue(separatedContent.html);
-                    jsonEditor.setValue(separatedContent.json);
                     
-                    // Force scrollbar update after setting content
-                    setTimeout(function() {
-                        descriptionEditor.refresh();
-                        descriptionEditor.scrollTo(0, 0);
-                        jsonEditor.refresh();
-                        jsonEditor.scrollTo(0, 0);
-                    }, 0);
+                    // Initialize editors with content
+                    if (!descriptionEditor || !jsonEditor) {
+                        initializeEditors(content);
+                    } else {
+                        // If editors already exist, update their content
+                        var separatedContent = separateContent(content);
+                        descriptionEditor.setValue(separatedContent.html);
+                        jsonEditor.setValue(separatedContent.json);
+                        
+                        // Force refresh after updating content
+                        setTimeout(() => {
+                            descriptionEditor.refresh();
+                            jsonEditor.refresh();
+                        }, 0);
+                    }
                 } else {
                     alert('Error: ' + response.data);
                 }
@@ -608,7 +592,9 @@ jQuery(document).ready(function($) {
                 success: function (response) {
                     if (response.success) {
                         alert('Template saved successfully.');
-                        $('.template-editor-overlay').hide();
+                        $('#template-editor-overlay').removeClass('active').one('transitionend', function() {
+                            $(this).hide();
+                        });
                     } else {
                         alert('Error: ' + response.data);
                     }

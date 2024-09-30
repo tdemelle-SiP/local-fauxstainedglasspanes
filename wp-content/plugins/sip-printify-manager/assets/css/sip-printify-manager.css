@@ -207,6 +207,7 @@ table tbody tr:nth-child(even) {
     background-color: #f0f0f0;
     border: 1px solid #ccc;
     resize: both;
+    will-change: transform;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -299,6 +300,7 @@ table tbody tr:nth-child(even) {
 
 #product-editor-top-editor, #product-editor-bottom-editor {
     flex-grow: 1;
+    transition: none;
     overflow: hidden;
 }
 
@@ -341,6 +343,7 @@ table tbody tr:nth-child(even) {
 
 .CodeMirror {
     height: 100% !important;
+    transition: none;
 }
 
 /*//////////////////////////////////////////////////////////////////////////////////////*/
