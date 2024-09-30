@@ -364,17 +364,18 @@ jQuery(document).ready(function($) {
             mode: 'htmlmixed',
             lineNumbers: true,
             lineWrapping: true,
-            scrollbarStyle: 'native'
+            scrollbarStyle: 'native',
+            dragDrop: false
         });
 
         jsonEditor = wp.CodeMirror(bottomEditorContainer, {
             mode: 'application/json',
             lineNumbers: true,
             lineWrapping: true,
-            scrollbarStyle: 'native'
+            scrollbarStyle: 'native',
+            dragDrop: false
         });
 
-        // Toggle view function
         let isRendered = false;
         toggleButton.addEventListener('click', () => {
             isRendered = !isRendered;
@@ -390,14 +391,13 @@ jQuery(document).ready(function($) {
             }
         });
 
-        // Make the outer window draggable
         let isDragging = false;
-        let currentX;
-        let currentY;
-        let initialX;
-        let initialY;
-        let xOffset = 0;
-        let yOffset = 0;
+        let startX, startY, startLeft, startTop;
+
+        function setPosition(left, top) {
+            outerWindow.style.left = `${left}px`;
+            outerWindow.style.top = `${top}px`;
+        }
 
         header.addEventListener("mousedown", dragStart);
         document.addEventListener("mousemove", drag);
@@ -405,76 +405,99 @@ jQuery(document).ready(function($) {
 
         function dragStart(e) {
             if (e.target === header) {
-                initialX = e.clientX - xOffset;
-                initialY = e.clientY - yOffset;
                 isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = outerWindow.offsetLeft;
+                startTop = outerWindow.offsetTop;
+                outerWindow.style.transition = 'none';
             }
         }
 
         function drag(e) {
             if (isDragging) {
                 e.preventDefault();
-                currentX = e.clientX - initialX;
-                currentY = e.clientY - initialY;
-                xOffset = currentX;
-                yOffset = currentY;
-                setTranslate(currentX, currentY, outerWindow);
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                setPosition(startLeft + dx, startTop + dy);
             }
         }
 
-        function dragEnd(e) {
-            initialX = currentX;
-            initialY = currentY;
+        function dragEnd() {
             isDragging = false;
+            outerWindow.style.transition = '';
         }
 
-        function setTranslate(xPos, yPos, el) {
-            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
-        }
-
-        // Make the inner panels resizable
         let isResizing = false;
-        let startY;
-        let startTopHeight;
+        let originalWidth, originalHeight, originalX, originalY;
+
+        outerWindow.addEventListener('mousedown', function(e) {
+            if (e.target === outerWindow && e.offsetX > outerWindow.offsetWidth - 10 && e.offsetY > outerWindow.offsetHeight - 10) {
+                isResizing = true;
+                originalWidth = outerWindow.offsetWidth;
+                originalHeight = outerWindow.offsetHeight;
+                originalX = e.clientX;
+                originalY = e.clientY;
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (isResizing) {
+                const width = originalWidth + (e.clientX - originalX);
+                const height = originalHeight + (e.clientY - originalY);
+                outerWindow.style.width = `${width}px`;
+                outerWindow.style.height = `${height}px`;
+                descriptionEditor.refresh();
+                jsonEditor.refresh();
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+        });
+
+        let isResizerDragging = false;
+        let startResizerY, startTopHeight;
 
         resizer.addEventListener('mousedown', initResize);
         document.addEventListener('mousemove', resize);
         document.addEventListener('mouseup', stopResize);
 
         function initResize(e) {
-            isResizing = true;
-            startY = e.clientY;
+            e.preventDefault();
+            isResizerDragging = true;
+            startResizerY = e.clientY;
             startTopHeight = resizer.previousElementSibling.offsetHeight;
+            document.body.classList.add('resizing');
         }
 
         function resize(e) {
-            if (isResizing) {
-                const difference = e.clientY - startY;
-                const newTopHeight = startTopHeight + difference;
-                const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
-                
-                if (newTopHeight > 0 && newTopHeight < containerHeight) {
-                    resizer.previousElementSibling.style.height = `${newTopHeight}px`;
-                    resizer.nextElementSibling.style.height = `${containerHeight - newTopHeight}px`;
-                    descriptionEditor.setSize(null, newTopHeight - 30);
-                    jsonEditor.setSize(null, containerHeight - newTopHeight - 30);
-                    descriptionEditor.refresh();
-                    jsonEditor.refresh();
-                }
+            if (!isResizerDragging) return;
+            const difference = e.clientY - startResizerY;
+            const newTopHeight = startTopHeight + difference;
+            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+            
+            if (newTopHeight > 0 && newTopHeight < containerHeight) {
+                resizer.previousElementSibling.style.height = `${newTopHeight}px`;
+                resizer.nextElementSibling.style.height = `${containerHeight - newTopHeight}px`;
+                descriptionEditor.setSize(null, newTopHeight - 30);
+                jsonEditor.setSize(null, containerHeight - newTopHeight - 30);
+                descriptionEditor.refresh();
+                jsonEditor.refresh();
             }
         }
 
         function stopResize() {
-            isResizing = false;
+            isResizerDragging = false;
+            document.body.classList.remove('resizing');
         }
 
-        // Refresh CodeMirror editors when the window is resized
         new ResizeObserver(() => {
             descriptionEditor.refresh();
             jsonEditor.refresh();
         }).observe(outerWindow);
 
-        // Initial size set
         setTimeout(() => {
             const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
             const halfHeight = containerHeight / 2;
@@ -485,6 +508,21 @@ jQuery(document).ready(function($) {
             descriptionEditor.refresh();
             jsonEditor.refresh();
         }, 0);
+    }
+
+    function separateContent(content) {
+        try {
+            var parsedContent = JSON.parse(content);
+            var description = parsedContent.description || '';
+            delete parsedContent.description;
+            return {
+                html: description,
+                json: JSON.stringify(parsedContent, null, 2)
+            };
+        } catch (e) {
+            console.error('Error separating content:', e);
+            return { html: '', json: content };
+        }
     }
 
     $('.edit-template-content').on('click', function () {
@@ -566,21 +604,6 @@ jQuery(document).ready(function($) {
             alert('There was an error saving your template. Please check your JSON syntax.');
         }
     });
-
-    function separateContent(content) {
-        try {
-            var parsedContent = JSON.parse(content);
-            var description = parsedContent.description || '';
-            delete parsedContent.description;
-            return {
-                html: description,
-                json: JSON.stringify(parsedContent, null, 2)
-            };
-        } catch (e) {
-            console.error('Error separating content:', e);
-            return { html: '', json: content };
-        }
-    }
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

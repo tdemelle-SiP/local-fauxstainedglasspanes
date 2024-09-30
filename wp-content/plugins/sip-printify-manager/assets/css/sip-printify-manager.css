@@ -185,7 +185,7 @@ table tbody tr:nth-child(even) {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(255, 255, 255, 0.5);
     display: none;
     z-index: 9999;
 }
@@ -199,7 +199,7 @@ table tbody tr:nth-child(even) {
     height: 80%;
     background-color: #f0f0f0;
     border: 1px solid #ccc;
-    resize: both;
+    resize: none;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -266,7 +266,7 @@ table tbody tr:nth-child(even) {
 }
 
 #product-editor-resizer {
-    height: 11px;
+    height: 15px;
     background-color: white;
     cursor: row-resize;
     border-top: 1px solid black;
@@ -314,6 +314,17 @@ table tbody tr:nth-child(even) {
     overflow-x: hidden;
     padding: 10px;
     display: none;
+}
+
+.resizing {
+    cursor: row-resize !important;
+}
+
+.resizing * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
 }
 
 .CodeMirror {
