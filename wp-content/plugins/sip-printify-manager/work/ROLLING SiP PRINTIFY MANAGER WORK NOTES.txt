@@ -1,6 +1,0 @@
-Issues with Template Editor
-	-scrollbars are non interactive with mouse until after they are used with the scroll wheel.  They need to be mouse interactive immediately on load_template
-	-the bottom right corner scaling handle has gone missing.  Before it went missing, it was scaling uniformly outward from the center of the window instead of just pulling the bottom right corner in and out.
-	-removing the css "overflow: both;" removes the handle
-	-I might be wrong, but I don't think it's the CSS causing the corner handle to scale uniformly
-	-probs be good to look at the build before last.  I think that one had everything working, but just with bad perf.

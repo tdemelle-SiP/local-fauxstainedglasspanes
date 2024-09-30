@@ -180,6 +180,9 @@ table tbody tr:nth-child(even) {
 /*//////////////////////////////////////////////////////////////////////////////////////*/
 
 .template-editor-overlay {
+    transition: opacity 0.3s ease-in-out;
+    opacity: 0;
+    pointer-events: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -190,16 +193,20 @@ table tbody tr:nth-child(even) {
     z-index: 9999;
 }
 
+.template-editor-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 #product-editor-outer-window {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 10%;
+    left: 10%;
     width: 80%;
     height: 80%;
     background-color: #f0f0f0;
     border: 1px solid #ccc;
-    resize: none;
+    resize: both;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -219,6 +226,11 @@ table tbody tr:nth-child(even) {
 .header-buttons {
     display: flex;
     gap: 10px;
+}
+
+.header-buttons button {
+    padding: 5px 10px;
+    cursor: pointer;
 }
 
 #product-editor-header, #product-editor-description-header, #product-editor-json-header {

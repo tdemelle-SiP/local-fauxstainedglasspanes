@@ -1,0 +1,23 @@
+BUGS ANd ISSUES
+---------------------
+Issues with Template Editor
+	-scrollbars are non interactive with mouse until after they are used with the scroll wheel.  They need to be mouse interactive immediately - when the scrollbar is clicked and drahhed, the actions pass through to the text window and click drag select rows of text
+
+	-the bottom right corner scaling handle is scaling the mdoal uniformly outward from the center of the window instead of just pulling the bottom right corner in and out.
+	-removing the css "resize: both;" removes the handle
+	-I might be wrong, but I don't think it's the CSS causing the corner handle to scale uniformly
+	-Please refer to the original example code in which the handles all worked as expected to try to diagnose why and fix the corner handle resulting in uniform scaling.
+
+
+IDEAS AND NOTES
+---------------------
+
+SCROLLBARS-----------
+commenting out the scrollbar initialization line has no effect
+
+If the issue is that the cm textareas initialize when the dom draws before they ate visible, can the code be changed to draw them after mouseclick and after the window content has been created and initialized?
+
+scroll/simplescrollbars.js
+Defines two additional scrollbar models, "simple" and "overlay" (see demo) that can be selected with the scrollbarStyle option. Depends on simplescrollbars.css, which can be further overridden to style your own scrollbars.
+scroll/annotatescrollbar.js
+Provides functionality for showing markers on the scrollbar to call out certain parts of the document. Adds a method annotateScrollbar to editor instances that can be called, with a CSS class name as argument, to create a set of annotations. The method returns an object whose update method can be called with a sorted array of {from: Pos, to: Pos} objects marking the ranges to be highlighted. To detach the annotations, call the object's clear method.

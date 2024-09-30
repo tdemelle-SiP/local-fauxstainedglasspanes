@@ -360,21 +360,47 @@ jQuery(document).ready(function($) {
         const bottomEditorContainer = document.getElementById('product-editor-bottom-editor');
         const renderedHtml = document.getElementById('product-editor-rendered-html');
 
+        // Initialize editors without immediately rendering them
         descriptionEditor = wp.CodeMirror(topEditorContainer, {
             mode: 'htmlmixed',
             lineNumbers: true,
             lineWrapping: true,
-            scrollbarStyle: 'native',
-            dragDrop: false
+            // scrollbarStyle: 'native',
+            dragDrop: false,
+            viewportMargin: Infinity
         });
-
+    
         jsonEditor = wp.CodeMirror(bottomEditorContainer, {
             mode: 'application/json',
             lineNumbers: true,
             lineWrapping: true,
-            scrollbarStyle: 'native',
-            dragDrop: false
+            // scrollbarStyle: 'native',
+            dragDrop: false,
+            viewportMargin: Infinity
         });
+
+        // Function to properly initialize editor
+        function initializeEditor(editor) {
+            editor.refresh();
+            editor.scrollTo(0, 0);
+            editor.refresh();
+        }
+
+        // Initialize both editors when the modal is fully visible
+        function initializeBothEditors() {
+            initializeEditor(descriptionEditor);
+            initializeEditor(jsonEditor);
+        }
+
+        // Call this function when the modal is shown
+        $('#product-editor-outer-window').on('transitionend', function() {
+            if (this.style.display !== 'none') {
+                setTimeout(initializeBothEditors, 0);
+            }
+        });
+
+        // Also initialize when window is resized
+        $(window).on('resize', initializeBothEditors);
 
         let isRendered = false;
         toggleButton.addEventListener('click', () => {
@@ -428,24 +454,25 @@ jQuery(document).ready(function($) {
             outerWindow.style.transition = '';
         }
 
+        // Corner resizing functionality (modified to match the original example)
         let isResizing = false;
-        let originalWidth, originalHeight, originalX, originalY;
+        let startWidth, startHeight, startResizeX, startResizeY;
 
         outerWindow.addEventListener('mousedown', function(e) {
-            if (e.target === outerWindow && e.offsetX > outerWindow.offsetWidth - 10 && e.offsetY > outerWindow.offsetHeight - 10) {
+            if (e.offsetX > outerWindow.offsetWidth - 10 && e.offsetY > outerWindow.offsetHeight - 10) {
                 isResizing = true;
-                originalWidth = outerWindow.offsetWidth;
-                originalHeight = outerWindow.offsetHeight;
-                originalX = e.clientX;
-                originalY = e.clientY;
+                startWidth = outerWindow.offsetWidth;
+                startHeight = outerWindow.offsetHeight;
+                startResizeX = e.clientX;
+                startResizeY = e.clientY;
                 e.preventDefault();
             }
         });
 
         document.addEventListener('mousemove', function(e) {
             if (isResizing) {
-                const width = originalWidth + (e.clientX - originalX);
-                const height = originalHeight + (e.clientY - originalY);
+                const width = startWidth + (e.clientX - startResizeX);
+                const height = startHeight + (e.clientY - startResizeY);
                 outerWindow.style.width = `${width}px`;
                 outerWindow.style.height = `${height}px`;
                 descriptionEditor.refresh();
@@ -472,25 +499,31 @@ jQuery(document).ready(function($) {
             document.body.classList.add('resizing');
         }
 
+        let resizeRAF;
         function resize(e) {
             if (!isResizerDragging) return;
-            const difference = e.clientY - startResizerY;
-            const newTopHeight = startTopHeight + difference;
-            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
             
-            if (newTopHeight > 0 && newTopHeight < containerHeight) {
-                resizer.previousElementSibling.style.height = `${newTopHeight}px`;
-                resizer.nextElementSibling.style.height = `${containerHeight - newTopHeight}px`;
-                descriptionEditor.setSize(null, newTopHeight - 30);
-                jsonEditor.setSize(null, containerHeight - newTopHeight - 30);
-                descriptionEditor.refresh();
-                jsonEditor.refresh();
-            }
+            cancelAnimationFrame(resizeRAF);
+            resizeRAF = requestAnimationFrame(() => {
+                const difference = e.clientY - startResizerY;
+                const newTopHeight = startTopHeight + difference;
+                const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+                
+                if (newTopHeight > 0 && newTopHeight < containerHeight) {
+                    resizer.previousElementSibling.style.height = `${newTopHeight}px`;
+                    resizer.nextElementSibling.style.height = `${containerHeight - newTopHeight}px`;
+                    descriptionEditor.setSize(null, newTopHeight - 30);
+                    jsonEditor.setSize(null, containerHeight - newTopHeight - 30);
+                    descriptionEditor.refresh();
+                    jsonEditor.refresh();
+                }
+            });
         }
 
         function stopResize() {
             isResizerDragging = false;
             document.body.classList.remove('resizing');
+            cancelAnimationFrame(resizeRAF);
         }
 
         new ResizeObserver(() => {
@@ -527,13 +560,21 @@ jQuery(document).ready(function($) {
 
     $('.edit-template-content').on('click', function () {
         var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
-        $('.template-editor-overlay').show();
-        $('#product-editor-header span').text('Edit Template: ' + templateName);
+        // Show the overlay
+        $('#template-editor-overlay').show().addClass('active');
 
+        $('#product-editor-header span').text('Edit Template: ' + templateName);
+    
         if (!descriptionEditor || !jsonEditor) {
             initializeEditors();
+        } else {
+            // Re-initialize editors if they already exist
+            setTimeout(function() {
+                descriptionEditor.refresh();
+                jsonEditor.refresh();
+            }, 0);
         }
-
+    
         $.ajax({
             url: sipAjax.ajax_url,
             method: 'POST',
@@ -550,8 +591,14 @@ jQuery(document).ready(function($) {
                     var separatedContent = separateContent(content);
                     descriptionEditor.setValue(separatedContent.html);
                     jsonEditor.setValue(separatedContent.json);
-                    descriptionEditor.refresh();
-                    jsonEditor.refresh();
+                    
+                    // Force scrollbar update after setting content
+                    setTimeout(function() {
+                        descriptionEditor.refresh();
+                        descriptionEditor.scrollTo(0, 0);
+                        jsonEditor.refresh();
+                        jsonEditor.scrollTo(0, 0);
+                    }, 0);
                 } else {
                     alert('Error: ' + response.data);
                 }
@@ -563,7 +610,9 @@ jQuery(document).ready(function($) {
     });
 
     $('#product-editor-close').on('click', function() {
-        $('.template-editor-overlay').hide();
+        $('#template-editor-overlay').removeClass('active').one('transitionend', function() {
+            $(this).hide();
+        });
     });
 
     $('#product-editor-save').on('click', function() {
