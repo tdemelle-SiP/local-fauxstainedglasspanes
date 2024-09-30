@@ -362,15 +362,14 @@ jQuery(document).ready(function($) {
 
         const separatedContent = separateContent(content);
 
-        // Initialize editors with a fixed height initially
+        // Initialize editors
         descriptionEditor = wp.CodeMirror(topEditorContainer, {
             mode: 'htmlmixed',
             lineNumbers: true,
             lineWrapping: true,
             dragDrop: false,
             viewportMargin: Infinity,
-            value: separatedContent.html,
-            height: "300px" // Set an initial height
+            value: separatedContent.html
         });
     
         jsonEditor = wp.CodeMirror(bottomEditorContainer, {
@@ -379,11 +378,23 @@ jQuery(document).ready(function($) {
             lineWrapping: true,
             dragDrop: false,
             viewportMargin: Infinity,
-            value: separatedContent.json,
-            height: "300px" // Set an initial height
+            value: separatedContent.json
         });
 
-        // Function to properly size and refresh editors
+        function adjustModalSize() {
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const modalWidth = windowWidth * 0.8;
+            const modalHeight = windowHeight * 0.8;
+
+            outerWindow.style.width = `${modalWidth}px`;
+            outerWindow.style.height = `${modalHeight}px`;
+            outerWindow.style.left = `${(windowWidth - modalWidth) / 2}px`;
+            outerWindow.style.top = `${(windowHeight - modalHeight) / 2}px`;
+
+            adjustEditors();
+        }
+
         function adjustEditors() {
             const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
             const halfHeight = containerHeight / 2;
@@ -395,22 +406,9 @@ jQuery(document).ready(function($) {
             jsonEditor.refresh();
         }
 
-        // Throttle function for performance
-        function throttle(func, limit) {
-            let inThrottle;
-            return function() {
-                const args = arguments;
-                const context = this;
-                if (!inThrottle) {
-                    func.apply(context, args);
-                    inThrottle = true;
-                    setTimeout(() => inThrottle = false, limit);
-                }
-            }
-        }
-
-        // Throttled version of adjustEditors
-        const throttledAdjust = throttle(adjustEditors, 100);
+        // Initial adjustment and window resize listener
+        adjustModalSize();
+        window.addEventListener('resize', adjustModalSize);
 
         let isRendered = false;
         toggleButton.addEventListener('click', () => {
@@ -425,81 +423,85 @@ jQuery(document).ready(function($) {
                 topEditorContainer.style.display = 'block';
                 toggleButton.textContent = 'View Rendered';
             }
-            throttledAdjust();
+            adjustEditors();
         });
 
         // Dragging functionality
         let isDragging = false;
-        let startX, startY;
+        let startX, startY, startLeft, startTop;
 
-        header.addEventListener("mousedown", (e) => {
+        header.addEventListener("mousedown", dragStart);
+        document.addEventListener("mousemove", drag);
+        document.addEventListener("mouseup", dragEnd);
+
+        function dragStart(e) {
             if (e.target === header) {
                 isDragging = true;
-                startX = e.clientX - outerWindow.offsetLeft;
-                startY = e.clientY - outerWindow.offsetTop;
-                outerWindow.style.cursor = 'grabbing';
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = outerWindow.offsetLeft;
+                startTop = outerWindow.offsetTop;
+                outerWindow.style.transition = 'none';
             }
-        });
+        }
 
-        document.addEventListener("mousemove", (e) => {
-            if (!isDragging) return;
-            requestAnimationFrame(() => {
-                outerWindow.style.left = `${e.clientX - startX}px`;
-                outerWindow.style.top = `${e.clientY - startY}px`;
-            });
-        });
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                outerWindow.style.left = `${startLeft + dx}px`;
+                outerWindow.style.top = `${startTop + dy}px`;
+            }
+        }
 
-        document.addEventListener("mouseup", () => {
+        function dragEnd() {
             isDragging = false;
-            outerWindow.style.cursor = '';
-        });
+            outerWindow.style.transition = '';
+        }
 
         // Vertical resizing functionality
-        let isResizing = false;
-        let startHeight, resizeStartY;
+        let isResizerDragging = false;
+        let startResizerY, startTopHeight;
 
-        resizer.addEventListener('mousedown', (e) => {
-            isResizing = true;
-            resizeStartY = e.clientY;
-            startHeight = topEditorContainer.offsetHeight;
-            document.body.style.cursor = 'row-resize';
-        });
+        resizer.addEventListener('mousedown', initResize);
+        document.addEventListener('mousemove', resize);
+        document.addEventListener('mouseup', stopResize);
 
-        document.addEventListener('mousemove', (e) => {
-            if (!isResizing) return;
-            requestAnimationFrame(() => {
-                const dy = e.clientY - resizeStartY;
-                const newTopHeight = startHeight + dy;
-                const bottomHeight = outerWindow.offsetHeight - newTopHeight - header.offsetHeight - resizer.offsetHeight;
-                
-                if (newTopHeight > 50 && bottomHeight > 50) {
-                    topEditorContainer.style.height = `${newTopHeight}px`;
-                    bottomEditorContainer.style.height = `${bottomHeight}px`;
-                    descriptionEditor.setSize(null, newTopHeight);
-                    jsonEditor.setSize(null, bottomHeight);
-                }
-            });
-        });
+        function initResize(e) {
+            e.preventDefault();
+            isResizerDragging = true;
+            startResizerY = e.clientY;
+            startTopHeight = resizer.previousElementSibling.offsetHeight;
+            document.body.classList.add('resizing');
+        }
 
-        document.addEventListener('mouseup', () => {
-            if (isResizing) {
-                isResizing = false;
-                document.body.style.cursor = '';
+        function resize(e) {
+            if (!isResizerDragging) return;
+            
+            const difference = e.clientY - startResizerY;
+            const newTopHeight = startTopHeight + difference;
+            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+            
+            if (newTopHeight > 0 && newTopHeight < containerHeight) {
+                resizer.previousElementSibling.style.height = `${newTopHeight}px`;
+                resizer.nextElementSibling.style.height = `${containerHeight - newTopHeight}px`;
+                descriptionEditor.setSize(null, newTopHeight - 30);
+                jsonEditor.setSize(null, containerHeight - newTopHeight - 30);
                 descriptionEditor.refresh();
                 jsonEditor.refresh();
             }
-        });
+        }
+
+        function stopResize() {
+            isResizerDragging = false;
+            document.body.classList.remove('resizing');
+        }
 
         // Use ResizeObserver for efficient window resizing
         new ResizeObserver(() => {
-            requestAnimationFrame(() => {
-                const topHeight = topEditorContainer.offsetHeight;
-                const bottomHeight = bottomEditorContainer.offsetHeight;
-                descriptionEditor.setSize(null, topHeight);
-                jsonEditor.setSize(null, bottomHeight);
-                descriptionEditor.refresh();
-                jsonEditor.refresh();
-            });
+            descriptionEditor.refresh();
+            jsonEditor.refresh();
         }).observe(outerWindow);
     }
 
