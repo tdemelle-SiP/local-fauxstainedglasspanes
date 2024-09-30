@@ -1,9 +1,7 @@
-
-
 jQuery(document).ready(function($) {
     let descriptionEditor, jsonEditor;
 
-    function initializeEditors() {
+    function initializeEditors(content) {
         const outerWindow = document.getElementById('product-editor-outer-window');
         const header = document.getElementById('product-editor-header');
         const resizer = document.getElementById('product-editor-resizer');
@@ -12,22 +10,69 @@ jQuery(document).ready(function($) {
         const bottomEditorContainer = document.getElementById('product-editor-bottom-editor');
         const renderedHtml = document.getElementById('product-editor-rendered-html');
 
+        const separatedContent = separateContent(content);
+
+        // Initialize editors with equal heights
+        const totalHeight = outerWindow.clientHeight - header.clientHeight - resizer.clientHeight;
+        const halfHeight = totalHeight / 2;
+
         descriptionEditor = wp.CodeMirror(topEditorContainer, {
             mode: 'htmlmixed',
             lineNumbers: true,
             lineWrapping: true,
-            scrollbarStyle: 'native',
-            dragDrop: false
+            dragDrop: false,
+            viewportMargin: Infinity,
+            value: separatedContent.html
         });
-
+    
         jsonEditor = wp.CodeMirror(bottomEditorContainer, {
             mode: 'application/json',
             lineNumbers: true,
             lineWrapping: true,
-            scrollbarStyle: 'native',
-            dragDrop: false
+            dragDrop: false,
+            viewportMargin: Infinity,
+            value: separatedContent.json
         });
 
+        // Set initial sizes for editors
+        descriptionEditor.setSize(null, halfHeight);
+        jsonEditor.setSize(null, halfHeight);
+
+        // Function to adjust modal size and position
+        function adjustModalSize() {
+            requestAnimationFrame(() => {
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                const modalWidth = windowWidth * 0.8;
+                const modalHeight = windowHeight * 0.8;
+
+                outerWindow.style.width = `${modalWidth}px`;
+                outerWindow.style.height = `${modalHeight}px`;
+                outerWindow.style.left = `${(windowWidth - modalWidth) / 2}px`;
+                outerWindow.style.top = `${(windowHeight - modalHeight) / 2}px`;
+
+                adjustEditors();
+            });
+        }
+
+        // Function to adjust editor sizes
+        function adjustEditors() {
+            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+            const topHeight = topEditorContainer.offsetHeight;
+            const bottomHeight = containerHeight - topHeight;
+            
+            descriptionEditor.setSize(null, topHeight);
+            jsonEditor.setSize(null, bottomHeight);
+            
+            descriptionEditor.refresh();
+            jsonEditor.refresh();
+        }
+
+        // Initial adjustment and window resize listener
+        adjustModalSize();
+        window.addEventListener('resize', adjustModalSize);
+
+        // Toggle view functionality
         let isRendered = false;
         toggleButton.addEventListener('click', () => {
             isRendered = !isRendered;
@@ -41,15 +86,12 @@ jQuery(document).ready(function($) {
                 topEditorContainer.style.display = 'block';
                 toggleButton.textContent = 'View Rendered';
             }
+            adjustEditors();
         });
 
+        // Dragging functionality
         let isDragging = false;
         let startX, startY, startLeft, startTop;
-
-        function setPosition(left, top) {
-            outerWindow.style.left = `${left}px`;
-            outerWindow.style.top = `${top}px`;
-        }
 
         header.addEventListener("mousedown", dragStart);
         document.addEventListener("mousemove", drag);
@@ -58,21 +100,18 @@ jQuery(document).ready(function($) {
         function dragStart(e) {
             if (e.target === header) {
                 isDragging = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                startLeft = outerWindow.offsetLeft;
-                startTop = outerWindow.offsetTop;
+                startX = e.clientX - outerWindow.offsetLeft;
+                startY = e.clientY - outerWindow.offsetTop;
                 outerWindow.style.transition = 'none';
             }
         }
 
         function drag(e) {
-            if (isDragging) {
-                e.preventDefault();
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                setPosition(startLeft + dx, startTop + dy);
-            }
+            if (!isDragging) return;
+            requestAnimationFrame(() => {
+                outerWindow.style.left = `${e.clientX - startX}px`;
+                outerWindow.style.top = `${e.clientY - startY}px`;
+            });
         }
 
         function dragEnd() {
@@ -80,111 +119,54 @@ jQuery(document).ready(function($) {
             outerWindow.style.transition = '';
         }
 
+        // Vertical resizing functionality
         let isResizing = false;
-        let originalWidth, originalHeight, originalX, originalY;
-
-        outerWindow.addEventListener('mousedown', function(e) {
-            if (e.target === outerWindow && e.offsetX > outerWindow.offsetWidth - 10 && e.offsetY > outerWindow.offsetHeight - 10) {
-                isResizing = true;
-                originalWidth = outerWindow.offsetWidth;
-                originalHeight = outerWindow.offsetHeight;
-                originalX = e.clientX;
-                originalY = e.clientY;
-                e.preventDefault();
-            }
-        });
-
-        document.addEventListener('mousemove', function(e) {
-            if (isResizing) {
-                const width = originalWidth + (e.clientX - originalX);
-                const height = originalHeight + (e.clientY - originalY);
-                outerWindow.style.width = `${width}px`;
-                outerWindow.style.height = `${height}px`;
-                descriptionEditor.refresh();
-                jsonEditor.refresh();
-            }
-        });
-
-        document.addEventListener('mouseup', function() {
-            isResizing = false;
-        });
-
-        let isResizerDragging = false;
-        let startResizerY, startTopHeight;
+        let startHeight, resizeStartY;
 
         resizer.addEventListener('mousedown', initResize);
         document.addEventListener('mousemove', resize);
         document.addEventListener('mouseup', stopResize);
 
         function initResize(e) {
-            e.preventDefault();
-            isResizerDragging = true;
-            startResizerY = e.clientY;
-            startTopHeight = resizer.previousElementSibling.offsetHeight;
+            isResizing = true;
+            resizeStartY = e.clientY;
+            startHeight = topEditorContainer.offsetHeight;
             document.body.classList.add('resizing');
         }
 
         function resize(e) {
-            if (!isResizerDragging) return;
-            const difference = e.clientY - startResizerY;
-            const newTopHeight = startTopHeight + difference;
-            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
-            
-            if (newTopHeight > 0 && newTopHeight < containerHeight) {
-                resizer.previousElementSibling.style.height = `${newTopHeight}px`;
-                resizer.nextElementSibling.style.height = `${containerHeight - newTopHeight}px`;
-                descriptionEditor.setSize(null, newTopHeight - 30);
-                jsonEditor.setSize(null, containerHeight - newTopHeight - 30);
-                descriptionEditor.refresh();
-                jsonEditor.refresh();
-            }
+            if (!isResizing) return;
+            requestAnimationFrame(() => {
+                const dy = e.clientY - resizeStartY;
+                const newTopHeight = startHeight + dy;
+                const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+                
+                if (newTopHeight > 50 && newTopHeight < containerHeight - 50) {
+                    topEditorContainer.style.height = `${newTopHeight}px`;
+                    bottomEditorContainer.style.height = `${containerHeight - newTopHeight}px`;
+                    adjustEditors();
+                }
+            });
         }
 
         function stopResize() {
-            isResizerDragging = false;
+            isResizing = false;
             document.body.classList.remove('resizing');
+            adjustEditors();
         }
 
+        // Use ResizeObserver for efficient window resizing
         new ResizeObserver(() => {
-            descriptionEditor.refresh();
-            jsonEditor.refresh();
+            requestAnimationFrame(adjustEditors);
         }).observe(outerWindow);
-
-        setTimeout(() => {
-            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
-            const halfHeight = containerHeight / 2;
-            resizer.previousElementSibling.style.height = `${halfHeight}px`;
-            resizer.nextElementSibling.style.height = `${halfHeight}px`;
-            descriptionEditor.setSize(null, halfHeight - 30);
-            jsonEditor.setSize(null, halfHeight - 30);
-            descriptionEditor.refresh();
-            jsonEditor.refresh();
-        }, 0);
     }
 
-    function separateContent(content) {
-        try {
-            var parsedContent = JSON.parse(content);
-            var description = parsedContent.description || '';
-            delete parsedContent.description;
-            return {
-                html: description,
-                json: JSON.stringify(parsedContent, null, 2)
-            };
-        } catch (e) {
-            console.error('Error separating content:', e);
-            return { html: '', json: content };
-        }
-    }
+    // ... (rest of the code remains unchanged)
 
     $('.edit-template-content').on('click', function () {
         var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
-        $('.template-editor-overlay').show();
+        $('#template-editor-overlay').show().addClass('active');
         $('#product-editor-header span').text('Edit Template: ' + templateName);
-
-        if (!descriptionEditor || !jsonEditor) {
-            initializeEditors();
-        }
 
         $.ajax({
             url: sipAjax.ajax_url,
@@ -199,11 +181,22 @@ jQuery(document).ready(function($) {
             success: function (response) {
                 if (response.success) {
                     var content = response.data.template_content;
-                    var separatedContent = separateContent(content);
-                    descriptionEditor.setValue(separatedContent.html);
-                    jsonEditor.setValue(separatedContent.json);
-                    descriptionEditor.refresh();
-                    jsonEditor.refresh();
+                    
+                    // Initialize editors with content
+                    if (!descriptionEditor || !jsonEditor) {
+                        initializeEditors(content);
+                    } else {
+                        // If editors already exist, update their content
+                        var separatedContent = separateContent(content);
+                        descriptionEditor.setValue(separatedContent.html);
+                        jsonEditor.setValue(separatedContent.json);
+                        
+                        // Force refresh after updating content
+                        setTimeout(() => {
+                            descriptionEditor.refresh();
+                            jsonEditor.refresh();
+                        }, 0);
+                    }
                 } else {
                     alert('Error: ' + response.data);
                 }
@@ -214,46 +207,5 @@ jQuery(document).ready(function($) {
         });
     });
 
-    $('#product-editor-close').on('click', function() {
-        $('.template-editor-overlay').hide();
-    });
-
-    $('#product-editor-save').on('click', function() {
-        var templateName = $('#product-editor-header span').text().replace('Edit Template: ', '');
-        var descriptionContent = descriptionEditor.getValue();
-        var jsonContent = jsonEditor.getValue();
-
-        try {
-            var parsedJson = JSON.parse(jsonContent);
-            parsedJson.description = descriptionContent;
-            var finalContent = JSON.stringify(parsedJson);
-
-            $.ajax({
-                url: sipAjax.ajax_url,
-                method: 'POST',
-                data: {
-                    action: 'sip_handle_ajax_request',
-                    action_type: 'template_action',
-                    template_action: 'save_template',
-                    template_name: templateName,
-                    template_content: finalContent,
-                    nonce: sipAjax.nonce
-                },
-                success: function (response) {
-                    if (response.success) {
-                        alert('Template saved successfully.');
-                        $('.template-editor-overlay').hide();
-                    } else {
-                        alert('Error: ' + response.data);
-                    }
-                },
-                error: function (xhr, status, error) {
-                    alert('AJAX Error: ' + error);
-                }
-            });
-        } catch (e) {
-            console.error('Error re-integrating content:', e);
-            alert('There was an error saving your template. Please check your JSON syntax.');
-        }
-    });
+    // ... (rest of the code remains unchanged)
 });

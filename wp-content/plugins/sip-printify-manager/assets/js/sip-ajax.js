@@ -362,6 +362,10 @@ jQuery(document).ready(function($) {
 
         const separatedContent = separateContent(content);
 
+        // Initialize editors with equal heights
+        const totalHeight = outerWindow.clientHeight - header.clientHeight - resizer.clientHeight;
+        const halfHeight = totalHeight / 2;
+
         // Initialize editors
         descriptionEditor = wp.CodeMirror(topEditorContainer, {
             mode: 'htmlmixed',
@@ -381,35 +385,47 @@ jQuery(document).ready(function($) {
             value: separatedContent.json
         });
 
+        // Set initial sizes for editors
+        descriptionEditor.setSize(null, halfHeight);
+        jsonEditor.setSize(null, halfHeight);
+
+        // Function to adjust modal size and position
         function adjustModalSize() {
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-            const modalWidth = windowWidth * 0.8;
-            const modalHeight = windowHeight * 0.8;
+            requestAnimationFrame(() => {
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                const modalWidth = windowWidth * 0.8;
+                const modalHeight = windowHeight * 0.8;
 
-            outerWindow.style.width = `${modalWidth}px`;
-            outerWindow.style.height = `${modalHeight}px`;
-            outerWindow.style.left = `${(windowWidth - modalWidth) / 2}px`;
-            outerWindow.style.top = `${(windowHeight - modalHeight) / 2}px`;
+                outerWindow.style.width = `${modalWidth}px`;
+                outerWindow.style.height = `${modalHeight}px`;
+                outerWindow.style.left = `${(windowWidth - modalWidth) / 2}px`;
+                outerWindow.style.top = `${(windowHeight - modalHeight) / 2}px`;
 
-            adjustEditors();
+                adjustEditors();
+            });
         }
 
+        let adjustEditorsRAF;
         function adjustEditors() {
-            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
-            const halfHeight = containerHeight / 2;
-            
-            descriptionEditor.setSize(null, halfHeight - 30);
-            jsonEditor.setSize(null, halfHeight - 30);
-            
-            descriptionEditor.refresh();
-            jsonEditor.refresh();
+            cancelAnimationFrame(adjustEditorsRAF);
+            adjustEditorsRAF = requestAnimationFrame(() => {
+                const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+                const halfHeight = containerHeight / 2;
+                
+                descriptionEditor.setSize(null, halfHeight - 30);
+                jsonEditor.setSize(null, halfHeight - 30);
+                
+                descriptionEditor.refresh();
+                jsonEditor.refresh();
+            });
         }
 
         // Initial adjustment and window resize listener
         adjustModalSize();
         window.addEventListener('resize', adjustModalSize);
 
+        // Toggle view functionality
         let isRendered = false;
         toggleButton.addEventListener('click', () => {
             isRendered = !isRendered;
@@ -445,14 +461,17 @@ jQuery(document).ready(function($) {
             }
         }
 
+        let dragRAF;
         function drag(e) {
-            if (isDragging) {
-                e.preventDefault();
+            if (!isDragging) return;
+            e.preventDefault();
+            cancelAnimationFrame(dragRAF);
+            dragRAF = requestAnimationFrame(() => {
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
                 outerWindow.style.left = `${startLeft + dx}px`;
                 outerWindow.style.top = `${startTop + dy}px`;
-            }
+            });
         }
 
         function dragEnd() {
@@ -476,35 +495,37 @@ jQuery(document).ready(function($) {
             document.body.classList.add('resizing');
         }
 
+        let resizeRAF;
         function resize(e) {
             if (!isResizerDragging) return;
             
-            const difference = e.clientY - startResizerY;
-            const newTopHeight = startTopHeight + difference;
-            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
-            
-            if (newTopHeight > 0 && newTopHeight < containerHeight) {
-                resizer.previousElementSibling.style.height = `${newTopHeight}px`;
-                resizer.nextElementSibling.style.height = `${containerHeight - newTopHeight}px`;
-                descriptionEditor.setSize(null, newTopHeight - 30);
-                jsonEditor.setSize(null, containerHeight - newTopHeight - 30);
-                descriptionEditor.refresh();
-                jsonEditor.refresh();
-            }
+            cancelAnimationFrame(resizeRAF);
+            resizeRAF = requestAnimationFrame(() => {
+                const difference = e.clientY - startResizerY;
+                const newTopHeight = startTopHeight + difference;
+                const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+                
+                if (newTopHeight > 0 && newTopHeight < containerHeight) {
+                    resizer.previousElementSibling.style.height = `${newTopHeight}px`;
+                    resizer.nextElementSibling.style.height = `${containerHeight - newTopHeight}px`;
+                    descriptionEditor.setSize(null, newTopHeight - 30);
+                    jsonEditor.setSize(null, containerHeight - newTopHeight - 30);
+                }
+            });
         }
 
         function stopResize() {
             isResizerDragging = false;
             document.body.classList.remove('resizing');
+            descriptionEditor.refresh();
+            jsonEditor.refresh();
         }
 
         // Use ResizeObserver for efficient window resizing
         new ResizeObserver(() => {
-            descriptionEditor.refresh();
-            jsonEditor.refresh();
+            requestAnimationFrame(adjustEditors);
         }).observe(outerWindow);
     }
-
     function separateContent(content) {
         try {
             var parsedContent = JSON.parse(content);
