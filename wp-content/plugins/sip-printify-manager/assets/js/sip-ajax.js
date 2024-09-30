@@ -348,67 +348,225 @@ jQuery(document).ready(function ($) {
 ///////////////////////////////////////////TEMPLATE EDITOR////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-jQuery(document).ready(function ($) {
-    var editorDescription, editorJSON;
+jQuery(document).ready(function($) {
+    let descriptionEditor, jsonEditor;
 
-    /**
-     * Initialize the CodeMirror editors.
-     */
     function initializeEditors() {
-        if (typeof wp.codeEditor === 'undefined') {
-            console.error('wp.codeEditor is not loaded.');
-            return;
+        const outerWindow = document.getElementById('product-editor-outer-window');
+        const header = document.getElementById('product-editor-header');
+        const resizer = document.getElementById('product-editor-resizer');
+        const toggleButton = document.getElementById('product-editor-toggle-view');
+        const topEditorContainer = document.getElementById('product-editor-top-editor');
+        const bottomEditorContainer = document.getElementById('product-editor-bottom-editor');
+        const renderedHtml = document.getElementById('product-editor-rendered-html');
+
+        descriptionEditor = wp.CodeMirror(topEditorContainer, {
+            mode: 'htmlmixed',
+            lineNumbers: true,
+            lineWrapping: true,
+            scrollbarStyle: 'native'
+        });
+
+        jsonEditor = wp.CodeMirror(bottomEditorContainer, {
+            mode: 'application/json',
+            lineNumbers: true,
+            lineWrapping: true,
+            scrollbarStyle: 'native'
+        });
+
+        // Toggle view function
+        let isRendered = false;
+        toggleButton.addEventListener('click', () => {
+            isRendered = !isRendered;
+            if (isRendered) {
+                renderedHtml.innerHTML = descriptionEditor.getValue();
+                renderedHtml.style.display = 'block';
+                topEditorContainer.style.display = 'none';
+                toggleButton.textContent = 'View Code';
+            } else {
+                renderedHtml.style.display = 'none';
+                topEditorContainer.style.display = 'block';
+                toggleButton.textContent = 'View Rendered';
+            }
+        });
+
+        // Make the outer window draggable
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        header.addEventListener("mousedown", dragStart);
+        document.addEventListener("mousemove", drag);
+        document.addEventListener("mouseup", dragEnd);
+
+        function dragStart(e) {
+            if (e.target === header) {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+                isDragging = true;
+            }
         }
 
-        // Initialize HTML editor
-        if (!editorDescription) {
-            editorDescription = wp.codeEditor.initialize($('#description-editor-textarea'), {
-                mode: 'htmlmixed',
-                lineNumbers: true,
-                lineWrapping: true,
-                extraKeys: { "Ctrl-Space": "autocomplete" }
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+                xOffset = currentX;
+                yOffset = currentY;
+                setTranslate(currentX, currentY, outerWindow);
+            }
+        }
+
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        }
+
+        // Make the inner panels resizable
+        let isResizing = false;
+        let startY;
+        let startTopHeight;
+
+        resizer.addEventListener('mousedown', initResize);
+        document.addEventListener('mousemove', resize);
+        document.addEventListener('mouseup', stopResize);
+
+        function initResize(e) {
+            isResizing = true;
+            startY = e.clientY;
+            startTopHeight = resizer.previousElementSibling.offsetHeight;
+        }
+
+        function resize(e) {
+            if (isResizing) {
+                const difference = e.clientY - startY;
+                const newTopHeight = startTopHeight + difference;
+                const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+                
+                if (newTopHeight > 0 && newTopHeight < containerHeight) {
+                    resizer.previousElementSibling.style.height = `${newTopHeight}px`;
+                    resizer.nextElementSibling.style.height = `${containerHeight - newTopHeight}px`;
+                    descriptionEditor.setSize(null, newTopHeight - 30);
+                    jsonEditor.setSize(null, containerHeight - newTopHeight - 30);
+                    descriptionEditor.refresh();
+                    jsonEditor.refresh();
+                }
+            }
+        }
+
+        function stopResize() {
+            isResizing = false;
+        }
+
+        // Refresh CodeMirror editors when the window is resized
+        new ResizeObserver(() => {
+            descriptionEditor.refresh();
+            jsonEditor.refresh();
+        }).observe(outerWindow);
+
+        // Initial size set
+        setTimeout(() => {
+            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+            const halfHeight = containerHeight / 2;
+            resizer.previousElementSibling.style.height = `${halfHeight}px`;
+            resizer.nextElementSibling.style.height = `${halfHeight}px`;
+            descriptionEditor.setSize(null, halfHeight - 30);
+            jsonEditor.setSize(null, halfHeight - 30);
+            descriptionEditor.refresh();
+            jsonEditor.refresh();
+        }, 0);
+    }
+
+    $('.edit-template-content').on('click', function () {
+        var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
+        $('.template-editor-overlay').show();
+        $('#product-editor-header span').text('Edit Template: ' + templateName);
+
+        if (!descriptionEditor || !jsonEditor) {
+            initializeEditors();
+        }
+
+        $.ajax({
+            url: sipAjax.ajax_url,
+            method: 'POST',
+            data: {
+                action: 'sip_handle_ajax_request',
+                action_type: 'template_action',
+                template_action: 'edit_template',
+                template_name: templateName,
+                nonce: sipAjax.nonce
+            },
+            success: function (response) {
+                if (response.success) {
+                    var content = response.data.template_content;
+                    var separatedContent = separateContent(content);
+                    descriptionEditor.setValue(separatedContent.html);
+                    jsonEditor.setValue(separatedContent.json);
+                    descriptionEditor.refresh();
+                    jsonEditor.refresh();
+                } else {
+                    alert('Error: ' + response.data);
+                }
+            },
+            error: function (xhr, status, error) {
+                alert('AJAX Error: ' + error);
+            }
+        });
+    });
+
+    $('#product-editor-close').on('click', function() {
+        $('.template-editor-overlay').hide();
+    });
+
+    $('#product-editor-save').on('click', function() {
+        var templateName = $('#product-editor-header span').text().replace('Edit Template: ', '');
+        var descriptionContent = descriptionEditor.getValue();
+        var jsonContent = jsonEditor.getValue();
+
+        try {
+            var parsedJson = JSON.parse(jsonContent);
+            parsedJson.description = descriptionContent;
+            var finalContent = JSON.stringify(parsedJson);
+
+            $.ajax({
+                url: sipAjax.ajax_url,
+                method: 'POST',
+                data: {
+                    action: 'sip_handle_ajax_request',
+                    action_type: 'template_action',
+                    template_action: 'save_template',
+                    template_name: templateName,
+                    template_content: finalContent,
+                    nonce: sipAjax.nonce
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert('Template saved successfully.');
+                        $('.template-editor-overlay').hide();
+                    } else {
+                        alert('Error: ' + response.data);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('AJAX Error: ' + error);
+                }
             });
+        } catch (e) {
+            console.error('Error re-integrating content:', e);
+            alert('There was an error saving your template. Please check your JSON syntax.');
         }
+    });
 
-        // Initialize JSON editor
-        if (!editorJSON) {
-            editorJSON = wp.codeEditor.initialize($('#json-editor-textarea'), {
-                mode: 'application/json',
-                lineNumbers: true,
-                lineWrapping: true,
-                extraKeys: { "Ctrl-Space": "autocomplete" }
-            });
-        }
-    }
-
-    /**
-     * Manually refresh CodeMirror editors.
-     */
-    function refreshEditors() {
-        if (editorDescription && editorDescription.codemirror) {
-            editorDescription.codemirror.refresh();
-        }
-        if (editorJSON && editorJSON.codemirror) {
-            editorJSON.codemirror.refresh();
-        }
-    }
-
-    /**
-     * Throttled function to refresh editors using requestAnimationFrame.
-     */
-    let resizeAnimationFrame;
-    function optimizedRefreshEditors() {
-        if (resizeAnimationFrame) {
-            cancelAnimationFrame(resizeAnimationFrame);
-        }
-        resizeAnimationFrame = requestAnimationFrame(refreshEditors);
-    }
-
-    /**
-     * Function to separate HTML and JSON data from the content.
-     * @param {string} content - The JSON string containing both HTML and JSON data.
-     * @returns {Object} - An object with separate HTML and JSON strings.
-     */
     function separateContent(content) {
         try {
             var parsedContent = JSON.parse(content);
@@ -423,180 +581,7 @@ jQuery(document).ready(function ($) {
             return { html: '', json: content };
         }
     }
-
-    /**
-     * Handle window resize events with throttling.
-     */
-    let windowResizeTimer;
-    $(window).on('resize', function () {
-        clearTimeout(windowResizeTimer);
-        windowResizeTimer = setTimeout(function () {
-            // Adjust max dimensions based on new window size
-            $('#template-editor-content').resizable('option', 'maxHeight', $(window).height() * 0.98);
-            $('#template-editor-content').resizable('option', 'maxWidth', $(window).width() * 0.98);
-            // Refresh editors to adjust to new window size
-            refreshEditors();
-        }, 250); // Adjust the delay as needed
-    });
-
-    /**
-     * Make the modal draggable using jQuery UI
-     */
-    $('#template-editor-content').draggable({
-        handle: '#template-editor-header',
-        containment: 'window', // Allows full movement within the browser window
-        cursor: 'move',
-        scroll: false
-    });
-
-    /**
-     * Apply jQuery UI Resizable for modal scaling and editor sections resizing.
-     */
-    if ($.fn.resizable) {
-        // Make the entire modal resizable using the footer as the handle
-        $('#template-editor-content').resizable({
-            handles: { se: '.template-editor-footer' }, // Use footer as South-East handle
-            minHeight: 300, // Set a minimum height as needed
-            minWidth: 400,  // Set a minimum width as needed
-            maxHeight: $(window).height() * 0.98, // 98% of window height
-            maxWidth: $(window).width() * 0.98,   // 98% of window width
-            alsoResize: '#description-editor-container, #json-editor-container', // Resize editors proportionally
-            stop: function (event, ui) {
-                refreshEditors(); // Final refresh after resizing
-            },
-            resize: function (event, ui) {
-                optimizedRefreshEditors(); // Throttled refresh during resize
-            }
-        });
-
-        // Make the divider resizable to adjust editor sections
-        $('#editor-divider').resizable({
-            handles: 'n', // North handle to adjust height upwards and downwards
-            minHeight: 50, // Minimum height for the top editor
-            // Removed maxHeight to allow sliding editors out completely
-            alsoResize: '#description-editor-container, #json-editor-container', // Resize editors proportionally
-            stop: function (event, ui) {
-                refreshEditors(); // Final refresh after resizing
-            },
-            resize: function (event, ui) {
-                optimizedRefreshEditors(); // Throttled refresh during resize
-            }
-        });
-    } else {
-        console.error('jQuery UI Resizable is not available.');
-    }
-
-    /**
-     * Open modal and load template content via AJAX.
-     */
-    $('.edit-template-content').on('click', function () {
-        var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
-        $('#template-editor-modal').show();
-        $('#template-editor-title').text(templateName);
-
-        $.ajax({
-            url: sipAjax.ajax_url,
-            method: 'POST',
-            data: {
-                sip_printify_manager_nonce_field: sipAjax.nonce,
-                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
-                template_action: 'edit_template',
-                template_name: templateName,
-                action: 'sip_handle_ajax_request',
-                action_type: 'template_action',
-                nonce: sipAjax.nonce
-            },
-            success: function (response) {
-                if (response.success) {
-                    initializeEditors();
-                    var content = response.data.template_content;
-                    var separatedContent = separateContent(content);
-                    editorDescription.codemirror.setValue(separatedContent.html);
-                    editorJSON.codemirror.setValue(separatedContent.json);
-                    refreshEditors(); // Initial refresh after loading content
-                } else {
-                    alert('Error: ' + response.data);
-                }
-            },
-            error: function (xhr, status, error) {
-                alert('AJAX Error: ' + error);
-            }
-        });
-    });
-
-    /**
-     * Close modal on cancel or close button click.
-     */
-    $('#template-editor-cancel, #template-editor-close').on('click', function () {
-        $('#template-editor-modal').hide();
-    });
-
-    /**
-     * Save template content via AJAX.
-     */
-    $('#template-editor-save').on('click', function () {
-        var templateName = $('#template-editor-title').text();
-        var descriptionContent = editorDescription.codemirror.getValue();
-        var jsonContent = editorJSON.codemirror.getValue();
-
-        // Re-integrate HTML description back into JSON
-        try {
-            var parsedJson = JSON.parse(jsonContent);
-            parsedJson.description = descriptionContent;
-            var finalContent = JSON.stringify(parsedJson);
-        } catch (e) {
-            console.error('Error re-integrating content:', e);
-            alert('There was an error saving your template.');
-            return;
-        }
-
-        // AJAX request to save template content
-        $.ajax({
-            url: sipAjax.ajax_url,
-            method: 'POST',
-            data: {
-                sip_printify_manager_nonce_field: sipAjax.nonce,
-                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
-                template_action: 'save_template',
-                template_name: templateName,
-                template_content: finalContent,
-                action: 'sip_handle_ajax_request',
-                action_type: 'template_action',
-                nonce: sipAjax.nonce
-            },
-            success: function (response) {
-                if (response.success) {
-                    alert('Template saved successfully.');
-                    $('#template-editor-modal').hide();
-                } else {
-                    alert('Error: ' + response.data);
-                }
-            },
-            error: function (xhr, status, error) {
-                alert('AJAX Error: ' + error);
-            }
-        });
-    });
-
-    /**
-     * Handle toggle view for HTML editor.
-     */
-    $('#toggle-view').on('change', function () {
-        if (editorDescription && editorDescription.codemirror) {
-            if ($(this).is(':checked')) {
-                $('#html-editor-view').hide();
-                $('#html-rendered-output').html(editorDescription.codemirror.getValue());
-                $('#html-output-view').show();
-            } else {
-                $('#html-output-view').hide();
-                $('#html-editor-view').show();
-            }
-        } else {
-            console.error('editorDescription or CodeMirror instance is not initialized.');
-        }
-    });
 });
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////IMAGE UPLOAD FUNCTIONALITY////////////////////////////////////////

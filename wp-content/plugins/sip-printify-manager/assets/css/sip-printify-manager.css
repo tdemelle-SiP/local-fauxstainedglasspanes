@@ -175,239 +175,149 @@ table tbody tr:nth-child(even) {
     color: #00a0d2;
 }
 
-
-/*//////////////////////////////////////////////////////////////////////////////////////*/
-/*////////////////////// UNIVERSAL BOX MODEL RESET /////////////////////////////////*/
-/*//////////////////////////////////////////////////////////////////////////////////////*/
-
-/* Apply a universal box-sizing rule for consistency */
-*, *::before, *::after {
-    box-sizing: border-box;
-}
-
 /*//////////////////////////////////////////////////////////////////////////////////////*/
 /*////////////////////// STYLING FOR THE TEMPLATE EDITOR MODAL ////////////////////////*/
 /*//////////////////////////////////////////////////////////////////////////////////////*/
 
-
-/*[[[[[[[[[[[[[[[[[The CodeMirror Model]]]]]]]]]]]]]]]]]*/
-#template-editor-modal {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: fixed; /* Ensure it covers the entire viewport */
+.template-editor-overlay {
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.2);
+    display: none;
     z-index: 9999;
 }
 
-#template-editor-content {
-    background: #fff;
+#product-editor-outer-window {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 80%;
-    max-width: 98vw;
     height: 80%;
-    max-height: 98vh;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    resize: both;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    position: fixed; /* fixed to scale from corner */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    border-radius: 8px; /* Adds rounded corners */
-    overflow: hidden; /* Prevent content from overflowing */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-#template-editor-header {
+#product-editor-header {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    cursor: move;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px; /* Increased padding for better touch targets */
-    background-color: #f1f1f1;
-    border-bottom: 1px solid #ddd;
-    cursor: move; /* Indicates draggable area */
 }
 
-/* Buttons Container */
-.template-editor-buttons {
+.header-buttons {
     display: flex;
-    gap: 10px; /* Space between buttons */
+    gap: 10px;
 }
 
-/* Button Styles */
-.template-editor-buttons button {
-    min-width: 100px;
-    flex-shrink: 0;
-    cursor: pointer;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
+#product-editor-header, #product-editor-description-header, #product-editor-json-header {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
-/* Specific Button Styles */
-.button-primary {
-    background-color: #007cba;
-    color: white;
+#product-editor-header span, #product-editor-description-header span, #product-editor-json-header span {
+    cursor: default;
+    pointer-events: none;
 }
 
-.button-secondary {
-    background-color: #ccc;
-    color: #333;
-}
-
-/*[[[[[[[[[[[[[[[[[Product Description Container]]]]]]]]]]]]]]]]]*/
-
-/*description-editor-container*/
-.editor-container {
-    flex-grow: 1;
-    overflow: hidden;
-    position: relative;
-    padding: 10px;
-    border: 1px solid #ccc;
-    background-color: #fff;
+#product-editor-inner-container {
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
 }
 
-/* Heading Style */
-h4 {
-    margin: 0;
-    padding-bottom: 5px;
+#product-editor-top-container, #product-editor-bottom-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+#product-editor-top-wrapper, #product-editor-bottom-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+#product-editor-description-header, #product-editor-json-header {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 5px 10px;
     font-weight: bold;
+    border-bottom: 1px solid #ced4da;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-/*toggle-view*/
-
-/*html-editor-view*/
-.editor-view {
-    flex-grow: 1;
-    position: relative;
-}
-
-/*description-editor-textarea*/
-textarea {
-    height: 100%;
-    width: 100%;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    padding: 10px;
-    background-color: #fff;
-    resize: none; /* Disable native resizing */
-}
-
-/*html-output-view*/
-/* HTML Output View */
-#html-output-view {
-    display: none; /* Hidden by default, toggled via JavaScript */
-}
-
-.editor-output {
-    flex-grow: 1;
-    position: relative;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    padding: 10px;
-    background-color: #fff;
-}
-
-/*[[[[[[[[[[[[[[[[[Interactive Divider]]]]]]]]]]]]]]]]]*/
-
-/* Editor Divider */
-.editor-divider {
-    height: 10px; /* Height of the divider */
-    background-color: #e1e1e1;
-    cursor: ns-resize; /* Change cursor to indicate vertical resizing */
-    position: relative;
+#product-editor-resizer {
+    height: 11px;
+    background-color: white;
+    cursor: row-resize;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999; /* Ensure it's above other elements */
+    flex-shrink: 0;
 }
 
-/* Resizable Handle for the Divider */
-.editor-divider .ui-resizable-n {
-    height: 100%;
-    width: 100%;
-    top: 0;
-    left: 0;
-    cursor: ns-resize;
-    background: transparent; /* Invisible handle */
-}
-
-/* Optional: Visual Indicator for the Divider Handle */
-.editor-divider::before {
-    content: '';
+#product-editor-resizer::after {
+    content: "";
     width: 30px;
     height: 4px;
     background-color: #ccc;
     border-radius: 2px;
-    position: absolute;
-    /* Center the indicator */
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
 }
 
-/*[[[[[[[[[[[[[[[[[Product JSON Container]]]]]]]]]]]]]]]]]*/
-
-/*json-editor-container*/
-
-/*editor-header*/
-
-/*h4*/
-
-/*json-editor-textarea*/
-
-/* Editor Headers */
-.editor-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+#product-editor-top-editor, #product-editor-bottom-editor {
+    flex-grow: 1;
+    overflow: hidden;
 }
 
-/*[[[[[[[[[[[[[[[[[Modal Footer]]]]]]]]]]]]]]]]]*/
-
-/* Modal Footer */
-.template-editor-footer {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 20px;
-    height: 20px;
-    cursor: se-resize; /* South-East resize cursor */
-    z-index: 10000; /* Ensure it's above other elements */
+#product-editor-top-editor .CodeMirror, #product-editor-bottom-editor .CodeMirror {
+    height: 100% !important;
 }
 
-/* Add a small triangle to indicate the resizable handle */
-.template-editor-footer::after {
-    content: '';
-    width: 10px;
-    height: 10px;
-    border-right: 2px solid #ccc;
-    border-bottom: 2px solid #ccc;
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    transform: rotate(45deg);
-    pointer-events: none; /* Allows dragging without interference */
+.CodeMirror-scroll {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
 }
 
-/* Resizable Handle at the Bottom-Right Corner of the Modal */
-.ui-resizable-se {
-    width: 20px;
-    height: 20px;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background: transparent; /* Can be styled for visibility */
-    cursor: se-resize;
-    z-index: 10000; /* Ensure it's above other elements */
+#product-editor-toggle-view {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+#product-editor-rendered-html {
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px;
+    display: none;
+}
+
+.CodeMirror {
+    height: 100% !important;
 }
 
 /*//////////////////////////////////////////////////////////////////////////////////////*/
