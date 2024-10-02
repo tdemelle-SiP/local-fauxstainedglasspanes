@@ -262,6 +262,29 @@ function sip_execute_product_action($action, $selected_products = array()) {
     return $products;
 }
 
+/**
+ * Delete the JSON file associated with a product
+ *
+ * @param array $product The product whose JSON file is to be deleted.
+ */
+function delete_product_json($product) {
+    $upload_dir = wp_upload_dir();
+    $target_dir = $upload_dir['basedir'] . '/sip-printify-manager/products/';
+    
+    if (isset($product['title'])) {
+        $formatted_title = strtolower(str_replace(' ', '-', trim($product['title'])));
+        $filename = $target_dir . $formatted_title . '.json';
+
+        // Delete the JSON file if it exists
+        if (file_exists($filename)) {
+            unlink($filename);
+            error_log("Deleted product JSON file: $filename");
+        } else {
+            error_log("JSON file not found for product: $filename");
+        }
+    }
+}
+
 // Transform the product data according to specified rules
 function transform_product_data($product) {
     // Add 'source product' key with the value being the title of the product
