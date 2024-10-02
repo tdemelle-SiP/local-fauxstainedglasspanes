@@ -121,6 +121,44 @@ class SiP_Printify_Manager {
         wp_enqueue_script('jshint');
         wp_enqueue_style('wp-edit-codemirror');
     
+        // Enqueue CodeMirror add-ons for code folding
+        wp_enqueue_script(
+            'codemirror-addon-foldcode',
+            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldcode.min.js',
+            array('wp-codemirror'),
+            '5.65.13',
+            true
+        );
+        wp_enqueue_script(
+            'codemirror-addon-foldgutter',
+            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldgutter.min.js',
+            array('wp-codemirror'),
+            '5.65.13',
+            true
+        );
+        wp_enqueue_script(
+            'codemirror-addon-brace-fold',
+            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/brace-fold.min.js',
+            array('wp-codemirror'),
+            '5.65.13',
+            true
+        );
+        wp_enqueue_script(
+            'codemirror-addon-comment-fold',
+            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/comment-fold.min.js',
+            array('wp-codemirror'),
+            '5.65.13',
+            true
+        );
+
+        // Enqueue CodeMirror folding styles
+        wp_enqueue_style(
+            'codemirror-addon-foldgutter-style',
+            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldgutter.min.css',
+            array('wp-codemirror'),
+            '5.65.13'
+        );
+
         // Enqueue jQuery UI
         wp_enqueue_script('jquery-ui-resizable');
         wp_enqueue_script('jquery-ui-draggable');
@@ -134,30 +172,86 @@ class SiP_Printify_Manager {
         );
     
         // Enqueue your custom JS files
+    
+        // Enqueue sip-spinner
         wp_enqueue_script(
-            'sip-ajax-script',
-            plugin_dir_url(__FILE__) . 'assets/js/sip-ajax.js',
+            'sip-spinner',
+            plugin_dir_url(__FILE__) . 'assets/js/spinner.js',
+            array('jquery'),
+            '1.0.0',
+            true
+        );
+    
+        // Enqueue sip-ajax
+        wp_enqueue_script(
+            'sip-ajax',
+            plugin_dir_url(__FILE__) . 'assets/js/ajax.js',
             array('jquery', 'wp-codemirror', 'jquery-ui-resizable', 'jquery-ui-draggable'),
             '1.0.0',
             true
         );
     
+        // Enqueue sip-product-creation
         wp_enqueue_script(
-            'sip-creation-script',
-            plugin_dir_url(__FILE__) . 'assets/js/sip-creation.js',
-            array('jquery', 'sip-ajax-script'),
+            'sip-product-creation',
+            plugin_dir_url(__FILE__) . 'assets/js/productCreation.js',
+            array('jquery', 'sip-ajax'),
             '1.0.0',
             true
         );
     
-        wp_localize_script('sip-creation-script', 'sipAjax', array(
+        // Enqueue sip-template-editor
+        wp_enqueue_script(
+            'sip-template-editor',
+            plugin_dir_url(__FILE__) . 'assets/js/templateEditor.js',
+            array('jquery', 'sip-ajax', 'wp-codemirror'),
+            '1.0.0',
+            true
+        );
+    
+        // Enqueue sip-image-upload
+        wp_enqueue_script(
+            'sip-image-upload',
+            plugin_dir_url(__FILE__) . 'assets/js/imageUpload.js',
+            array('jquery', 'sip-ajax'),
+            '1.0.0',
+            true
+        );
+    
+        // Enqueue sip-event-handlers
+        wp_enqueue_script(
+            'sip-event-handlers',
+            plugin_dir_url(__FILE__) . 'assets/js/eventHandlers.js',
+            array('jquery', 'sip-ajax'),
+            '1.0.0',
+            true
+        );
+    
+        // Enqueue sip-main
+        wp_enqueue_script(
+            'sip-main',
+            plugin_dir_url(__FILE__) . 'assets/js/main.js',
+            array(
+                'jquery',
+                'sip-spinner',
+                'sip-ajax',
+                'sip-product-creation',
+                'sip-template-editor',
+                'sip-image-upload',
+                'sip-event-handlers'
+            ),
+            '1.0.0',
+            true
+        );
+    
+        // Localize script to pass PHP variables to JavaScript
+        wp_localize_script('sip-ajax', 'sipAjax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce'    => wp_create_nonce('sip_printify_manager_nonce')
         ));
     }
     
-
-
+    
     /**
      * Hide Admin Notices with CSS
      *
