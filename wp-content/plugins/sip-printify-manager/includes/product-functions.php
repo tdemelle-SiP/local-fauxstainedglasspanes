@@ -264,6 +264,105 @@ function sip_execute_product_action($action, $selected_products = array()) {
 
 // Transform the product data according to specified rules
 function transform_product_data($product) {
+    // Add 'source product' key with the value being the title of the product
+    if (isset($product['title'])) {
+        $product['source product'] = $product['title'];
+    }
+
+    // Process the 'options' array to create mappings for colors and sizes
+    $colors_map = array();
+    $sizes_map = array();
+
+    if (isset($product['options']) && is_array($product['options'])) {
+        foreach ($product['options'] as $option) {
+            if ($option['name'] == 'Colors' && isset($option['values'])) {
+                foreach ($option['values'] as $value) {
+                    $id = $value['id'];
+                    $colors_map[$id] = array(
+                        'id' => $value['id'],
+                        'title' => $value['title'],
+                        'colors' => $value['colors']
+                    );
+                }
+            } elseif ($option['name'] == 'Sizes' && isset($option['values'])) {
+                foreach ($option['values'] as $value) {
+                    $id = $value['id'];
+                    $sizes_map[$id] = array(
+                        'id' => $value['id'],
+                        'title' => $value['title']
+                    );
+                }
+            }
+        }
+    }
+
+    // Initialize arrays to hold enabled variants and IDs of removed variants
+    $enabled_variants = array();
+    $removed_variant_ids = array();
+
+    // Arrays to hold enabled color and size IDs
+    $enabled_color_ids = array();
+    $enabled_size_ids = array();
+
+    // Process the 'variants' array
+    if (isset($product['variants']) && is_array($product['variants'])) {
+        foreach ($product['variants'] as $variant) {
+            if (isset($variant['is_enabled']) && $variant['is_enabled'] === false) {
+                // If the variant is not enabled, collect its ID for later removal
+                if (isset($variant['id'])) {
+                    $removed_variant_ids[] = $variant['id'];
+                }
+                // Do not include this variant in the enabled variants array
+            } else {
+                // Collect option IDs from enabled variants
+                if (isset($variant['options']) && is_array($variant['options'])) {
+                    $option1 = $variant['options'][0]; // Color ID
+                    $option2 = $variant['options'][1]; // Size ID
+
+                    $enabled_color_ids[] = $option1;
+                    $enabled_size_ids[] = $option2;
+                }
+
+                // If the variant is enabled, keep only specified keys
+                $variant_keys_to_keep = array('id', 'price', 'is_enabled');
+                $new_variant = array();
+                foreach ($variant_keys_to_keep as $key) {
+                    if (isset($variant[$key])) {
+                        $new_variant[$key] = $variant[$key];
+                    }
+                }
+                // Add the new variant to the enabled variants array
+                $enabled_variants[] = $new_variant;
+            }
+        }
+        // Replace the 'variants' array with the array of enabled variants
+        $product['variants'] = $enabled_variants;
+    }
+
+    // Make enabled color and size IDs unique
+    $enabled_color_ids = array_unique($enabled_color_ids);
+    $enabled_size_ids = array_unique($enabled_size_ids);
+
+    // Build 'options - colors' array
+    $options_colors = array();
+    foreach ($enabled_color_ids as $color_id) {
+        if (isset($colors_map[$color_id])) {
+            $options_colors[] = $colors_map[$color_id];
+        }
+    }
+
+    // Build 'options - sizes' array
+    $options_sizes = array();
+    foreach ($enabled_size_ids as $size_id) {
+        if (isset($sizes_map[$size_id])) {
+            $options_sizes[] = $sizes_map[$size_id];
+        }
+    }
+
+    // Add the options arrays to the product data at the end
+    $product['options - colors'] = $options_colors;
+    $product['options - sizes'] = $options_sizes;
+
     // Remove specified top-level keys from the product data
     $keys_to_remove = array(
         'id',
@@ -289,36 +388,6 @@ function transform_product_data($product) {
         if (isset($product[$key])) {
             unset($product[$key]);
         }
-    }
-
-    // Initialize arrays to hold enabled variants and IDs of removed variants
-    $enabled_variants = array();
-    $removed_variant_ids = array();
-
-    // Process the 'variants' array
-    if (isset($product['variants']) && is_array($product['variants'])) {
-        foreach ($product['variants'] as $variant) {
-            if (isset($variant['is_enabled']) && $variant['is_enabled'] === false) {
-                // If the variant is not enabled, collect its ID for later removal
-                if (isset($variant['id'])) {
-                    $removed_variant_ids[] = $variant['id'];
-                }
-                // Do not include this variant in the enabled variants array
-            } else {
-                // If the variant is enabled, keep only specified keys
-                $variant_keys_to_keep = array('id', 'price', 'is_enabled');
-                $new_variant = array();
-                foreach ($variant_keys_to_keep as $key) {
-                    if (isset($variant[$key])) {
-                        $new_variant[$key] = $variant[$key];
-                    }
-                }
-                // Add the new variant to the enabled variants array
-                $enabled_variants[] = $new_variant;
-            }
-        }
-        // Replace the 'variants' array with the array of enabled variants
-        $product['variants'] = $enabled_variants;
     }
 
     // Process the 'print_areas' array
@@ -375,3 +444,4 @@ function transform_product_data($product) {
     // Return the transformed product data
     return $product;
 }
+

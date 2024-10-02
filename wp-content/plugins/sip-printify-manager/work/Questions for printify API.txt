@@ -21,3 +21,5 @@ Need to look into adding names to layers in product creator.  i.e. How does "nam
 
 Do I need to include all variants in the product creation json even if they are not enabled?
 
+Are the ids used for size/color combos always the same per product?  Do I need to include the options arrays with the size and color ids and then the variants arrays with referenced options associated with the id or is just the id enough for the product creation json?
+
