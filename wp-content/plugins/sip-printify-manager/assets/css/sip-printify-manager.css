@@ -408,3 +408,74 @@ body.resizing * {
     margin-top: 15px; /* Adds space above the shop name */
     margin-bottom: 20px; /* Adds space below the shop name */
 }
+
+/*//////////////////////////////////////////////////////////////////////////////////////*/
+/*//////////////////////////////////////////////////////////////////////////////////////*/
+
+/* Product Creation Table Styles */
+#product-creation-table {
+    margin-top: 40px;
+}
+
+#product-creation-table .header-controls {
+    margin-bottom: 20px;
+}
+
+#product-creation-table .header-controls .button {
+    margin-right: 10px;
+}
+
+#creation-table .image-thumbnail {
+    width: 30px;
+    height: 30px;
+    display: block;
+    margin: 0 auto;
+}
+
+#creation-table .image-cell {
+    text-align: center;
+    position: relative;
+}
+
+#creation-table .image-cell span {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+#creation-table .image-cell .reset-image-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#creation-table .editable {
+    cursor: pointer;
+}
+
+#creation-table .editable-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#creation-table .reset-button,
+#creation-table .edit-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 5px;
+}
+
+#creation-table .color-swatch {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    margin-right: 3px;
+    border: 1px solid #ccc;
+    vertical-align: middle;
+}

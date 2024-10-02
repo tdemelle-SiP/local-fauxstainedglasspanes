@@ -46,6 +46,8 @@ require_once plugin_dir_path(__FILE__) . 'includes/shop-functions.php';      // 
 require_once plugin_dir_path(__FILE__) . 'includes/product-functions.php';   // Product-related functions
 require_once plugin_dir_path(__FILE__) . 'includes/image-functions.php';     // Image-related functions
 require_once plugin_dir_path(__FILE__) . 'includes/template-functions.php';  // Template-related functions
+require_once plugin_dir_path( __FILE__ ) . 'includes/creation-functions.php';
+
 
 /**
  * Class SiP_Printify_Manager
@@ -123,7 +125,7 @@ class SiP_Printify_Manager {
         wp_enqueue_script('jquery-ui-resizable');
         wp_enqueue_script('jquery-ui-draggable');
     
-        // Enqueue your custom CSS and JS
+        // Enqueue your custom CSS
         wp_enqueue_style(
             'sip-printify-manager-style',
             plugin_dir_url(__FILE__) . 'assets/css/sip-printify-manager.css',
@@ -131,6 +133,7 @@ class SiP_Printify_Manager {
             '1.0.0'
         );
     
+        // Enqueue your custom JS files
         wp_enqueue_script(
             'sip-ajax-script',
             plugin_dir_url(__FILE__) . 'assets/js/sip-ajax.js',
@@ -139,11 +142,20 @@ class SiP_Printify_Manager {
             true
         );
     
-        wp_localize_script('sip-ajax-script', 'sipAjax', array(
+        wp_enqueue_script(
+            'sip-creation-script',
+            plugin_dir_url(__FILE__) . 'assets/js/sip-creation.js',
+            array('jquery', 'sip-ajax-script'),
+            '1.0.0',
+            true
+        );
+    
+        wp_localize_script('sip-creation-script', 'sipAjax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce'    => wp_create_nonce('sip_printify_manager_nonce')
         ));
     }
+    
 
 
     /**

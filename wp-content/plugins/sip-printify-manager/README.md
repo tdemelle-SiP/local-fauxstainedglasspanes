@@ -168,7 +168,7 @@ The purpose of a template is to represent the data necessary to use the Printify
 ==============================PLUGIN FOLDER STRUCTTURE=============================
 
 /wp-content/plugins/
-	├── sip-plugins-core/
+	  ├── sip-plugins-core/
     └── sip-printify-manager/
         ├── assets/
         │   ├── css/
@@ -176,6 +176,8 @@ The purpose of a template is to represent the data necessary to use the Printify
         │   └── js/
         │       └── sip-ajax.js
         ├── includes/
+        │   ├── creation-functions.php     
+        │   ├── image-functions.php     
         │   ├── shop-functions.php
         │   ├── product-functions.php
         │   └── template-functions.php

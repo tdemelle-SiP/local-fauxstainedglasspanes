@@ -13,7 +13,7 @@ Issues with Template Editor
 
 
 
-
+---------------------
 IDEAS AND NOTES
 ---------------------
 
@@ -28,14 +28,163 @@ scroll/annotatescrollbar.js
 Provides functionality for showing markers on the scrollbar to call out certain parts of the document. Adds a method annotateScrollbar to editor instances that can be called, with a CSS class name as argument, to create a set of annotations. The method returns an object whose update method can be called with a sorted array of {from: Pos, to: Pos} objects marking the ranges to be highlighted. To detach the annotations, call the object's clear method.
 
 
+CREATE PRODUCTS TABLE-----------
+
+For the next phase of development of the SiP Product Manager for Printify, a wordpress plugin for managing and creating Printify products with a woocommerce store, I am working on a section that will appear in the plugins main admin panel that I've been working on that draws on the images available in the plugin's images table and the available templates created from printify products (the images table and the templates table have already been implemented in the admin panel). This new section allows for the integration of the images and the template data along with custom data entry by the user into new product data in the form of product json files that can then be sent to Printify using its API calls to create new products.
+
+This new section is called the Product Creation Table and occupies a full width section of the admin page underneath the previously implemented elements. It consists of a title below which is a header area below which is a table.
+
+The header area contains controls for building new products.  The full range of controls is still being developed, but it will include controls that allow for the import and export of cvs data to help customize the new products being created.
+
+The table area contains the specific data for each new product with each row representing one product.
+
+This functionality needs to be built in a way that integrates into the existing codebase.  I expect that will include:
+html structure that will need to integrate into the existing admin-page.php file
+core code that will need to integrate into the existing sip-printify-manager.php file
+specific code that will need to integrate into a new php file called creation-functions.php
+javascript that will need to integrate into the sip-ajax.js javascript file
+css that will need to integrate into the sip-printify-manager.css file
+
+Here's the structure of the data hierarchy
+/wp-content/plugins/
+    ├── sip-plugins-core/
+    └── sip-printify-manager/
+        ├── assets/
+        │   ├── css/
+        │   │   └── sip-printify-manager.css
+        │   └── js/
+        │       └── sip-ajax.js
+        ├── includes/
+        │   ├── creation-functions.php     
+        │   ├── image-functions.php     
+        │   ├── shop-functions.php
+        │   ├── product-functions.php
+        │   └── template-functions.php
+        ├── views/
+        │   └── admin-page.php
+        ├── sip-printify-manager.php
+        └── README.md
+
+I think the best way to approach this is to integrate the html into the admin-page.php so that it appears in the context of the plugin, and then to create new distinct php, css and js files without integrating them to make it easier to manage iteration and then once the feature is working, integrate with the rest of the plugin hierarchy.
+
+
+--------------------------------
+
+By the time they will be using the new product creator, the user will have registered their shop (which also populates a products table and an images table), added new images to the images table and created templates from the products.  The UI of the admin panel at this point will show the products table, the images table and the templates table.  Below them will be the section where the Create New Products table will go.  It will initially only have the title and perhaps a simple empty table with headers and a single empty row to indicate its utility.
+
+The users experience creating a new product begins when they select a particular template in the already implemented templates section of the plugin admin ui, select the "create new product" action from the pulldown and click execute.
+
+At this point the header controls and the table appear fully realized under the Product Creation Table header.
+
+The data in the template json file is used to populate a new-product json file and certain elements are entered into the cells under the correct columns in the new product row of the New Products Table where the user can use the table and other customization functions (image drag and drop, csv import) to customize them.
+
+--------------------------------
+
+The elements needed to create a json that are present in the source template json include:
+
+title				
+description			
+tags				
+blueprint id			
+print provider id		
+variants			
+	id
+	price
+	is_enabled
+print areas			
+	variant ids		
+	placeholders
+		position
+		images
+			id	
+			name	
+			type
+			height
+			width
+			x
+			y
+			scale
+			angle
+options - colors
+	id
+	title
+	colors
+options - sizes
+	id
+	title
+
+
+--------------------------------
+
+The columns that appear in the New Product Creation Table are as follows:
+
+Front Design | Title | Sizes | Colors | Description | Tags | Price | ... an appropriately named "X Design" column for each other print area in the template.  The X  associated with each print area will come from the "position" key associated with each individual image in the template.json "images" array.
+
+The data in the columns represents the data in the New Product JSON and updates to the cells for each row should update the data in the new product json accordingly.
+
+--------------------------------
+
+The table is populated from the source template json file in the following manner (entries without notes are present in the new product json but are not user editable and so don't appear in the Product Creation Table):
+
+
+Front Design			| A product may have multiple print areas each with multiple images arranged together to create the design that is printed there, but should nearly always have at least a Front design.  The front design comes first in our table headers because it is the most visually representative of the product.  The template for how the front design is presented in the table is also used later in the columns for the other print area designs.
+				| The front design header should span however many images there are in the area with the front "position". the images should appear in columns under the header from left to right in the order the appear from top to bottom in the source array.  Each cell should contain a small 30x30 image thumbnail derived from the url in the "src" key with the image title centered beneath it. The thumbnail should be clickable and open up a lightbox with the image in it.
+
+	| 						Front Design					|
+	| image thumbnail	| image thumbnail	| image thumbnail	| image thumbnail	|	
+	| image name		| image name		| image name		| image name		|	
+
+	Each cell is drag/droppable from the images table (the images table has already been implemented in the admin page) 
+
+	There's a reset icon button to the left of each image name that resets them individually and a reset button to the left of the Front Images header that resets them all.
+
+
+
+title				| The title in the table is assembled in part from the template title and in part from the front image name.  The code should look up the front image name in the template, find its string in the title string (or the placeholder "[title]") and replace it with the image name of whatever image is in the front image cell whether that's pulled in from the template or the user enters or drags a new image into the image thumb or front image name cells of the table - the name should then be editable.  There should be a reset icon on the far right side of the name cell that will revert it to the template name with the current front image.
+
+colors				| For all the ids in the colors array create a series of swatches in the "colors" table cell associated with that product.  The swatches are filled with the their associated color's hexadecimal value with rollover text that shows the associated color's title.
+
+sizes				| For all the ids in the sizes array create a series of strings in the "sizes" table cell associated with that product.  For each size show "title" values separated by commas
+
+description			| The description should populate from the template description.  The cell should only show the first 20 or 30 characters of the description followed by ellipsis.  There should be a document edit button on the far right side of the cell that brings up a text editor overlay using the same implementation used in the description editor already implemented in the code.  Next to the document edit button should be a reset icon that will revert it to the description in the source template.
+
+tags				| The tags cell should be populated from the template and the cell should be editable.  There should be a reset button on the far right of the cell that reverts the contents of the cell back to the tags in the source template.
+
+blueprint id			| does not appear in the table
+
+print provider id		| does not appear in the table	
+
+variants			| does not appear in the table
+
+	id			| does not appear in the table
+
+	price			| not quite sure how to implement this yet.  Perhaps to start it could just show the range of lowest to highest price shown in the template.
+
+	is_enabled		| does not appear in the table
+
+print areas			| appear in the template in the context of the design locations		
+
+	variant ids		| does not appear in the table		
+
+	placeholders
+		position	| the solution for the "front" position has been included above.  Each additional position in the template should be structured in the same way and the associated headers, columns and data should be appended to the table in the order in which they appear in the template
+		images		| images data is integrated as described above
+			id	
+			name	
+			type
+			height
+			width
+			x
+			y
+			scale
+			angle
 
 
 
 
-
-
-
+---------------------
 FIXED
+---------------------
 	-the bottom right corner scaling handle is scaling the mdoal uniformly outward from the center of the window instead of just pulling the bottom right corner in and out.
 	-removing the css "resize: both;" removes the handle
 	-I might be wrong, but I don't think it's the CSS causing the corner handle to scale uniformly

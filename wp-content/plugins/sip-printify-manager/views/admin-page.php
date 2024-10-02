@@ -113,6 +113,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                 <label for="template_action"><?php esc_html_e('Template Actions:', 'sip-printify-manager'); ?> </label>
                 <select name="template_action" id="template_action">
                     <option value="delete_template"><?php esc_html_e('Delete Template', 'sip-printify-manager'); ?></option>
+                    <option value="create_new_products">Create New Products</option>
                 </select>
                 <input type="submit" name="execute_template_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary"/>
             </form>
@@ -213,6 +214,29 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 
 
 <div id="product-creation-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>
+    <!-- Product Creation Table Section -->
+    <section id="product-creation-table" class="sip-section">
     <hr class="divider" style="margin-top: 20px; background-color: #c0bfbf;">
     <h2 class="creation-table-title"><?php esc_html_e('Product Creation Table', 'sip-printify-manager'); ?></h2>
+    
+    <!-- Header Controls -->
+    <div class="header-controls">
+        <button id="import-csv" class="button">Import CSV</button>
+        <button id="export-csv" class="button">Export CSV</button>
+        <!-- Additional controls can be added here -->
+    </div>
+    
+    <!-- Dynamic Product Table -->
+    <table id="creation-table" class="wp-list-table widefat fixed striped">
+        <!-- Table headers and rows will be populated dynamically -->
+        <thead>
+        <!-- Headers will be inserted here by JavaScript -->
+        </thead>
+        <tbody>
+        <!-- Rows will be inserted here by JavaScript -->
+        </tbody>
+    </table>
+    <button id="create-product-button" class="button button-primary">Create Product</button>
+    </section>
 </div>
+

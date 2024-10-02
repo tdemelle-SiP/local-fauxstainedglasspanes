@@ -116,7 +116,7 @@ function sip_display_template_list($templates) {
         foreach ($templates as $template) {
             echo '<tr>';
             echo '<td style="text-align: center; padding: 2px;">';
-            echo '<input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '" /></td>';
+            echo '<input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '" />';
             echo '<td class="template-name-cell" style="text-align: left; padding: 2px;" data-template-name="' . esc_attr($template) . '">' . esc_html($template) . '</td>';
             echo '<td style="text-align: center; padding: 2px;">';
             echo '<span class="rename-template" style="cursor: pointer;" title="Rename Template"><i class="dashicons dashicons-edit"></i></span>';

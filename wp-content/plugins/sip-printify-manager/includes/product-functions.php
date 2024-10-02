@@ -380,7 +380,8 @@ function transform_product_data($product) {
         'is_printify_express_eligible',
         'is_printify_express_enabled',
         'is_economy_shipping_eligible',
-        'is_economy_shipping_enabled'
+        'is_economy_shipping_enabled',
+        'views'
     );
 
     // Remove the keys from the product data
