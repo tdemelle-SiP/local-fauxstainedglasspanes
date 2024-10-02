@@ -198,7 +198,7 @@ table tbody tr:nth-child(even) {
     pointer-events: auto;
 }
 
-#product-editor-outer-window {
+#template-editor-outer-window {
     position: absolute;
     top: 10%;
     left: 10%;
@@ -214,7 +214,7 @@ table tbody tr:nth-child(even) {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-#product-editor-header {
+#template-editor-header {
     background-color: #007bff;
     color: white;
     padding: 10px;
@@ -234,40 +234,40 @@ table tbody tr:nth-child(even) {
     cursor: pointer;
 }
 
-#product-editor-header, #product-editor-description-header, #product-editor-json-header {
+#template-editor-header, #template-editor-description-header, #template-editor-json-header {
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
 }
 
-#product-editor-header span, #product-editor-description-header span, #product-editor-json-header span {
+#template-editor-header span, #template-editor-description-header span, #template-editor-json-header span {
     cursor: default;
     pointer-events: none;
 }
 
-#product-editor-inner-container {
+#template-editor-inner-container {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     overflow: hidden;
 }
 
-#product-editor-top-container, #product-editor-bottom-container {
+#template-editor-top-container, #template-editor-bottom-container {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     overflow: hidden;
 }
 
-#product-editor-top-wrapper, #product-editor-bottom-wrapper {
+#template-editor-top-wrapper, #template-editor-bottom-wrapper {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     min-height: 0;
 }
 
-#product-editor-description-header, #product-editor-json-header {
+#template-editor-description-header, #template-editor-json-header {
     background-color: #e9ecef;
     color: #495057;
     padding: 5px 10px;
@@ -278,7 +278,7 @@ table tbody tr:nth-child(even) {
     align-items: center;
 }
 
-#product-editor-resizer {
+#template-editor-resizer {
     height: 15px;
     background-color: white;
     cursor: row-resize;
@@ -290,7 +290,7 @@ table tbody tr:nth-child(even) {
     flex-shrink: 0;
 }
 
-#product-editor-resizer::after {
+#template-editor-resizer::after {
     content: "";
     width: 30px;
     height: 4px;
@@ -298,13 +298,13 @@ table tbody tr:nth-child(even) {
     border-radius: 2px;
 }
 
-#product-editor-top-editor, #product-editor-bottom-editor {
+#template-editor-top-editor, #template-editor-bottom-editor {
     flex-grow: 1;
     transition: none;
     overflow: hidden;
 }
 
-#product-editor-top-editor .CodeMirror, #product-editor-bottom-editor .CodeMirror {
+#template-editor-top-editor .CodeMirror, #template-editor-bottom-editor .CodeMirror {
     height: 100% !important;
 }
 
@@ -313,7 +313,7 @@ table tbody tr:nth-child(even) {
     overflow-y: auto !important;
 }
 
-#product-editor-toggle-view {
+#template-editor-toggle-view {
     background-color: #007bff;
     color: white;
     border: none;
@@ -322,7 +322,7 @@ table tbody tr:nth-child(even) {
     font-size: 12px;
 }
 
-#product-editor-rendered-html {
+#template-editor-rendered-html {
     flex-grow: 1;
     overflow-y: auto;
     overflow-x: hidden;

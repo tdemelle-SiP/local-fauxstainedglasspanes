@@ -180,32 +180,32 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 
 <!-- The Template Editor Modal -->
 <div id="template-editor-overlay" class="template-editor-overlay">
-    <div id="product-editor-outer-window">
-        <div id="product-editor-header">
-            <span>Product Editor</span>
+    <div id="template-editor-outer-window">
+        <div id="template-editor-header">
+            <span>Template Editor</span>
             <div class="header-buttons">
-                <button id="product-editor-save">Save</button>
-                <button id="product-editor-close">Close</button>
+                <button id="template-editor-save">Save</button>
+                <button id="template-editor-close">Close</button>
             </div>
         </div>
-        <div id="product-editor-inner-container">
-            <div id="product-editor-top-container">
-                <div id="product-editor-top-wrapper">
-                    <div id="product-editor-description-header">
+        <div id="template-editor-inner-container">
+            <div id="template-editor-top-container">
+                <div id="template-editor-top-wrapper">
+                    <div id="template-editor-description-header">
                         <span>Product Description</span>
-                        <button id="product-editor-toggle-view">View Rendered</button>
+                        <button id="template-editor-toggle-view">View Rendered</button>
                     </div>
-                    <div id="product-editor-top-editor"></div>
-                    <div id="product-editor-rendered-html"></div>
+                    <div id="template-editor-top-editor"></div>
+                    <div id="template-editor-rendered-html"></div>
                 </div>
             </div>
-            <div id="product-editor-resizer"></div>
-            <div id="product-editor-bottom-container">
-                <div id="product-editor-bottom-wrapper">
-                    <div id="product-editor-json-header">
+            <div id="template-editor-resizer"></div>
+            <div id="template-editor-bottom-container">
+                <div id="template-editor-bottom-wrapper">
+                    <div id="template-editor-json-header">
                         <span>Product JSON</span>
                     </div>
-                    <div id="product-editor-bottom-editor"></div>
+                    <div id="template-editor-bottom-editor"></div>
                 </div>
             </div>
         </div>
