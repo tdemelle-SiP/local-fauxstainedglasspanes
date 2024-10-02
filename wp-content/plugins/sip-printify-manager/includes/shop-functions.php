@@ -47,8 +47,6 @@ function sip_connect_shop() {
 /**
  * Save the Printify API token and store shop details.
  */
-// includes/shop-functions.php
-
 function sip_save_token() {
     $token = sanitize_text_field($_POST['printify_bearer_token']);
     $shop_details = fetch_shop_details($token);
@@ -83,7 +81,6 @@ function sip_save_token() {
         if ($products) {
             update_option('sip_printify_products', $products);
         }
-        
 
         wp_send_json_success('Token saved and connection successful.');
     } else {
@@ -116,9 +113,43 @@ function sip_new_token() {
         update_option('sip_printify_images', $local_images);
     }
 
+    // Delete product JSON files associated with the shop
+    clear_product_jsons();
+
     wp_send_json_success('Token reset successfully.');
 }
 
+/**
+ * Clear product JSON files associated with the shop.
+ */
+function clear_product_jsons() {
+    $upload_dir = wp_upload_dir();
+    $target_dir = $upload_dir['basedir'] . '/sip-printify-manager/products/';
+
+    // Log the target directory being checked
+    error_log("Checking target directory for product JSON files: $target_dir");
+
+    // Check if the directory exists
+    if (is_dir($target_dir)) {
+        $files = glob($target_dir . '*.json'); // Get all JSON files in the directory
+
+        // Log the number of files found
+        error_log("Found " . count($files) . " product JSON files to delete.");
+
+        foreach ($files as $file) {
+            if (unlink($file)) { // Delete each file
+                error_log("Successfully deleted product JSON file: $file");
+            } else {
+                error_log("Failed to delete product JSON file: $file");
+            }
+        }
+
+        // Log completion of deletion process
+        error_log("Completed deletion process for product JSON files in directory: $target_dir");
+    } else {
+        error_log("Target directory does not exist: $target_dir");
+    }
+}
 
 /**
  * Generate and store the encryption key if it doesn't already exist.

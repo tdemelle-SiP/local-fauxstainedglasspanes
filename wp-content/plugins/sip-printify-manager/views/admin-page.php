@@ -25,7 +25,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 <div class="header-section">
     <h1 class="header-title"><?php esc_html_e('Welcome to SIP Printify Manager!', 'sip-printify-manager'); ?></h1>
     <div id="button-container" <?php echo empty($token) ? 'style="display:none;"' : ''; ?>>
-        <button id="new-token-button" class="button button-primary"><?php esc_html_e('New Store Token', 'sip-printify-manager'); ?></button>
+        <button id="new-token-button" class="button button-primary"><?php esc_html_e('New Shop Token', 'sip-printify-manager'); ?></button>
     </div>
 </div>
 
@@ -45,7 +45,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         <li>Name your token (e.g., "Printify Manager Token") and select :All scopes (full access).</li>
         <li>Click <strong>Generate token</strong> and then Click <strong>Copy to clipboard</strong>.</li>
         <li>Paste the token below and click <strong>Save Token</strong>.</li>
-        <li>Once saved, we'll connect to your shop and retrieve your image uploads abd product list. From there, you'll be able to manage your Printify products and create new ones right from your WordPress dashboard!</li>
+        <li>Once saved, we'll connect to your shop and retrieve your image uploads and product list. From there, you'll be able to manage your Printify products and create new ones right from your WordPress dashboard!</li>
     </ol>
     <p><strong>Note:</strong> It's a good idea to save the token somewhere you can access it later in case you need to re-authorize the plugin. If you lose the token, don't worry, you can just follow these steps again to generate a new one.</p>
     <form id="save-token-form" method="post" action="">

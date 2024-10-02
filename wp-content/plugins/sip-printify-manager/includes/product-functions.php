@@ -8,13 +8,12 @@
 // Prevent direct access to this file for security reasons
 if (!defined('ABSPATH')) exit;
 
-
 // Fetch products directly from Printify API using the Bearer token
 function fetch_products($encrypted_token, $shop_id) {
     // Decrypt the token before using it
     $token = sip_decrypt_token($encrypted_token);
     
-    error_log('shop_id:' . ($shop_id));   
+    error_log('shop_id: ' . $shop_id);   
     
     $url = "https://api.printify.com/v1/shops/{$shop_id}/products.json";
 
@@ -44,9 +43,48 @@ function fetch_products($encrypted_token, $shop_id) {
     }
 
     error_log('fetch_products retrieved ' . count($products['data']) . ' products');
+
+    // Save each product as a separate JSON file
+    save_products_to_json($products['data']);
+
     return $products['data']; // Return only the 'data' field that contains the products
 }
 
+/**
+ * Save each product to a separate JSON file
+ *
+ * @param array $products Array of products to save.
+ */
+function save_products_to_json($products) {
+    $upload_dir = wp_upload_dir(); // Get the uploads directory
+    $target_dir = $upload_dir['basedir'] . '/sip-printify-manager/products/'; // Define the target directory
+
+    // Create the directory if it doesn't exist
+    if (!file_exists($target_dir)) {
+        mkdir($target_dir, 0755, true);
+    }
+
+    foreach ($products as $product) {
+        // Ensure the product array contains a title
+        if (isset($product['title'])) {
+            // Format the filename using the product title
+            $formatted_title = strtolower(str_replace(' ', '-', trim($product['title'])));
+            // Define the filename based on the formatted title
+            $filename = $target_dir . $formatted_title . '.json';
+            
+            // Check if the file already exists and prevent overwriting
+            if (!file_exists($filename)) {
+                // Save product data as JSON
+                file_put_contents($filename, json_encode($product, JSON_PRETTY_PRINT));
+                error_log("Saved product data to $filename");
+            } else {
+                error_log("File $filename already exists. Skipping.");
+            }
+        } else {
+            error_log('Product does not have a title. Skipping saving.');
+        }
+    }
+}
 
 /**
  * Display the Product List in the Admin Interface
@@ -109,8 +147,6 @@ function sip_display_product_list($products) {
     echo '</table>';
     echo '</div>';
 }
-
-
 
 // Handle product actions triggered via AJAX
 function sip_handle_product_action() {
@@ -183,7 +219,12 @@ function sip_execute_product_action($action, $selected_products = array()) {
 
         $initial_count = count($products);
         $products = array_filter($products, function ($product) use ($selected_products) {
-            return !in_array($product['id'], $selected_products);
+            $product_removed = !in_array($product['id'], $selected_products);
+            if (!$product_removed) {
+                // Delete the corresponding JSON file if the product is removed
+                delete_product_json($product);
+            }
+            return $product_removed;
         });
         $filtered_count = count($products);
 

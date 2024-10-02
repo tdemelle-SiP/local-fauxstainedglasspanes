@@ -1,3 +1,11 @@
+TO DO
+---------------------
+Figure out image storage protocols
+	-store images in the uploads/sip-printify-manager/images/ directory when they are in the local images state.
+	-when images are uploaded to printify, remove them from local storage.
+
+
+
 BUGS ANd ISSUES
 ---------------------
 Issues with Template Editor
