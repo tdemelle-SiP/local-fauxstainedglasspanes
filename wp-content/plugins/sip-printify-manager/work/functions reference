@@ -1,0 +1,241 @@
+
+js and php files and functions reference
+
+main.js
+    // Initialize modules
+    sip.spinner.init();
+    sip.ajaxModule.init();
+    sip.productCreation.init();
+    sip.templateEditor.init();
+    sip.imageUpload.init();
+    sip.eventHandlers.init();
+
+ajax.js
+    sip.AjaxModule()
+
+        init()
+            '#save-token-form, #product-action-form, #template-action-form, #image-action-form'
+                // Append common data to formData for the AJAX request
+                formData.append('action', 'sip_handle_ajax_request'); // WordPress AJAX action hook
+                formData.append('action_type', actionType); // Specific action to perform
+                formData.append('nonce', sipAjax.nonce);
+            '#new-token-button'
+                formData.append('action', 'sip_handle_ajax_request');
+                formData.append('action_type', 'new_token');
+                formData.append('nonce', sipAjax.nonce);
+
+        handleAjaxAction()
+            $.ajax
+                sip_printify_manager_nonce_field: sipAjax.nonce,
+                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
+                action: 'sip_handle_ajax_request',
+                action_type: actionType,
+                nonce: sipAjax.nonce
+            success:
+                save_token
+                new_token
+                product_action
+                template_action
+                save_template
+                image_action
+                upload_images
+
+eventHandlers.js
+    sip.eventHandlers()
+
+        init()
+            $(document).on('change', '#select-all-images'
+            $(document).on('change', 'input[name="selected_images[]"]'
+            $(document).on('change', '#select-all-products'
+            $(document).on('change', 'input[name="selected_products[]"]'
+            $(document).on('change', '#select-all-templates'
+            $(document).on('change', 'input[name="selected_templates[]"]'
+            $('#product-search').on('keyup'
+            $('#image-search').on('keyup'
+            $('#template-search').on('keyup'
+
+imaageUpload.js
+    sip.imageUpload()
+
+        init()
+            $('#image-upload-area').on('dragover'
+            $('#image-upload-area').on('dragleave'
+            $('#image-upload-area').on('drop'
+            $('#select-images-button').on('click'
+            $('#image-file-input').on('change'
+
+        handleImageUpload()
+            formData.append('action', 'sip_handle_ajax_request');
+            formData.append('action_type', 'upload_images');
+            formData.append('nonce', sipAjax.nonce);
+
+templateEditor.js
+    sip.templateEditor()
+
+        init()
+            $('.rename-template').on('click'
+            initializeTemplateEditor($);
+
+        initializeTemplateEditor()
+            initializeEditors()
+                descriptionEditor
+                jsonEditor
+                adjustModalSize()
+                    adjustEditors()
+                ...resizing stuff...
+            $('.edit-template-content').on('click'
+                '#template-editor-overlay'
+                formData.append('action', 'sip_handle_ajax_request');
+                formData.append('action_type', 'template_action');
+                formData.append('template_action', 'edit_template');
+                formData.append('template_name', templateName);
+                formData.append('nonce', sipAjax.nonce);
+                $.ajax
+                    formData
+                success:
+                    initializeEditors()
+                    separateContent()
+                    descriptionEditor.setValue
+                    jsonEditor.setValue
+            $('#template-editor-close').on('click'
+            $('#template-editor-save').on('click'
+                formData.append('action', 'sip_handle_ajax_request');
+                formData.append('action_type', 'save_template');
+                formData.append('template_name', templateName);
+                formData.append('template_content', finalContent);
+                formData.append('nonce', sipAjax.nonce);
+
+productcreation.js
+	sip.productCreation()
+		let selectedTempateId
+
+		init()
+            $('#template-action-form').on('submit'
+				if (action === 'create_new_products')
+					selectedTemplates = [name="selected_templates[]"]
+					loadProductCreationTable()
+
+//////////////think this may be redundant with function in template.js?
+            $('#create-product-button').on('click'    
+                $.ajax
+                    sip_printify_manager_nonce_field: sipAjax.nonce,
+                    action: 'sip_handle_ajax_request',
+                    action_type: 'template_action',
+                    template_action: 'sip_create_product',
+                    template_name: selectedTemplateId,
+                success:
+                    alert('Product created successfully.');
+
+		loadProductCreationTable()
+            show #product-creation-container
+			$.ajax
+	            sip_printify_manager_nonce_field: sipAjax.nonce,
+                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
+                action: 'sip_handle_ajax_request',
+                action_type: 'template_action',
+                template_action: 'create_new_products',
+                template_name: selectedTemplateId,
+                nonce: sipAjax.nonce			
+            success:
+                buildCreationTable();
+
+        buildCreationTable()
+
+        buildDesignCell()
+
+        getSizesString()
+
+        getColorSwatches()
+    
+        truncateText()
+
+        CapitalizeFirstLetter()
+
+        addEventListners()
+
+        UpdateProductData()
+
+        resetCellVallue()
+
+        openTextEditor()
+
+        resetImage()
+
+creation-functions.php
+	sip_handle_creation_action()
+
+	sip_create_new_product_from_template()
+
+	sip_get_tempate_json_from_file()
+
+	sip_update_new_product_data()
+
+	sip_create_product()
+
+	sip_send_product_to_printify()
+
+template-functions.php
+	sip_save_template()
+
+	sip_load_templates()
+
+	sip_get_template_dir()
+
+	sip_display_template_list()
+
+	sip_delete_template()
+
+	sip_rename_template()
+
+	sip_handle_template_action()
+
+	sip_save_template_content()
+
+product-functions.php
+	fetch_products()
+()
+	save_products_to_json()
+
+	sip_display_product_list()
+
+	sip_handle_product_action()
+	
+	sip_execute_product_action()
+
+	delete_product_json()
+
+	transform_product_data()
+
+shop-functions.php
+	fetch_shop_details()
+
+	sip_connect_shop()
+
+	sip_save_token()
+
+	sip_new_token()
+
+	clear_product_jsons()
+
+	sip_generate_encryption_key()
+
+	sip_encrypt_token()
+
+	sip_decrypt_token()
+
+image-functions.php
+	sip_handle_image_action()
+
+	sip_execute_image_action()
+
+	fetch_images()
+
+	sip_display_image_list()
+
+	format_file_size()
+
+	sip_handle_image_upload()
+
+	upload_image_to_shop()
+
+	archive_image_on_shop()
