@@ -4,7 +4,43 @@ Figure out image storage protocols
 	-store images in the uploads/sip-printify-manager/images/ directory when they are in the local images state.
 	-when images are uploaded to printify, remove them from local storage.
 
+NOTES - This function in new product creation is what needs to be fixed  for the create new product table to fill
 
+   function init() {
+        // Event listener for the 'Apply' button in the templates section
+        $('#template-actions-apply').on('click', function() {
+            const action = $('#template-actions-dropdown').val();
+            const selectedTemplates = $('input[name="selected_templates[]"]:checked');
+
+            if (action === 'create_new_products') {
+                if (selectedTemplates.length === 0) {
+                    alert('Please select at least one template.');
+                    return;
+                }
+
+                // For simplicity, we'll use the first selected template
+                selectedTemplateId = selectedTemplates.first().val();
+
+                // Load the Product Creation Table
+                loadProductCreationTable(selectedTemplateId);
+            }
+
+            // Handle other actions...
+        });
+
+
+-----------------------------------
+OTHER CLEANUP
+
+change save template related things to:
+create_template
+edit_template
+save_template_edits
+
+change #product-editor-save to template-editor-save
+
+product-editor-header span to template-editor-header
+search for other instances of product-editor
 
 BUGS ANd ISSUES
 ---------------------
