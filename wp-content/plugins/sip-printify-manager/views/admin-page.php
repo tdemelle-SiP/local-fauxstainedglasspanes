@@ -113,11 +113,11 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                 <label for="template_action"><?php esc_html_e('Template Actions:', 'sip-printify-manager'); ?> </label>
                 <select name="template_action" id="template_action">
                     <option value="delete_template"><?php esc_html_e('Delete Template', 'sip-printify-manager'); ?></option>
-                    <option value="create_new_products">Create New Products</option>
+                    <option value="create_new_products"><?php esc_html_e('Create New Products', 'sip-printify-manager'); ?></option>
+                    <!-- Other options -->
                 </select>
                 <input type="submit" name="execute_template_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary"/>
             </form>
-
             <!-- Ensure the container itself doesn't scroll -->
             <div id="template-list-container" class="template-list-container">
                 <!-- The inner div that will scroll -->

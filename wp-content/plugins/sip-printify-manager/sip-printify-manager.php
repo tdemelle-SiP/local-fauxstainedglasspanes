@@ -34,7 +34,7 @@ if (!defined('ABSPATH')) {
  * This framework serves as a base for initializing and managing SiP plugins within the WordPress admin interface.
  * It handles plugin initialization, admin menu integration, and ensures core dependencies are active.
  */
-require_once(WP_PLUGIN_DIR . '/sip-plugins-core/sip-plugin-framework.php');
+require_once WP_PLUGIN_DIR . '/sip-plugins-core/sip-plugin-framework.php';
 
 /**
  * Include Specialized Functionality Files
@@ -109,56 +109,65 @@ class SiP_Printify_Manager {
         return self::$instance;
     }
 
-    public function enqueue_admin_scripts($hook) {
+    public function enqueue_admin_scripts($hook) 
+    {
         if ($hook !== 'sip-plugins_page_sip-printify-manager') {
             return;
         }
     
-        // Enqueue CodeMirror
-        wp_enqueue_script('wp-codemirror');
-        wp_enqueue_style('wp-codemirror');
-        wp_enqueue_script('csslint');
-        wp_enqueue_script('jshint');
-        wp_enqueue_style('wp-edit-codemirror');
+        // Enqueue CodeMirror from CDN
+        wp_enqueue_script(
+            'codemirror',
+            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js',
+            array(),
+            '5.65.13',
+            true
+        );
+        wp_enqueue_style(
+            'codemirror',
+            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css',
+            array(),
+            '5.65.13'
+        );
     
-        // Enqueue CodeMirror add-ons for code folding
+        // Enqueue CodeMirror addons
         wp_enqueue_script(
             'codemirror-addon-foldcode',
             'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldcode.min.js',
-            array('wp-codemirror'),
+            array('codemirror'),
             '5.65.13',
             true
         );
         wp_enqueue_script(
             'codemirror-addon-foldgutter',
             'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldgutter.min.js',
-            array('wp-codemirror'),
+            array('codemirror'),
             '5.65.13',
             true
         );
         wp_enqueue_script(
             'codemirror-addon-brace-fold',
             'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/brace-fold.min.js',
-            array('wp-codemirror'),
+            array('codemirror'),
             '5.65.13',
             true
         );
         wp_enqueue_script(
             'codemirror-addon-comment-fold',
             'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/comment-fold.min.js',
-            array('wp-codemirror'),
+            array('codemirror'),
             '5.65.13',
             true
         );
-
+    
         // Enqueue CodeMirror folding styles
         wp_enqueue_style(
             'codemirror-addon-foldgutter-style',
             'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldgutter.min.css',
-            array('wp-codemirror'),
+            array('codemirror'),
             '5.65.13'
         );
-
+    
         // Enqueue jQuery UI
         wp_enqueue_script('jquery-ui-resizable');
         wp_enqueue_script('jquery-ui-draggable');
@@ -186,7 +195,7 @@ class SiP_Printify_Manager {
         wp_enqueue_script(
             'sip-ajax',
             plugin_dir_url(__FILE__) . 'assets/js/ajax.js',
-            array('jquery', 'wp-codemirror', 'jquery-ui-resizable', 'jquery-ui-draggable'),
+            array('jquery', 'codemirror', 'jquery-ui-resizable', 'jquery-ui-draggable'),
             '1.0.0',
             true
         );
@@ -204,7 +213,7 @@ class SiP_Printify_Manager {
         wp_enqueue_script(
             'sip-template-editor',
             plugin_dir_url(__FILE__) . 'assets/js/templateEditor.js',
-            array('jquery', 'sip-ajax', 'wp-codemirror'),
+            array('jquery', 'sip-ajax', 'codemirror'),
             '1.0.0',
             true
         );
@@ -250,6 +259,7 @@ class SiP_Printify_Manager {
             'nonce'    => wp_create_nonce('sip_printify_manager_nonce')
         ));
     }
+    
     
     
     /**
@@ -391,6 +401,9 @@ function sip_handle_ajax_request() {
              * This function saves the edited content of a template file.
              */
             sip_save_template_content();
+            break;
+        case 'creation_action':
+            sip_handle_creation_action();
             break;
         default:
             // Invalid action type

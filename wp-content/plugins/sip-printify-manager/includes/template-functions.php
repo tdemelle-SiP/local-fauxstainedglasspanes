@@ -9,6 +9,10 @@
  * @param array $product The product data to save as a template.
  * @param string $template_name The name of the template.
  */
+
+// Include the creation functions file
+require_once plugin_dir_path(__FILE__) . 'creation-functions.php';
+
 function sip_save_template($product, $template_name) {
     // Get the WordPress upload directory
     $upload_dir = wp_upload_dir();
@@ -186,76 +190,91 @@ function sip_delete_template($template_name) {
 /**
  * Handle template actions triggered via AJAX.
  *
- * This function handles actions like deleting, editing, or renaming templates based on AJAX requests.
+ * This function handles actions like deleting, editing, renaming templates, and creating new products from templates based on AJAX requests.
  */
 function sip_handle_template_action() {
     $template_action = isset($_POST['template_action']) ? sanitize_text_field($_POST['template_action']) : '';
 
-    $selected_templates = isset($_POST['selected_templates']) ? $_POST['selected_templates'] : array();
+    switch ($template_action) {
+        case 'delete_template':
+            $selected_templates = isset($_POST['selected_templates']) ? $_POST['selected_templates'] : array();
+            foreach ($selected_templates as $templateId) {
+                sip_delete_template(sanitize_text_field($templateId));
+            }
 
-    if ($template_action === 'delete_template') {
-        foreach ($selected_templates as $templateId) {
-            sip_delete_template(sanitize_text_field($templateId));
-        }
+            // Start output buffering to capture the template list HTML
+            ob_start();
+            $templates = sip_load_templates();
+            sip_display_template_list($templates);
+            $template_list_html = ob_get_clean();
 
-        // Start output buffering to capture the template list HTML
-        ob_start();
-        $templates = sip_load_templates();
-        sip_display_template_list($templates);
-        $template_list_html = ob_get_clean();
+            // Send a JSON response back to the AJAX call with the updated HTML content
+            wp_send_json_success(array('template_list_html' => $template_list_html));
+            break;
 
-        // Send a JSON response back to the AJAX call with the updated HTML content
-        wp_send_json_success(array('template_list_html' => $template_list_html));
+        case 'rename_template':
+            $old_template_name = isset($_POST['old_template_name']) ? sanitize_text_field($_POST['old_template_name']) : '';
+            $new_template_name = isset($_POST['new_template_name']) ? sanitize_text_field($_POST['new_template_name']) : '';
 
-    } elseif ($template_action === 'rename_template') {
-        $old_template_name = isset($_POST['old_template_name']) ? sanitize_text_field($_POST['old_template_name']) : '';
-        $new_template_name = isset($_POST['new_template_name']) ? sanitize_text_field($_POST['new_template_name']) : '';
-    
-        if (!empty($old_template_name) && !empty($new_template_name)) {
-            $old_file_path = sip_get_template_dir() . $old_template_name . '.json';
-            $new_file_path = sip_get_template_dir() . $new_template_name . '.json';
-    
-            if (file_exists($old_file_path)) {
-                // Rename the template file
-                if (rename($old_file_path, $new_file_path)) {
-                    wp_send_json_success(array(
-                        'old_template_name' => $old_template_name,
-                        'new_template_name' => $new_template_name
-                    ));
+            if (!empty($old_template_name) && !empty($new_template_name)) {
+                $old_file_path = sip_get_template_dir() . $old_template_name . '.json';
+                $new_file_path = sip_get_template_dir() . $new_template_name . '.json';
+
+                if (file_exists($old_file_path)) {
+                    // Rename the template file
+                    if (rename($old_file_path, $new_file_path)) {
+                        wp_send_json_success(array(
+                            'old_template_name' => $old_template_name,
+                            'new_template_name' => $new_template_name
+                        ));
+                    } else {
+                        wp_send_json_error('Error renaming the template file.');
+                    }
                 } else {
-                    wp_send_json_error('Error renaming the template file.');
+                    wp_send_json_error('Old template file not found.');
                 }
             } else {
-                wp_send_json_error('Old template file not found.');
+                wp_send_json_error('Template names cannot be empty.');
             }
-        } else {
-            wp_send_json_error('Template names cannot be empty.');
-        }
-    } elseif ($template_action === 'edit_template') {
-        // Extract the template name directly from the POST data
-        if (!empty($_POST['template_name'])) {
-            $template_name = sanitize_text_field($_POST['template_name']);
-            $file_path = sip_get_template_dir() . $template_name . '.json';
-    
-            // Check if the template file exists
-            if (file_exists($file_path)) {
-                // Get the content of the template file
-                $template_content = file_get_contents($file_path);
-                // Send the template content back to the AJAX call
-                wp_send_json_success(array(
-                    'template_content' => $template_content,
-                    'template_name'    => $template_name
-                ));
+            break;
+
+        case 'edit_template':
+            // Extract the template name directly from the POST data
+            $template_name = isset($_POST['template_name']) ? sanitize_text_field($_POST['template_name']) : '';
+
+            if (!empty($template_name)) {
+                $file_path = sip_get_template_dir() . $template_name . '.json';
+
+                // Check if the template file exists
+                if (file_exists($file_path)) {
+                    // Get the content of the template file
+                    $template_content = file_get_contents($file_path);
+                    // Send the template content back to the AJAX call
+                    wp_send_json_success(array(
+                        'template_content' => $template_content,
+                        'template_name'    => $template_name
+                    ));
+                } else {
+                    // Send an error if the file is not found
+                    wp_send_json_error('Template file not found.');
+                }
             } else {
-                // Send an error if the file is not found
-                wp_send_json_error('Template file not found.');
+                // Send an error if no template name is provided
+                wp_send_json_error('No template name provided.');
             }
-        } else {
-            // Send an error if no template name is provided
-            wp_send_json_error('No template name provided.');
-        }
+            break;
+
+        case 'create_new_products':
+            // Handle creating new products from template
+            sip_create_new_product_from_template();
+            break;
+
+        default:
+            wp_send_json_error('Unknown template action.');
+            break;
     }
 }
+
 
 /**
  * Save the edited template content from the template editor.
@@ -263,7 +282,7 @@ function sip_handle_template_action() {
  * This function saves the edited template content back to the JSON file.
  */
 function sip_save_template_content() {
-    check_ajax_referer('sip_ajax_nonce', '_ajax_nonce');
+    check_ajax_referer('sip_printify_manager_nonce', '_ajax_nonce');
 
     $template_name    = sanitize_text_field($_POST['template_name']);
     $template_content = wp_unslash($_POST['template_content']);

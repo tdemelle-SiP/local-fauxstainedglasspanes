@@ -9,19 +9,23 @@ sip.productCreation = (function($) {
     // Store the selected template ID
     let selectedTemplateId = null;
 
+    // Define the init function
     function init() {
-        // Event listener for the 'Apply' button in the templates section
-        $('#template-actions-apply').on('click', function() {
-            const action = $('#template-actions-dropdown').val();
-            const selectedTemplates = $('input[name="selected_templates[]"]:checked');
+        // Event listener for the form submission
+        $('#template-action-form').on('submit', function(event) {
+            const action = $('#template_action').val();
 
             if (action === 'create_new_products') {
+                event.preventDefault(); // Prevent the form from submitting
+
+                const selectedTemplates = $('input[name="selected_templates[]"]:checked');
+
                 if (selectedTemplates.length === 0) {
                     alert('Please select at least one template.');
                     return;
                 }
 
-                // For simplicity, we'll use the first selected template
+                // Use the first selected template
                 selectedTemplateId = selectedTemplates.first().val();
 
                 // Load the Product Creation Table
@@ -32,7 +36,6 @@ sip.productCreation = (function($) {
         });
 
         // Event listener for 'Create New Product' action
-        // Replace this with the actual event in your application
         $('#create-product-button').on('click', function() {
             // Send a request to create the product
             $.ajax({
@@ -65,8 +68,12 @@ sip.productCreation = (function($) {
             url: sipAjax.ajax_url,
             method: 'POST',
             data: {
-                action: 'sip_generate_new_product_json',
-                template_name: templateName,
+                sip_printify_manager_nonce_field: sipAjax.nonce,
+                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
+                action: 'sip_handle_ajax_request',
+                action_type: 'template_action',
+                template_action: 'create_new_products',
+                template_name: selectedTemplateId,
                 nonce: sipAjax.nonce
             },
             success: function(response) {
@@ -196,7 +203,7 @@ sip.productCreation = (function($) {
     // Function to add event listeners to table elements
     function addEventListeners() {
         // Editable cells
-        $('#creation-table td.editable').on('click', function() {
+        $('#creation-table').on('click', 'td.editable', function() {
             const cell = $(this);
             const currentText = cell.text().trim();
             const input = $('<input type="text" class="editable-input" value="' + currentText + '">');
@@ -212,7 +219,7 @@ sip.productCreation = (function($) {
         });
 
         // Reset buttons
-        $('.reset-button').on('click', function(e) {
+        $('#creation-table').on('click', '.reset-button', function(e) {
             e.stopPropagation();
             const cell = $(this).closest('td');
             const key = cell.data('key');
@@ -220,7 +227,7 @@ sip.productCreation = (function($) {
         });
 
         // Edit buttons (for description)
-        $('.edit-button').on('click', function(e) {
+        $('#creation-table').on('click', '.edit-button', function(e) {
             e.stopPropagation();
             const cell = $(this).closest('td');
             const key = cell.data('key');
@@ -229,7 +236,7 @@ sip.productCreation = (function($) {
         });
 
         // Image reset buttons
-        $('.reset-image-button').on('click', function(e) {
+        $('#creation-table').on('click', '.reset-image-button', function(e) {
             e.stopPropagation();
             const imageCell = $(this).closest('.image-cell');
             resetImage(imageCell);
@@ -248,11 +255,21 @@ sip.productCreation = (function($) {
         $.ajax({
             url: sipAjax.ajax_url,
             method: 'POST',
+            // data: {
+            //     action: 'sip_update_new_product_data',
+            //     updated_data: updatedData,
+            //     sip_printify_manager_nonce_field: sipAjax.nonce
+            // },
+
             data: {
-                action: 'sip_update_new_product_data',
+                sip_printify_manager_nonce_field: sipAjax.nonce,
+                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
+                action: 'sip_handle_ajax_request',
+                action_type: 'creation_action',
+                creation_action: 'update_new_product',
                 updated_data: updatedData,
-                nonce: sipAjax.nonce
             },
+
             success: function(response) {
                 if (!response.success) {
                     alert('Error updating product data: ' + response.data);
@@ -265,8 +282,7 @@ sip.productCreation = (function($) {
     function resetCellValue(cell, key) {
         // For simplicity, we'll reload the table
         // In a real implementation, you might fetch only the default value for the key
-        const templateId = getSelectedTemplateId();
-        loadProductCreationTable(templateId);
+        loadProductCreationTable(selectedTemplateId);
     }
 
     // Function to open text editor modal (for description)
@@ -285,15 +301,7 @@ sip.productCreation = (function($) {
     function resetImage(imageCell) {
         // Implement logic to reset the image
         // For simplicity, we'll reload the table
-        const templateId = getSelectedTemplateId();
-        loadProductCreationTable(templateId);
-    }
-
-    // Function to get the selected template ID
-    function getSelectedTemplateId() {
-        // Implement logic to retrieve the selected template ID
-        // This might come from the previous user action
-        return selectedTemplateId; // Assume this variable is set elsewhere
+        loadProductCreationTable(selectedTemplateId);
     }
 
     // Expose the init function
