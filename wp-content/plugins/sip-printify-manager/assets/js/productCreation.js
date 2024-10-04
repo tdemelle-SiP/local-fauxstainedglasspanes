@@ -127,7 +127,7 @@ function buildCreationTable(productData) {
     tbody.empty();
 
     // Build table headers
-    const headers = ['Front Design', 'Title', 'Sizes', 'Colors', 'Description', 'Tags'];
+    const headers = ['Design', 'Title', 'Sizes', 'Colors', 'Description', 'Tags'];
     console.log('Headers:', headers);
 
     // Add headers for additional print areas

@@ -112,8 +112,9 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                 <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
                 <label for="template_action"><?php esc_html_e('Template Actions:', 'sip-printify-manager'); ?> </label>
                 <select name="template_action" id="template_action">
-                    <option value="delete_template"><?php esc_html_e('Delete Template', 'sip-printify-manager'); ?></option>
+
                     <option value="create_new_products"><?php esc_html_e('Create New Products', 'sip-printify-manager'); ?></option>
+                    <option value="delete_template"><?php esc_html_e('Delete Template', 'sip-printify-manager'); ?></option>
                     <!-- Other options -->
                 </select>
                 <input type="submit" name="execute_template_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary"/>

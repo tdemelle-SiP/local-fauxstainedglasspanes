@@ -72,9 +72,20 @@ a, a:hover, a:focus, a:active, a:visited {
     pointer-events: auto; /* Ensure the button is still clickable */
 }
 
+.wp-core-ui .button, .wp-core-ui .button-secondary {
+    font-size: 10px !important;
+    height: 18px !important;
+    line-height: 10px !important;
+    min-height: 18px !important;
+}
+
+
+
 /* Styles for Buttons within the SiP Printify Manager Page */
 #sip-printify-manager-page .button {
     margin-right: 5px; /* Adds a margin to the right of all buttons for spacing */
+    font-size: 10px !important;
+    height: 18px !important;
 }
 
 #sip-printify-manager-page .button-primary {
@@ -398,6 +409,10 @@ body.resizing * {
     text-align: center; /* Centers text within the upload area */
 }
 
+/*//////////////////////////////////////////////////////////////////////////////////////*/
+/*//////////////////////////////////////////////////////////////////////////////////////*/
+/* Product Creation Table Styles */
+
 .creation-table-title {
     font-size: 36px; /* Sets the font size for the creation table title */
     font-weight: bold; /* Makes the creation table title bold */
@@ -406,28 +421,43 @@ body.resizing * {
     color: #0273AB; /* Sets the color of the shop name */
     text-transform: uppercase; /* Transforms the shop name to uppercase */
     margin-top: 15px; /* Adds space above the shop name */
-    margin-bottom: 20px; /* Adds space below the shop name */
+    margin-bottom: 0px; /* Adds space below the shop name */
 }
 
-/*//////////////////////////////////////////////////////////////////////////////////////*/
-/*//////////////////////////////////////////////////////////////////////////////////////*/
-
-/* Product Creation Table Styles */
-#product-creation-table {
-    margin-top: 40px;
+#creation-table {
+    width: auto;   
+    margin: 10px 0px 10px 0px;
+    overflow-x: auto;
 }
 
-#product-creation-table .header-controls {
-    margin-bottom: 20px;
+#creation-table th {
+    font-size: 12px;
+    text-align: center;
+    background-color: #0273AB;
+    color: white;
+    padding: 0px 5px 0px 5px;
 }
 
-#product-creation-table .header-controls .button {
-    margin-right: 10px;
+#creation-table, #creation-table tr, #creation-table td {
+	border: 1px solid;
+    border-color: #ccc;
+	border-collapse: collapse;
+    font-size: 11px;
+    padding: 4px;
+}
+
+#creation-table th {
+
+  }
+
+#creation-table p {
+    margin: 0px;
+    font-size: 11px;
 }
 
 #creation-table .image-thumbnail {
-    width: 30px;
-    height: 30px;
+    width: 16px;
+    height: 16px;
     display: block;
     margin: 0 auto;
 }
@@ -440,7 +470,7 @@ body.resizing * {
 #creation-table .image-cell span {
     display: block;
     margin-top: 5px;
-    font-size: 12px;
+    font-size: 10px;
 }
 
 #creation-table .image-cell .reset-image-button {
@@ -450,7 +480,7 @@ body.resizing * {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 11px;
 }
 
 #creation-table .editable {
@@ -458,7 +488,7 @@ body.resizing * {
 }
 
 #creation-table .editable-input {
-    width: 100%;
+    width: auto;
     box-sizing: border-box;
 }
 
@@ -467,15 +497,15 @@ body.resizing * {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 11px;
     margin-left: 5px;
 }
 
 #creation-table .color-swatch {
     display: inline-block;
-    width: 15px;
-    height: 15px;
-    margin-right: 3px;
+    width: 10px;
+    height: 10px;
+    margin-right: 2px;
     border: 1px solid #ccc;
     vertical-align: middle;
 }
