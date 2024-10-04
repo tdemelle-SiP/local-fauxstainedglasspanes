@@ -219,14 +219,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
     <section id="product-creation-table" class="sip-section">
     <hr class="divider" style="margin-top: 20px; background-color: #c0bfbf;">
     <h2 class="creation-table-title"><?php esc_html_e('Product Creation Table', 'sip-printify-manager'); ?></h2>
-    
-    <!-- Header Controls -->
-    <div class="header-controls">
-        <button id="import-csv" class="button">Import CSV</button>
-        <button id="export-csv" class="button">Export CSV</button>
-        <!-- Additional controls can be added here -->
-    </div>
-    
+
     <!-- Dynamic Product Table -->
     <table id="creation-table" class="wp-list-table widefat fixed striped">
         <!-- Table headers and rows will be populated dynamically -->
@@ -237,7 +230,13 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         <!-- Rows will be inserted here by JavaScript -->
         </tbody>
     </table>
-    <button id="create-product-button" class="button button-primary">Create Product</button>
+    <div class="footer-controls">
+        <div class="import-export">
+            <button id="import-csv" class="button">Import CSV</button>
+            <button id="export-csv" class="button">Export CSV</button>
+        </div>
+        <button id="create-product-button" class="button button-primary">Create Product</button>
+    </div>
     </section>
 </div>
 

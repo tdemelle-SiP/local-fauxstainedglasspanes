@@ -77,6 +77,7 @@ a, a:hover, a:focus, a:active, a:visited {
     height: 18px !important;
     line-height: 10px !important;
     min-height: 18px !important;
+    margin: 5px;
 }
 
 
@@ -446,10 +447,6 @@ body.resizing * {
     padding: 4px;
 }
 
-#creation-table th {
-
-  }
-
 #creation-table p {
     margin: 0px;
     font-size: 11px;
@@ -508,4 +505,10 @@ body.resizing * {
     margin-right: 2px;
     border: 1px solid #ccc;
     vertical-align: middle;
+}
+
+#product-creation-table .footer-controls {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
 }

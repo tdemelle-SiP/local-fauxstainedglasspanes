@@ -66,6 +66,122 @@ Provides functionality for showing markers on the scrollbar to call out certain 
 
 CREATE PRODUCTS TABLE-----------
 
+addition to creation table:
+	Once a template has been selected, Create New Products has been executed and the table has opened, it should remain open until closed and persist through browser refreshes and sessions.
+	template name appears centered just above the table
+	on the same row registered to the right are three buttons: edit json, close, save
+		The edit json button brings up the existing template editor overlay.  This already exists.  The code to bring it up is in the templateEditor.js file
+				$('.edit-template-content').on('click', function () {
+					var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
+					$('#template-editor-overlay').show().addClass('active');
+					$('#template-editor-header span').text('Edit Template: ' + templateName);
+
+					var formData = new FormData();
+					formData.append('action', 'sip_handle_ajax_request');
+					formData.append('action_type', 'template_action');
+					formData.append('template_action', 'edit_template');
+					formData.append('template_name', templateName);
+					formData.append('nonce', sipAjax.nonce);
+
+					$.ajax({
+						url: sipAjax.ajax_url,
+						method: 'POST',
+						data: formData,
+						processData: false,
+						contentType: false,
+						success: function (response) {
+							if (response.success) {
+								var content = response.data.template_content;
+
+								// Initialize editors with content
+								if (!descriptionEditor || !jsonEditor) {
+									initializeEditors(content);
+								} else {
+									// If editors already exist, update their content
+									var separatedContent = separateContent(content);
+									descriptionEditor.setValue(separatedContent.html);
+									jsonEditor.setValue(separatedContent.json);
+
+									// Force refresh after updating content
+									setTimeout(() => {
+										descriptionEditor.refresh();
+										jsonEditor.refresh();
+									}, 0);
+								}
+							} else {
+								alert('Error: ' + response.data);
+							}
+						},
+						error: function (xhr, status, error) {
+							alert('AJAX Error: ' + error);
+						}
+					});
+				});
+
+		The close button removes the selected template from the table.  If there are unsaved changes it prompts whether the user would like to save before closing.
+		The save button saves changes reflected in the table to the template.json.  The table remains open for continued editing.
+
+
+
+		This should be an advanced control in the settings tab or in the advanced controls tab of the sip printify manager plugin.  the sync button scans the images list for images that have tags that share the source product, then it scans the products list for products that have the same blueprint as the template with images that correspond to the tags in the images list.  It then updates the create product table with the products that have been identified.
+
+
+
+
+
+	the template data is not editable in the table
+	a radio button in the shape of a star appears at the left side of each image cell in the template.  This star designates the "main" image.  This is the image that is used as the thumbnail in the design cell.  By default it should be the first image in the front print location.  Each radio button should have a tooltip that says "choose main image".
+
+add image meta data that includes plugin specific data associated with each image.
+	tag: shows each template source product:print location that refers to the image.  (DO I NEED THIS?  OR CAN I DO WHAT I NEED TO DO JUST USING TEMPLATE DATA?)
+
+add to template data:
+	creations: arrays that include the sets of products that were created from the template (that share the same source product)
+		each template's creations array will be updated each time the create product table is used to create a new product
+		there will be a synchronize button next to the template name that will scan the existing products and update the create product table with the products that have been created using the same source product
+
+select a template from the template table and click Create New Products
+		create new product table is populated with the data from the template
+			the first row shows the main template data
+			subsequent rows show the data for each product in the template's creations array.
+		the images in the image table are updated so that images used in the source product and in the creations are tagged with the variant title and print location where they are referred to in the template.
+		the images action menu is populated with selections that refer to the various print areas in the template:
+			the main pulldown is appended to include
+				Create New Product Variant
+				Add to Product Variant
+			a second pulldown to the right of the first pulldown is created that includes the print locations in the template
+				Main (if this is selected, the third pulldown doesn't appear)
+				Front
+				Print Location 2
+				Print Location 3
+				Etc
+			if a print area is chosen in the second pulldown that has multiple images in it, a third pulldown appears with the number of images in the print area.
+				image 1
+				image 2
+				image 3
+				etc
+			The user can create multiple product variants on new rows in the Product Creation Table easily by selecting any number of images, identifying where to put them in the variants and clicking execute.  For example, if the user selects 100 images and then in the pulldowns selects Create New Product Variant, Front, image 2, the Create New Product table will populate with 100 new rows that copy the template data, but with the selected images in the designated locations.
+
+		a row is appended to the Product Creation Table that populates with all the data in the template with the following changes:
+			The main front image is 
+
+
+
+
+
+			a series of rows populate the table showing each of the designs that has been made for the product using that template
+			the image table data is updated
+				each image used in a product has a tag field that is updated with the print area in which the image is being used in the template.
+
+
+
+
+
+
+
+
+
+
 For the next phase of development of the SiP Product Manager for Printify, a wordpress plugin for managing and creating Printify products with a woocommerce store, I am working on a section that will appear in the plugins main admin panel that I've been working on that draws on the images available in the plugin's images table and the available templates created from printify products (the images table and the templates table have already been implemented in the admin panel). This new section allows for the integration of the images and the template data along with custom data entry by the user into new product data in the form of product json files that can then be sent to Printify using its API calls to create new products.
 
 This new section is called the Product Creation Table and occupies a full width section of the admin page underneath the previously implemented elements. It consists of a title below which is a header area below which is a table.
