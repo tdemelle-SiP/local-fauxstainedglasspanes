@@ -1,5 +1,13 @@
 TO DO
 ---------------------
+
+Fix template delete
+Template action triggered: delete_template
+ajax.js?ver=1.0.0:55 Uncaught TypeError: selectedTemplates.forEach is not a function
+    at HTMLFormElement.<anonymous> (ajax.js?ver=1.0.0:55:43)
+    at HTMLFormElement.dispatch (load-scripts.php?c=0&load%5Bchunk_0%5D=jquery-core,jquery-migrate,utils,underscore,wp-codemirror&ver=6.6.2:2:40035)
+    at v.handle (load-scripts.php?c=0&load%5Bchunk_0%5D=jquery-core,jquery-migrate,utils,underscore,wp-codemirror&ver=6.6.2:2:38006)
+
 Figure out image storage protocols
 	-store images in the uploads/sip-printify-manager/images/ directory when they are in the local images state.
 	-when images are uploaded to printify, remove them from local storage.
@@ -68,6 +76,9 @@ CREATE PRODUCTS TABLE-----------
 
 addition to creation table:
 	Once a template has been selected, Create New Products has been executed and the table has opened, it should remain open until closed and persist through browser refreshes and sessions.
+
+	If another template is selected in the template list and the Create New Product action is executed, it should replace the currently open template.  If there are unsaved changes, the user should be prompted to save them before continuing with a pop-up that has a save option that will save the current template and open the new one and a cancel option that will stop opening the new template and return to the current template.
+
 	template name appears centered just above the table
 	on the same row registered to the right are three buttons: edit json, close, save
 		The edit json button brings up the existing template editor overlay.  This already exists.  The code to bring it up is in the templateEditor.js file
@@ -279,8 +290,8 @@ The data in the columns represents the data in the New Product JSON and updates 
 The table is populated from the source template json file in the following manner (entries without notes are present in the new product json but are not user editable and so don't appear in the Product Creation Table):
 
 
-Front Design			| A product may have multiple print areas each with multiple images arranged together to create the design that is printed there, but should nearly always have at least a Front design.  The front design comes first in our table headers because it is the most visually representative of the product.  The template for how the front design is presented in the table is also used later in the columns for the other print area designs.
-				| The front design header should span however many images there are in the area with the front "position". the images should appear in columns under the header from left to right in the order the appear from top to bottom in the source array.  Each cell should contain a small 30x30 image thumbnail derived from the url in the "src" key with the image title centered beneath it. The thumbnail should be clickable and open up a lightbox with the image in it.
+Design			| A product may have multiple print areas each with multiple images arranged together to create the design that is printed there, but should nearly always have at least a Front design.  The front design comes first in our table headers called simply "design" because it is the most visually representative of the product.  The template for how the front design is presented in the table is also used later in the columns for the other print area designs.
+				| The front design header should span however many images there are in the area with the front "position". the images should appear in columns under the header from left to right in the order they appear from top to bottom in the source array.  Each cell should contain a small 30x30 image thumbnail derived from the url in the "src" key with the image title centered beneath it. The thumbnail should be clickable and open up a lightbox with the image in it.
 
 	| 						Front Design					|
 	| image thumbnail	| image thumbnail	| image thumbnail	| image thumbnail	|	

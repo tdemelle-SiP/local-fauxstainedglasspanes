@@ -347,7 +347,7 @@ function transform_product_data($product) {
                 }
 
                 // If the variant is enabled, keep only specified keys
-                $variant_keys_to_keep = array('id', 'price', 'is_enabled');
+                $variant_keys_to_keep = array('id', 'price', 'is_enabled', 'options');
                 $new_variant = array();
                 foreach ($variant_keys_to_keep as $key) {
                     if (isset($variant[$key])) {
@@ -389,7 +389,7 @@ function transform_product_data($product) {
     // Remove specified top-level keys from the product data
     $keys_to_remove = array(
         'id',
-        'options',
+        'options', // Removed 'options' only from the top level
         'images',
         'created_at',
         'updated_at',
@@ -407,7 +407,7 @@ function transform_product_data($product) {
         'views'
     );
 
-    // Remove the keys from the product data
+    // Remove the specified top-level keys from the product data
     foreach ($keys_to_remove as $key) {
         if (isset($product[$key])) {
             unset($product[$key]);
@@ -418,7 +418,15 @@ function transform_product_data($product) {
     if (isset($product['print_areas']) && is_array($product['print_areas'])) {
         $new_print_areas = array();
         foreach ($product['print_areas'] as $print_area) {
-            // Remove 'variant_ids' of removed variants
+            // Ensure 'position' exists in each print area
+            if (!isset($print_area['position']) || empty($print_area['position'])) {
+                // Log the missing 'position' for debugging purposes
+                error_log('Missing position in print_area: ' . json_encode($print_area));
+                // Skip this print area as 'position' is essential
+                continue;
+            }
+
+            // Remove 'variant_ids' that have been removed from 'variants'
             if (isset($print_area['variant_ids']) && is_array($print_area['variant_ids'])) {
                 // Remove the variant IDs that were removed from 'variants'
                 $variant_ids = array_diff($print_area['variant_ids'], $removed_variant_ids);

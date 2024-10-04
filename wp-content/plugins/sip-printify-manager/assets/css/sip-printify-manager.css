@@ -498,13 +498,17 @@ body.resizing * {
     margin-left: 5px;
 }
 
-#creation-table .color-swatch {
+.color-swatch {
     display: inline-block;
-    width: 10px;
-    height: 10px;
-    margin-right: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 5px;
     border: 1px solid #ccc;
-    vertical-align: middle;
+}
+
+.color-swatch:hover {
+    border: 1px solid #000;
 }
 
 #product-creation-table .footer-controls {

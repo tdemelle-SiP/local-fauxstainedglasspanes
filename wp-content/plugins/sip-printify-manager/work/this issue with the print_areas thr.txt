@@ -1,0 +1,941 @@
+this issue with the print_areas throwing errors has been around for a while, I just haven't priortized fixing it yet.  The color swatches and sizes were drawing in the wrong order and without color while these errors were present, so these don't necessarily have anything to do with why the colors and sizes are no longer drawing.  To figure out why that might be, what I would suggest is go back to the color and swatches code just prior to when you updated it to draw the sizes in order and the swatches with hex values.  The iteration prior to that, the sizes were drawing in the wrong order and the swatches were drawing as empty boxes, but at least you could deduce what you changed about how you're drawing them that resulted in them no longer drawing at all.
+
+in regard to the print_area issue, I cannot change the template.  The template is fixed.  I need to modify my code to better interpret the template.
+
+Here is an example of the data we are working with:
+    "print_areas": [
+        {
+            "variant_ids": [
+                12018,
+                12125,
+                12016,
+                12142,
+                12019,
+                11989,
+                11986,
+                12102,
+                12103,
+                12143,
+                12126,
+                11987,
+                11988,
+                12145,
+                12124,
+                12127,
+                12017,
+                12100,
+                12101,
+                12144,
+                12020,
+                12104,
+                12128,
+                12146,
+                11990,
+                12021,
+                11991
+            ],
+            "placeholders": [
+                {
+                    "position": "front",
+                    "images": [
+                        {
+                            "id": "66d5bce57c0b485c83827a0f",
+                            "name": "FSGPurl98989a.svg",
+                            "type": "image\/png",
+                            "height": 65,
+                            "width": 800,
+                            "x": 0.5,
+                            "y": 0.82486495233750334,
+                            "scale": 0.4556,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a40ef3e52e3c26057e06",
+                            "name": "square_empty_black.svg",
+                            "type": "image\/png",
+                            "height": 48,
+                            "width": 48,
+                            "x": 0.50001731643147573,
+                            "y": 0.43117991692078655,
+                            "scale": 0.94920000000000004,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a6f097b891fa1a26beae",
+                            "name": "fsgp_abstract_04_3600.jpg",
+                            "type": "image\/jpeg",
+                            "height": 3600,
+                            "width": 3600,
+                            "x": 0.50004999999999999,
+                            "y": 0.42394667563089777,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d5bc77bda93c130441db9e",
+                            "name": "FSGPtopper98989a.svg",
+                            "type": "image\/png",
+                            "height": 95,
+                            "width": 2000,
+                            "x": 0.49564999999999998,
+                            "y": 0.027382467092467638,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        }
+                    ]
+                }
+            ],
+            "font_color": "#000",
+            "font_family": "Roboto"
+        },
+        {
+            "variant_ids": [
+                12191,
+                12193,
+                12192,
+                12190,
+                12194
+            ],
+            "placeholders": [
+                {
+                    "position": "front",
+                    "images": [
+                        {
+                            "id": "66d5c180dbd6b0f9d1c66790",
+                            "name": "FSGPurl151515.svg",
+                            "type": "image\/png",
+                            "height": 65,
+                            "width": 800,
+                            "x": 0.5,
+                            "y": 0.82486495233750334,
+                            "scale": 0.4556,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a40ef3e52e3c26057e06",
+                            "name": "square_empty_black.svg",
+                            "type": "image\/png",
+                            "height": 48,
+                            "width": 48,
+                            "x": 0.50001731643147573,
+                            "y": 0.43117991692078655,
+                            "scale": 0.94920000000000004,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a6f097b891fa1a26beae",
+                            "name": "fsgp_abstract_04_3600.jpg",
+                            "type": "image\/jpeg",
+                            "height": 3600,
+                            "width": 3600,
+                            "x": 0.50004999999999999,
+                            "y": 0.42394667563089777,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d5bebd9a790e46c1dc7350",
+                            "name": "FSGPtopper151515.svg",
+                            "type": "image\/png",
+                            "height": 95,
+                            "width": 2000,
+                            "x": 0.49564999999999998,
+                            "y": 0.027382467092467638,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        }
+                    ]
+                }
+            ],
+            "font_color": "#000",
+            "font_family": "Roboto"
+        },
+        {
+            "variant_ids": [
+                11952,
+                11951,
+                11953,
+                11950,
+                11954
+            ],
+            "placeholders": [
+                {
+                    "position": "front",
+                    "images": [
+                        {
+                            "id": "66d5be686b5c992e67f3a5b1",
+                            "name": "FSGPurl303030.svg",
+                            "type": "image\/png",
+                            "height": 65,
+                            "width": 800,
+                            "x": 0.5,
+                            "y": 0.82486495233750334,
+                            "scale": 0.4556,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a40ef3e52e3c26057e06",
+                            "name": "square_empty_black.svg",
+                            "type": "image\/png",
+                            "height": 48,
+                            "width": 48,
+                            "x": 0.50001731643147573,
+                            "y": 0.43117991692078655,
+                            "scale": 0.94920000000000004,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a6f097b891fa1a26beae",
+                            "name": "fsgp_abstract_04_3600.jpg",
+                            "type": "image\/jpeg",
+                            "height": 3600,
+                            "width": 3600,
+                            "x": 0.50004999999999999,
+                            "y": 0.42394667563089777,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d5bd8647f35eb0f2ce08a6",
+                            "name": "FSGPtopper303030.svg",
+                            "type": "image\/png",
+                            "height": 95,
+                            "width": 2000,
+                            "x": 0.49564999999999998,
+                            "y": 0.027382467092467638,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        }
+                    ]
+                }
+            ],
+            "font_color": "#000",
+            "font_family": "Roboto"
+        },
+        {
+            "variant_ids": [
+                11922,
+                11920,
+                11921,
+                11923,
+                11924
+            ],
+            "placeholders": [
+                {
+                    "position": "front",
+                    "images": [
+                        {
+                            "id": "66d5be686b5c992e67f3a5b1",
+                            "name": "FSGPurl303030.svg",
+                            "type": "image\/png",
+                            "height": 65,
+                            "width": 800,
+                            "x": 0.5,
+                            "y": 0.82486495233750334,
+                            "scale": 0.4556,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a40ef3e52e3c26057e06",
+                            "name": "square_empty_black.svg",
+                            "type": "image\/png",
+                            "height": 48,
+                            "width": 48,
+                            "x": 0.50001731643147573,
+                            "y": 0.43117991692078655,
+                            "scale": 0.94920000000000004,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a6f097b891fa1a26beae",
+                            "name": "fsgp_abstract_04_3600.jpg",
+                            "type": "image\/jpeg",
+                            "height": 3600,
+                            "width": 3600,
+                            "x": 0.50004999999999999,
+                            "y": 0.42394667563089777,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d5bd8647f35eb0f2ce08a6",
+                            "name": "FSGPtopper303030.svg",
+                            "type": "image\/png",
+                            "height": 95,
+                            "width": 2000,
+                            "x": 0.49564999999999998,
+                            "y": 0.027382467092467638,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        }
+                    ]
+                }
+            ],
+            "font_color": "#000",
+            "font_family": "Roboto"
+        },
+        {
+            "variant_ids": [
+                12010,
+                12013,
+                12012,
+                12011,
+                12014
+            ],
+            "placeholders": [
+                {
+                    "position": "front",
+                    "images": [
+                        {
+                            "id": "66d5be686b5c992e67f3a5b1",
+                            "name": "FSGPurl303030.svg",
+                            "type": "image\/png",
+                            "height": 65,
+                            "width": 800,
+                            "x": 0.5,
+                            "y": 0.82486495233750334,
+                            "scale": 0.4556,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a40ef3e52e3c26057e06",
+                            "name": "square_empty_black.svg",
+                            "type": "image\/png",
+                            "height": 48,
+                            "width": 48,
+                            "x": 0.50001731643147573,
+                            "y": 0.43117991692078655,
+                            "scale": 0.94920000000000004,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a6f097b891fa1a26beae",
+                            "name": "fsgp_abstract_04_3600.jpg",
+                            "type": "image\/jpeg",
+                            "height": 3600,
+                            "width": 3600,
+                            "x": 0.50004999999999999,
+                            "y": 0.42394667563089777,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d5bd8647f35eb0f2ce08a6",
+                            "name": "FSGPtopper303030.svg",
+                            "type": "image\/png",
+                            "height": 95,
+                            "width": 2000,
+                            "x": 0.49564999999999998,
+                            "y": 0.027382467092467638,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        }
+                    ]
+                }
+            ],
+            "font_color": "#000",
+            "font_family": "Roboto"
+        },
+        {
+            "variant_ids": [
+                12055,
+                12053,
+                12052,
+                12054,
+                12056
+            ],
+            "placeholders": [
+                {
+                    "position": "front",
+                    "images": [
+                        {
+                            "id": "66d5c1db897912fc25e3b212",
+                            "name": "FSGPurl646a6a.svg",
+                            "type": "image\/png",
+                            "height": 65,
+                            "width": 800,
+                            "x": 0.5,
+                            "y": 0.82486495233750334,
+                            "scale": 0.4556,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a40ef3e52e3c26057e06",
+                            "name": "square_empty_black.svg",
+                            "type": "image\/png",
+                            "height": 48,
+                            "width": 48,
+                            "x": 0.50001731643147573,
+                            "y": 0.43117991692078655,
+                            "scale": 0.94920000000000004,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a6f097b891fa1a26beae",
+                            "name": "fsgp_abstract_04_3600.jpg",
+                            "type": "image\/jpeg",
+                            "height": 3600,
+                            "width": 3600,
+                            "x": 0.50004999999999999,
+                            "y": 0.42394667563089777,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d5bff5dbd6b0f9d1c66749",
+                            "name": "FSGPtopper646a6a.svg",
+                            "type": "image\/png",
+                            "height": 95,
+                            "width": 2000,
+                            "x": 0.49564999999999998,
+                            "y": 0.027382467092467638,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        }
+                    ]
+                }
+            ],
+            "font_color": "#000",
+            "font_family": "Roboto"
+        },
+        {
+            "variant_ids": [
+                11873,
+                11872,
+                11875,
+                11874,
+                11876
+            ],
+            "placeholders": [
+                {
+                    "position": "front",
+                    "images": [
+                        {
+                            "id": "66d5c180dbd6b0f9d1c66790",
+                            "name": "FSGPurl151515.svg",
+                            "type": "image\/png",
+                            "height": 65,
+                            "width": 800,
+                            "x": 0.5,
+                            "y": 0.82486495233750334,
+                            "scale": 0.4556,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a40ef3e52e3c26057e06",
+                            "name": "square_empty_black.svg",
+                            "type": "image\/png",
+                            "height": 48,
+                            "width": 48,
+                            "x": 0.50001731643147573,
+                            "y": 0.43117991692078655,
+                            "scale": 0.94920000000000004,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a6f097b891fa1a26beae",
+                            "name": "fsgp_abstract_04_3600.jpg",
+                            "type": "image\/jpeg",
+                            "height": 3600,
+                            "width": 3600,
+                            "x": 0.50004999999999999,
+                            "y": 0.42394667563089777,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d5bebd9a790e46c1dc7350",
+                            "name": "FSGPtopper151515.svg",
+                            "type": "image\/png",
+                            "height": 95,
+                            "width": 2000,
+                            "x": 0.49563262377421657,
+                            "y": 0.027381804211587861,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        }
+                    ]
+                }
+            ],
+            "font_color": "#000",
+            "font_family": "Roboto"
+        },
+        {
+            "variant_ids": [
+                12029,
+                12030,
+                12028,
+                12031
+            ],
+            "placeholders": [
+                {
+                    "position": "front",
+                    "images": [
+                        {
+                            "id": "66d5bc77bda93c130441db9e",
+                            "name": "FSGPtopper98989a.svg",
+                            "type": "image\/png",
+                            "height": 95,
+                            "width": 2000,
+                            "x": 0.49564999999999998,
+                            "y": 0.027382467092467638,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a40ef3e52e3c26057e06",
+                            "name": "square_empty_black.svg",
+                            "type": "image\/png",
+                            "height": 48,
+                            "width": 48,
+                            "x": 0.50001731643147573,
+                            "y": 0.43117991692078655,
+                            "scale": 0.94920000000000004,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a6f097b891fa1a26beae",
+                            "name": "fsgp_abstract_04_3600.jpg",
+                            "type": "image\/jpeg",
+                            "height": 3600,
+                            "width": 3600,
+                            "x": 0.50004999999999999,
+                            "y": 0.42394667563089777,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d5bce57c0b485c83827a0f",
+                            "name": "FSGPurl98989a.svg",
+                            "type": "image\/png",
+                            "height": 65,
+                            "width": 800,
+                            "x": 0.5,
+                            "y": 0.82486495233750334,
+                            "scale": 0.4556,
+                            "angle": 0,
+                            "src": ""
+                        }
+                    ]
+                }
+            ],
+            "font_color": "#000",
+            "font_family": "Roboto"
+        },
+        {
+            "variant_ids": [
+                11944,
+                11946,
+                11947,
+                11945,
+                11948,
+                11949
+            ],
+            "placeholders": [
+                {
+                    "position": "front",
+                    "images": [
+                        {
+                            "id": "66d5b1c1d43740d0a0396a7f",
+                            "name": "FSGPurlD3D3D3.svg",
+                            "type": "image\/png",
+                            "height": 76,
+                            "width": 1000,
+                            "x": 0.49999999999999994,
+                            "y": 0.82594001597894851,
+                            "scale": 0.44543064920510217,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a40ef3e52e3c26057e06",
+                            "name": "square_empty_black.svg",
+                            "type": "image\/png",
+                            "height": 48,
+                            "width": 48,
+                            "x": 0.50001731643147573,
+                            "y": 0.43117991692078655,
+                            "scale": 0.94920000000000004,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a6f097b891fa1a26beae",
+                            "name": "fsgp_abstract_04_3600.jpg",
+                            "type": "image\/jpeg",
+                            "height": 3600,
+                            "width": 3600,
+                            "x": 0.50004999999999999,
+                            "y": 0.42394667563089777,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d5b15d9a790e46c1dc7124",
+                            "name": "FSGPtopperD3D3D3.svg",
+                            "type": "image\/png",
+                            "height": 143,
+                            "width": 3000,
+                            "x": 0.49564999999999998,
+                            "y": 0.027443458205072789,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        }
+                    ]
+                }
+            ],
+            "font_color": "#000",
+            "font_family": "Roboto"
+        },
+        {
+            "variant_ids": [
+                12130,
+                12133,
+                12131,
+                12132,
+                12134
+            ],
+            "placeholders": [
+                {
+                    "position": "front",
+                    "images": [
+                        {
+                            "id": "66d5c1b26141e095ae079ca7",
+                            "name": "FSGPurl000000.svg",
+                            "type": "image\/png",
+                            "height": 65,
+                            "width": 800,
+                            "x": 0.5,
+                            "y": 0.82486495233750334,
+                            "scale": 0.4556,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a40ef3e52e3c26057e06",
+                            "name": "square_empty_black.svg",
+                            "type": "image\/png",
+                            "height": 48,
+                            "width": 48,
+                            "x": 0.50001731643147573,
+                            "y": 0.43117991692078655,
+                            "scale": 0.94920000000000004,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a6f097b891fa1a26beae",
+                            "name": "fsgp_abstract_04_3600.jpg",
+                            "type": "image\/jpeg",
+                            "height": 3600,
+                            "width": 3600,
+                            "x": 0.50004999999999999,
+                            "y": 0.42394667563089777,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d5bfb497b891fa1a26e732",
+                            "name": "FSGPtopper000000.svg",
+                            "type": "image\/png",
+                            "height": 95,
+                            "width": 2000,
+                            "x": 0.49564999999999998,
+                            "y": 0.027382467092467638,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        }
+                    ]
+                }
+            ],
+            "font_color": "#000",
+            "font_family": "Roboto"
+        },
+        {
+            "variant_ids": [
+                12150,
+                12149,
+                12151,
+                12148,
+                12152
+            ],
+            "placeholders": [
+                {
+                    "position": "front",
+                    "images": [
+                        {
+                            "id": "66d5be686b5c992e67f3a5b1",
+                            "name": "FSGPurl303030.svg",
+                            "type": "image\/png",
+                            "height": 65,
+                            "width": 800,
+                            "x": 0.5,
+                            "y": 0.82486495233750334,
+                            "scale": 0.4556,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a40ef3e52e3c26057e06",
+                            "name": "square_empty_black.svg",
+                            "type": "image\/png",
+                            "height": 48,
+                            "width": 48,
+                            "x": 0.50001731643147573,
+                            "y": 0.43117991692078655,
+                            "scale": 0.94920000000000004,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a6f097b891fa1a26beae",
+                            "name": "fsgp_abstract_04_3600.jpg",
+                            "type": "image\/jpeg",
+                            "height": 3600,
+                            "width": 3600,
+                            "x": 0.50004999999999999,
+                            "y": 0.42394667563089777,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d5bd8647f35eb0f2ce08a6",
+                            "name": "FSGPtopper303030.svg",
+                            "type": "image\/png",
+                            "height": 95,
+                            "width": 2000,
+                            "x": 0.49564999999999998,
+                            "y": 0.027382467092467638,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        }
+                    ]
+                }
+            ],
+            "font_color": "#000",
+            "font_family": "Roboto"
+        },
+        {
+            "variant_ids": [
+                12064,
+                12066,
+                12067,
+                12065,
+                12068
+            ],
+            "placeholders": [
+                {
+                    "position": "front",
+                    "images": [
+                        {
+                            "id": "66d5c1db897912fc25e3b212",
+                            "name": "FSGPurl646a6a.svg",
+                            "type": "image\/png",
+                            "height": 65,
+                            "width": 800,
+                            "x": 0.5,
+                            "y": 0.82486495233750334,
+                            "scale": 0.4556,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a40ef3e52e3c26057e06",
+                            "name": "square_empty_black.svg",
+                            "type": "image\/png",
+                            "height": 48,
+                            "width": 48,
+                            "x": 0.50001731643147573,
+                            "y": 0.43117991692078655,
+                            "scale": 0.94920000000000004,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d4a6f097b891fa1a26beae",
+                            "name": "fsgp_abstract_04_3600.jpg",
+                            "type": "image\/jpeg",
+                            "height": 3600,
+                            "width": 3600,
+                            "x": 0.50004999999999999,
+                            "y": 0.42394667563089777,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        },
+                        {
+                            "id": "66d5bff5dbd6b0f9d1c66749",
+                            "name": "FSGPtopper646a6a.svg",
+                            "type": "image\/png",
+                            "height": 95,
+                            "width": 2000,
+                            "x": 0.49564999999999998,
+                            "y": 0.027382467092467638,
+                            "scale": 0.9113,
+                            "angle": 0,
+                            "src": ""
+                        }
+                    ]
+                }
+            ],
+            "font_color": "#000",
+            "font_family": "Roboto"
+        }
+    ],
+
+Here is how it should be interpreted:
+
+Of note, in addition to filling in the front image columns and the other image columns appended at the end of the table this process will also replace the current process for populating the color columns.
+
+
+
+For the purposes of filling in the images tabs, go through the print_area arrays like this:
+        "variant_ids": [					|	OPEN
+                11952,						|	REMEMBER
+                11951,						|	REMEMBER
+                11953,						|	REMEMBER
+                11950,						|	REMEMBER
+                11954						|	REMEMBER
+
+placeholders: [     						|	OPEN
+	"position": "front",					|	REMEMBER
+	"images": [						|	OPEN
+			"id": "66d5bce57c0b485c83827a0f",	|	IGNORE
+			"name":	"FSGPurl98989a.svg",		|	REMEMBER
+			"type": "image\/png",			|	IGNORE 
+                        "height": 65,				|	IGNORE 
+                        "width": 800,				|	IGNORE
+                        "x": 0.5,				|	IGNORE
+                        "y": 0.82486495233750334,		|	IGNORE
+                        "scale": 0.4556,			|	IGNORE
+                        "angle": 0,				|	IGNORE
+                        "src": ""				|	IGNORE
+                    },						|	INCREMENT THE IMAGE NUMBER
+                    {						|	SAME PATTERN FOR ALL IMAGES IN ARRAY
+                        "id": "66d4a40ef3e52e3c26057e06",
+                        "name": "square_empty_black.svg",
+                        "type": "image\/png",
+                        "height": 48,
+                        "width": 48,
+                        "x": 0.50001731643147573,
+                        "y": 0.43117991692078655,
+                        "scale": 0.94920000000000004,
+                        "angle": 0,
+                        "src": ""
+                    },
+                    {
+                        "id": "66d4a6f097b891fa1a26beae",
+                        "name": "fsgp_abstract_04_3600.jpg",
+                        "type": "image\/jpeg",
+                        "height": 3600,
+                        "width": 3600,
+                        "x": 0.50004999999999999,
+                        "y": 0.42394667563089777,
+                        "scale": 0.9113,
+                        "angle": 0,
+                        "src": ""
+                    },
+                    {
+                        "id": "66d5bc77bda93c130441db9e",
+                        "name": "FSGPtopper98989a.svg",
+                        "type": "image\/png",
+                        "height": 95,
+                        "width": 2000,
+                        "x": 0.49564999999999998,
+                        "y": 0.027382467092467638,
+                        "scale": 0.9113,
+                        "angle": 0,
+                        "src": ""
+                    }
+                ]
+            }
+        ],
+
+Go through each of the variant ids.  search variants array by variant id to get options  "options": [376, 15],.  search options array using first number in the variant options to get color title and hex value
+
+    "options": [
+        {
+            "name": "Colors",
+            "type": "color",
+            "values": [
+                {
+                    "id": 521,
+                    "title": "White",
+                    "colors": [
+                        "#ffffff"
+                    ]
+                },
+
+Remember the list of returned color names and swatches (removing duplicates) so you can make swatches from them
+
+When you get to the end of the first array, you will have the following data
+	| 						Front Design						|		Colors		|
+	| image #1		| image #2		| image #3			| image #4		|
+	_________________________________________________________________________________________________________
+	| image thumbnail	| image thumbnail	| image thumbnail		| image thumbnail	|	swatches that correspond
+	| FSGPurl98989a.svg	| square_empty_black.svg| fsgp_abstract_04_3600.jpg	| FSGPtopper98989a.svg	|	to colors that make up
+															variant ids
+
+CYCLE THROUGH ALL THE PLACEHOLDER ENTRIES IN THE TEMPLATE ARRAY
+IF YOU FIND NEW IMAGES IN A POSITION CREATE A NEW ROW UNDER THE TEMPLATE ROW AND ADD THEM TO THE APPROPRIATE COLUMN THERE.
+EACH VARIANT ID 
+
+
+AT THE END WE HAVE
+
+|			| 						Front Design						|				|
+|        Title		| image #1		| image #2		| image #3			| image #4		|	      Colors		|
+__________________________________________________________________________________________________________________________________________________________________
+|			| image thumbnail	| image thumbnail	| image thumbnail		| image thumbnail	|   swatches that correspond	|
+|  FSGP Abstract 04 Tee	| FSGPurl98989a.svg	| square_empty_black.svg| fsgp_abstract_04_3600.jpg	| FSGPtopper98989a.svg	|   to colors that make up	|
+																   variant ids			|
+__________________________________________________________________________________________________________________________________________________________________	
+|  FSGP Abstract 04 Tee	| image thumbnail	|			|				| image thumbnail	|   swatches that correspond	|
+|   Design Variant 01	| FSGPurl151515.svg	|			|				| FSGPtopper151515.svg	|   to colors that make up
+  																	variant ids
+__________________________________________________________________________________________________________________________________________________________________	
+|  FSGP Abstract 04 Tee	| image thumbnail	|			|				| image thumbnail	|   swatches that correspond	|
+|   Design Variant 02 	| FSGPurl303030.svg	|			|				| FSGPtopper303030.svg	|   to colors that make up
+  																	variant ids
+
+IMAGE THUMBNAILS WILL NEED TO BE DERIVED FROM THE IMAGES IN THE IMAGES TABLE WHICH SHOULD CONTAIN ALL IMAGES REFERENCED IN THE CREATE NEW PRODUCTS TABLE
+
+
+

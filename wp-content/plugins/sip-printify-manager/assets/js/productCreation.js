@@ -3,11 +3,19 @@ var sip = sip || {};
 // Product creation initialization
 sip.productCreation = (function($) {
     let selectedTemplateId = null;
+    let isDirty = false; // Flag to track unsaved changes
 
     // Initialize event listeners
     function init() {
         // Log initialization
         console.log('Initializing product creation...');
+
+        // Check if a template is already selected in localStorage
+        const storedTemplate = localStorage.getItem('sip_selected_template');
+        if (storedTemplate) {
+            selectedTemplateId = storedTemplate;
+            loadProductCreationTable(selectedTemplateId);
+        }
 
         // Event listener for form submission (template-action-form)
         $('#template-action-form').on('submit', function(e) {
@@ -30,6 +38,9 @@ sip.productCreation = (function($) {
                 // Use the first selected template
                 selectedTemplateId = selectedTemplates.first().val();
                 console.log('Selected template ID:', selectedTemplateId);
+
+                // Save selected template to localStorage
+                localStorage.setItem('sip_selected_template', selectedTemplateId);
 
                 // Call the function to load the Product Creation Table
                 loadProductCreationTable(selectedTemplateId);
@@ -62,6 +73,16 @@ sip.productCreation = (function($) {
                 }
             });
         });
+
+        // Event listeners for action buttons in the header
+        $('#product-creation-container').on('click', '#edit-json', handleEditJson);
+        $('#product-creation-container').on('click', '#save-template', handleSaveTemplate);
+        $('#product-creation-container').on('click', '#close-template', handleCloseTemplate);
+
+        // Track changes in the table to set the isDirty flag
+        $('#creation-table').on('change', 'input, textarea, select', function() {
+            isDirty = true;
+        });
     }
 
 
@@ -71,6 +92,9 @@ function loadProductCreationTable(templateName) {
 
     // Show the product creation container if it's hidden
     $('#product-creation-container').show();
+
+    // Update the header with the selected template name and show it
+    $('#selected-template-name').text(templateName);
 
     // Show the spinner while waiting for the AJAX response
     $('#loading-spinner').show();
@@ -113,6 +137,20 @@ function loadProductCreationTable(templateName) {
     });
 }
 
+// Function to escape HTML to prevent XSS
+function escapeHtml(string) {
+    var entityMap = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+        '/': '&#x2F;'
+    };
+    return String(string).replace(/[&<>"'\/]/g, function (s) {
+        return entityMap[s];
+    });
+}
 
 // Function to build the Product Creation Table with the data from the server
 function buildCreationTable(productData) {
@@ -178,6 +216,8 @@ function buildCreationTable(productData) {
     // Add event listeners for table actions (edit, reset)
     addEventListeners();
     console.log('Event listeners added.');
+
+    isDirty = false; // Reset dirty flag after loading data
 }
 
 
@@ -186,30 +226,59 @@ function buildCreationTable(productData) {
         let cellContent = '<td>';
         const printArea = productData.print_areas.find(area => area.position === position);
         if (printArea && printArea.placeholders) {
-            printArea.placeholders.images.forEach(function(image) {
-                cellContent += '<div class="image-cell" data-image-id="' + image.id + '">';
-                cellContent += '<img src="' + image.src + '" alt="' + image.name + '" class="image-thumbnail">';
-                cellContent += '<span>' + image.name + '</span>';
-                cellContent += '<button class="reset-image-button" title="Reset Image">&#8635;</button>';
-                cellContent += '</div>';
+            printArea.placeholders.forEach(function(placeholder) {
+                if (placeholder.type === 'image' && placeholder.images) {
+                    placeholder.images.forEach(function(image) {
+                        cellContent += '<div class="image-cell" data-image-id="' + escapeHtml(image.id) + '">';
+                        cellContent += '<img src="' + escapeHtml(image.src) + '" alt="' + escapeHtml(image.name) + '" class="image-thumbnail">';
+                        cellContent += '<span>' + escapeHtml(image.name) + '</span>';
+                        cellContent += '<button class="reset-image-button" title="Reset Image">&#8635;</button>';
+                        cellContent += '</div>';
+                    });
+                }
             });
         }
         cellContent += '</td>';
         return cellContent;
     }
 
+    // Updated getSizesString function
     function getSizesString(productData) {
-        if (productData.options && productData.options.sizes) {
-            return productData.options.sizes.map(size => size.title).join(', ');
+        if (productData['options - sizes'] && productData['options - sizes'].length > 0) {
+            const desiredSizeOrder = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
+            const sizes = productData['options - sizes'].slice();
+            
+            sizes.sort((a, b) => {
+                const indexA = desiredSizeOrder.indexOf(a.title);
+                const indexB = desiredSizeOrder.indexOf(b.title);
+                
+                if (indexA === -1) return 1;
+                if (indexB === -1) return -1;
+                
+                return indexA - indexB;
+            });
+            
+            return sizes.map(size => escapeHtml(size.title)).join(', ');
         }
         return '';
     }
 
+    // Updated getColorsSwatches function
     function getColorsSwatches(productData) {
         let swatches = '';
-        if (productData.options && productData.options.colors) {
-            productData.options.colors.forEach(function(color) {
-                swatches += '<span class="color-swatch" title="' + color.title + '" style="background-color:' + color.hex + ';"></span>';
+        if (productData['options - colors'] && productData['options - colors'].length > 0) {
+            productData['options - colors'].forEach(function(colorObj) {
+                if (colorObj.colors && colorObj.colors.length > 0) {
+                    colorObj.colors.forEach(function(hex) {
+                        swatches += `
+                            <span 
+                                class="color-swatch" 
+                                title="${escapeHtml(colorObj.title)}" 
+                                style="background-color: ${escapeHtml(hex)};"
+                            ></span>
+                        `;
+                    });
+                }
             });
         }
         return swatches;
@@ -244,6 +313,7 @@ function buildCreationTable(productData) {
                 cell.text(newValue);
                 cell.append(cell.find('button'));
                 updateProductData(cell.data('key'), newValue);
+                isDirty = true;
             });
         });
 
@@ -292,12 +362,17 @@ function buildCreationTable(productData) {
                 action_type: 'creation_action',
                 creation_action: 'update_new_product',
                 updated_data: updatedData,
+                nonce: sipAjax.nonce
             },
-
             success: function(response) {
                 if (!response.success) {
                     alert('Error updating product data: ' + response.data);
+                } else {
+                    isDirty = false; // Reset dirty flag after successful update
                 }
+            },
+            error: function() {
+                console.error('Error updating product data.');
             }
         });
     }
@@ -318,6 +393,7 @@ function buildCreationTable(productData) {
             cell.text(newText);
             cell.append(cell.find('button'));
             updateProductData(key, newText);
+            isDirty = true;
         }
     }
 
@@ -327,6 +403,111 @@ function buildCreationTable(productData) {
         // For simplicity, we'll reload the table
         loadProductCreationTable(selectedTemplateId);
     }
+
+    // Function to handle Edit JSON button click
+    function handleEditJson() {
+        if (!selectedTemplateId) {
+            alert('No template selected.');
+            return;
+        }
+
+        // Trigger the existing edit-template-content click handler
+        // Assuming that the existing button has the class .edit-template-content
+        $('.edit-template-content').trigger('click');
+    }
+
+    // Function to handle Save Template button click
+    function handleSaveTemplate() {
+        if (!selectedTemplateId) {
+            alert('No template selected.');
+            return;
+        }
+
+        // Collect the current table data
+        const productData = collectProductData();
+
+        // Send the data to the server to save
+        $.ajax({
+            url: sipAjax.ajax_url,
+            method: 'POST',
+            data: {
+                action: 'sip_save_template',
+                template_name: selectedTemplateId,
+                product_data: productData,
+                nonce: sipAjax.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('Template saved successfully.');
+                    isDirty = false;
+                } else {
+                    alert('Error saving template: ' + response.data);
+                }
+            },
+            error: function() {
+                console.error('Error saving template.');
+                alert('An error occurred while saving the template.');
+            }
+        });
+    }
+
+    // Function to collect product data from the table
+    function collectProductData() {
+        const table = $('#creation-table');
+        const tbody = table.find('tbody tr');
+        const productData = {};
+
+        // Collect data from the table cells
+        tbody.find('td').each(function(index, cell) {
+            const $cell = $(cell);
+            if ($cell.hasClass('editable')) {
+                const key = $cell.data('key');
+                const value = $cell.find('.editable-input').length > 0 ? $cell.find('.editable-input').val() : $cell.contents().filter(function() {
+                    return this.nodeType === 3;
+                }).text().trim();
+                productData[key] = key === 'tags' ? value.split(',').map(tag => tag.trim()) : value;
+            }
+            // Handle other cells like Designs, Sizes, Colors if needed
+        });
+
+        // Additionally, collect designs, sizes, colors, etc., as per your data structure
+        // This may require more detailed parsing based on your table structure
+
+        // Example:
+        productData['print_areas'] = []; // Populate print areas as needed
+
+        // Implement the collection of additional data based on your table structure
+
+        return productData;
+    }
+
+    // Function to handle Close Template button click
+    function handleCloseTemplate() {
+        if (isDirty) {
+            const confirmClose = confirm('You have unsaved changes. Would you like to save before closing?');
+            if (confirmClose) {
+                handleSaveTemplate();
+            } else {
+                // Discard changes and close
+                resetTemplateSelection();
+            }
+        } else {
+            resetTemplateSelection();
+        }
+    }
+
+    // Function to reset template selection and hide the table
+    function resetTemplateSelection() {
+        selectedTemplateId = null;
+        localStorage.removeItem('sip_selected_template');
+        $('#product-creation-container').hide();
+        $('#creation-header').remove();
+        $('#creation-table thead').empty();
+        $('#creation-table tbody').empty();
+    }
+
+    // Function to handle Save action on Close confirmation
+    // Not needed separately since handleCloseTemplate manages it
 
     // Expose the init function
     return {
