@@ -3,12 +3,29 @@ The story of the create new product table begins with the template table.
 
 In the template table, a template can be selected and the "create_new_products" option selected from the dropdown and executed.
 	option value="create_new_products"><?php esc_html_e('Create New Products', 'sip-printify-manager')
-	input type="submit" name="execute_template_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager')
+	input type="submit" name="execute_creation_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager')
 
-This listener in productCreation.js picks up the input and populates the selectedTemplates constant with $('input[name="selected_templates[]"]:checked')
+Some listener in ajax.js???  picks up the action
 
-        $('#template-action-form').on('submit', function(event) {
-            const action = $('#template_action').val();
+this case from ajax.js is triggered (through the use of "creation-action-form" and "actionType: 'creation_action'"?) and contributes the selected templates names.
+            case 'creation-action-form':
+                actionType = 'creation_action';
+                // Collect selected templates
+                var selectedTemplates = [];
+                $('input[name="selected_templates[]"]:checked').each(function () {
+                    selectedTemplates.push($(this).val());
+                });
+                formData.delete('selected_templates[]');
+                selectedTemplates.forEach(function (templateId) {
+                    formData.append('selected_templates[]', templateId);
+                });
+                break;
+
+
+Then somehow ??? it is directed to productCreation.js which populates makes sure the selectedTemplates data is correctly formatted as template_name, fills out the rest of the ajax form and submits it
+
+        $('#creation-action-form').on('submit', function(event) {
+            const action = $('#creation_action').val();
             if (action === 'create_new_products') {
                 event.preventDefault(); // Prevent the form from submitting
                 const selectedTemplates = $('input[name="selected_templates[]"]:checked');
@@ -23,23 +40,8 @@ This listener in productCreation.js picks up the input and populates the selecte
             }
         });
 
-this case from ajax.js is presumably triggered (through the use of "template-action-form" and "actionType: 'template_action'"?) and contributes the selected templates names.  Let's confirm when and how.
-            case 'template-action-form':
-                actionType = 'template_action';
-                // Collect selected templates
-                var selectedTemplates = [];
-                $('input[name="selected_templates[]"]:checked').each(function () {
-                    selectedTemplates.push($(this).val());
-                });
-                formData.delete('selected_templates[]');
-                selectedTemplates.forEach(function (templateId) {
-                    formData.append('selected_templates[]', templateId);
-                });
-                break;
 
-if that all works as it should, we have the target template name in the variable 'selectedTemplateId' and the listener goes to:
 	loadProductCreationTable(selectedTemplateId);
-
 
 the lPCT() function shows the Product Creation Table and then makes an ajax call which refers to the name in selectedTemplateId as "template_name" to get the data to fill the creation table (response.data) and then calls buildCreationTable(response.data).
 
@@ -53,8 +55,8 @@ the lPCT() function shows the Product Creation Table and then makes an ajax call
             data: {
                 sip_printify_manager_nonce_field: sipAjax.nonce,
                 action: 'sip_handle_ajax_request',
-                action_type: 'template_action',
-                template_action: 'create_new_products',
+                action_type: 'creation_action',
+                creation_action: 'create_new_products',
                 template_name: selectedTemplateId,
             },
             success: function(response) {
@@ -68,7 +70,7 @@ the lPCT() function shows the Product Creation Table and then makes an ajax call
         });
     }
 
-the ajax call goes through sip_handle_ajax_request() in sip-printify-manager.php which responds to "template_action" and sends the call to sip_handle_template_action()
+the ajax call goes through sip_handle_ajax_request() in sip-printify-manager.php which responds to "creation_action" and sends the call to sip_handle_template_action()
 
 sip_handle_template_action() in template-functions.php sees the 'create-new-products' template_action and calls the sip_create_new_product_from_template() function.
 

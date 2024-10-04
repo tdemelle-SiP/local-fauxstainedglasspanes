@@ -7,14 +7,13 @@ sip.ajaxModule = (function($) {
         // Event handlers and initialization code
 
         // Form submission handler
-        $('#save-token-form, #product-action-form, #template-action-form, #image-action-form').on('submit', function (e) {
+        $('#save-token-form, #product-action-form, #template-action-form, #creation-action-form, #image-action-form').on('submit', function (e) {
             e.preventDefault();
 
             // Create a new FormData object from the submitted form
             var formData = new FormData(this);
             var actionType = '';
 
-            // Determine action type based on form ID
             switch ($(this).attr('id')) {
                 case 'save-token-form':
                     actionType = 'save_token';
@@ -37,15 +36,36 @@ sip.ajaxModule = (function($) {
 
                 case 'template-action-form':
                     actionType = 'template_action';
-                    // Collect selected templates
-                    var selectedTemplates = [];
-                    $('input[name="selected_templates[]"]:checked').each(function () {
-                        selectedTemplates.push($(this).val());
-                    });
-                    formData.delete('selected_templates[]');
-                    selectedTemplates.forEach(function (templateId) {
-                        formData.append('selected_templates[]', templateId);
-                    });
+                    var templateAction = $('#template_action').val();
+                    console.log('Template action triggered:', templateAction); // Log the template action for debugging
+
+                    if (templateAction === 'create_new_products') {
+                        // Log that we're bypassing the AJAX call for this case
+                        console.log('Bypassing AJAX call for create_new_products. Handled in productCreation.js.');
+                        return;  // This should exit early for create_new_products
+                    
+                    } else if (templateAction === 'delete_template') {
+                        // Handle Delete Template action
+                        var selectedTemplates = $('input[name="selected_templates[]"]:checked');
+                        if (selectedTemplates.length === 0) {
+                            alert('Please select at least one template to delete.');
+                            return;
+                        }
+                        formData.delete('selected_templates[]');
+                        selectedTemplates.forEach(function (templateId) {
+                            formData.append('selected_templates[]', templateId);
+                        });
+                    } else {
+                        // Handle other template actions
+                        var selectedTemplates = [];
+                        $('input[name="selected_templates[]"]:checked').each(function () {
+                            selectedTemplates.push($(this).val());
+                        });
+                        formData.delete('selected_templates[]');
+                        selectedTemplates.forEach(function (templateId) {
+                            formData.append('selected_templates[]', templateId);
+                        });
+                    }
                     break;
 
                 case 'image-action-form':

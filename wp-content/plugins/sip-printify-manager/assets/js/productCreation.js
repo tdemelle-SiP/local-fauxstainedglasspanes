@@ -1,25 +1,27 @@
-// productCreation.js
-
-/**
- * Includes functions specific to the product creation process, such as loading and building the product creation table
- */
 var sip = sip || {};
 
+// Product creation initialization
 sip.productCreation = (function($) {
-    // Store the selected template ID
     let selectedTemplateId = null;
 
-    // Define the init function
+    // Initialize event listeners
     function init() {
-        // Event listener for the form submission
-        $('#template-action-form').on('submit', function(event) {
+        // Log initialization
+        console.log('Initializing product creation...');
+
+        // Event listener for form submission (template-action-form)
+        $('#template-action-form').on('submit', function(e) {
+            console.log('Form submission detected for template-action-form...');
+            e.preventDefault();
+
+            // Check the selected action in the dropdown
             const action = $('#template_action').val();
+            console.log('Selected action:', action);
 
             if (action === 'create_new_products') {
-                event.preventDefault(); // Prevent the form from submitting
+                console.log('create_new_products action detected...');
 
                 const selectedTemplates = $('input[name="selected_templates[]"]:checked');
-
                 if (selectedTemplates.length === 0) {
                     alert('Please select at least one template.');
                     return;
@@ -27,16 +29,17 @@ sip.productCreation = (function($) {
 
                 // Use the first selected template
                 selectedTemplateId = selectedTemplates.first().val();
+                console.log('Selected template ID:', selectedTemplateId);
 
-                // Load the Product Creation Table
+                // Call the function to load the Product Creation Table
                 loadProductCreationTable(selectedTemplateId);
             }
-
-            // Handle other actions...
         });
 
-        // Event listener for 'Create New Product' action
+        // Event listener for 'Create Product' button
         $('#create-product-button').on('click', function() {
+            console.log('Create Product button clicked...');
+
             // Send a request to create the product
             $.ajax({
                 url: sipAjax.ajax_url,
@@ -47,116 +50,140 @@ sip.productCreation = (function($) {
                     nonce: sipAjax.nonce
                 },
                 success: function(response) {
+                    console.log('Create product response:', response);
                     if (response.success) {
                         alert('Product created successfully.');
-                        // Optionally, redirect or update the UI
                     } else {
                         alert('Error creating product: ' + response.data);
                     }
+                },
+                error: function() {
+                    console.error('Error in Create Product AJAX call');
                 }
             });
         });
     }
 
-    // Function to load the Product Creation Table when a template is selected
-    function loadProductCreationTable(templateName) {
-        // Show the product creation container if it's hidden
-        $('#product-creation-container').show();
 
-        // Make an AJAX call to fetch the new product JSON
-        $.ajax({
-            url: sipAjax.ajax_url,
-            method: 'POST',
-            data: {
-                sip_printify_manager_nonce_field: sipAjax.nonce,
-                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
-                action: 'sip_handle_ajax_request',
-                action_type: 'template_action',
-                template_action: 'create_new_products',
-                template_name: selectedTemplateId,
-                nonce: sipAjax.nonce
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Build the table with the received data
-                    buildCreationTable(response.data);
-                } else {
-                    alert('Error: ' + response.data);
-                }
+// Function to load the Product Creation Table when a template is selected
+function loadProductCreationTable(templateName) {
+    console.log('Loading Product Creation Table for template:', templateName);
+
+    // Show the product creation container if it's hidden
+    $('#product-creation-container').show();
+
+    // Show the spinner while waiting for the AJAX response
+    $('#loading-spinner').show();
+    $('#spinner-overlay').show();
+
+    // Make an AJAX call to fetch the new product JSON
+    $.ajax({
+        url: sipAjax.ajax_url,
+        method: 'POST',
+        data: {
+            sip_printify_manager_nonce_field: sipAjax.nonce, // Include the nonce
+            action: 'sip_handle_ajax_request',
+            action_type: 'template_action',
+            template_action: 'create_new_products',
+            template_name: templateName,
+            nonce: sipAjax.nonce
+
+        },
+        success: function(response) {
+            console.log('AJAX response received:', response);
+
+            // Hide the spinner when response is received
+            $('#loading-spinner').hide();
+            $('#spinner-overlay').hide();
+
+            if (response.success) {
+                // Build the table with the received data
+                console.log('Calling buildCreationTable with data:', response.data);
+                buildCreationTable(response.data); // Build the table
+            } else {
+                console.error('Error in AJAX response:', response.data);
+                alert('Error: ' + response.data);
+            }
+        },
+        error: function() {
+            console.error('AJAX call failed.');
+            $('#loading-spinner').hide(); // Hide spinner in case of error
+            $('#spinner-overlay').hide();
+        }
+    });
+}
+
+
+// Function to build the Product Creation Table with the data from the server
+function buildCreationTable(productData) {
+    console.log('Building Product Creation Table with product data:', productData);
+
+    const table = $('#creation-table');
+    const thead = table.find('thead');
+    const tbody = table.find('tbody');
+
+    // Clear existing content
+    thead.empty();
+    tbody.empty();
+
+    // Build table headers
+    const headers = ['Front Design', 'Title', 'Sizes', 'Colors', 'Description', 'Tags'];
+    console.log('Headers:', headers);
+
+    // Add headers for additional print areas
+    if (productData.print_areas) {
+        productData.print_areas.forEach(function(area) {
+            if (area.position && typeof area.position === 'string') {
+                headers.push(capitalizeFirstLetter(area.position) + ' Design');
+            } else {
+                console.error('Invalid or missing position in print_areas:', area);
             }
         });
     }
 
-    // Function to build the Creation Table
-    function buildCreationTable(productData) {
-        const table = $('#creation-table');
-        const thead = table.find('thead');
-        const tbody = table.find('tbody');
+    let headerRow = '<tr>';
+    headers.forEach(function(header) {
+        headerRow += '<th>' + header + '</th>';
+    });
+    headerRow += '</tr>';
+    thead.append(headerRow);
+    console.log('Table headers added:', headers);
 
-        // Clear existing content
-        thead.empty();
-        tbody.empty();
+    // Correctly handle the sizes and colors, accounting for different key names
+    const sizes = productData['options - sizes'] ? productData['options - sizes'] : [];
+    const colors = productData['options - colors'] ? productData['options - colors'] : [];
 
-        // Build table headers
-        const headers = ['Front Design', 'Title', 'Sizes', 'Colors', 'Description', 'Tags'];
+    // Build table row with product data
+    let row = '<tr>';
+    row += buildDesignCell(productData, 'front');  // Front Design cell
+    row += '<td class="editable" data-key="title">' + productData.title + '<button class="reset-button" title="Reset">&#8635;</button></td>';
+    row += '<td>' + getSizesString(sizes) + '</td>';  // Sizes data
+    row += '<td>' + getColorsSwatches(colors) + '</td>';  // Colors data
+    row += '<td class="editable" data-key="description">' + truncateText(productData.description, 30) + '<button class="edit-button" title="Edit">&#9998;</button><button class="reset-button" title="Reset">&#8635;</button></td>';
+    row += '<td class="editable" data-key="tags">' + productData.tags.join(', ') + '<button class="reset-button" title="Reset">&#8635;</button></td>';
 
-        // Add headers for additional print areas
-        if (productData.print_areas) {
-            productData.print_areas.forEach(function(area) {
-                if (area.position !== 'front') {
-                    headers.push(capitalizeFirstLetter(area.position) + ' Design');
-                }
-            });
-        }
-
-        let headerRow = '<tr>';
-        headers.forEach(function(header) {
-            headerRow += '<th>' + header + '</th>';
+    // Add additional design cells for other print areas
+    if (productData.print_areas) {
+        productData.print_areas.forEach(function(area) {
+            if (area.placeholders && area.placeholders.length > 0) {
+                row += buildDesignCell(productData, area.placeholders[0].position);
+            }
         });
-        headerRow += '</tr>';
-        thead.append(headerRow);
-
-        // Build table row (for now, we have only one product)
-        let row = '<tr>';
-
-        // Front Design cell
-        row += buildDesignCell(productData, 'front');
-
-        // Title cell
-        row += '<td class="editable" data-key="title">' + productData.title + '<button class="reset-button" title="Reset">&#8635;</button></td>';
-
-        // Sizes cell
-        row += '<td>' + getSizesString(productData) + '</td>';
-
-        // Colors cell
-        row += '<td>' + getColorsSwatches(productData) + '</td>';
-
-        // Description cell
-        row += '<td class="editable" data-key="description">' + truncateText(productData.description, 30) + '<button class="edit-button" title="Edit">&#9998;</button><button class="reset-button" title="Reset">&#8635;</button></td>';
-
-        // Tags cell
-        row += '<td class="editable" data-key="tags">' + productData.tags.join(', ') + '<button class="reset-button" title="Reset">&#8635;</button></td>';
-
-        // Additional Design cells for other print areas
-        if (productData.print_areas) {
-            productData.print_areas.forEach(function(area) {
-                if (area.position !== 'front') {
-                    row += buildDesignCell(productData, area.position);
-                }
-            });
-        }
-
-        row += '</tr>';
-        tbody.append(row);
-
-        // Add event listeners
-        addEventListeners();
     }
 
-    // Helper functions
+    row += '</tr>';
+    tbody.append(row);
+    console.log('Table row added:', row);
+
+    // Add event listeners for table actions (edit, reset)
+    addEventListeners();
+    console.log('Event listeners added.');
+}
+
+
+    // Function to build design cells for each print area
     function buildDesignCell(productData, position) {
         let cellContent = '<td>';
-
         const printArea = productData.print_areas.find(area => area.position === position);
         if (printArea && printArea.placeholders) {
             printArea.placeholders.images.forEach(function(image) {
@@ -167,7 +194,6 @@ sip.productCreation = (function($) {
                 cellContent += '</div>';
             });
         }
-
         cellContent += '</td>';
         return cellContent;
     }
@@ -196,10 +222,13 @@ sip.productCreation = (function($) {
         return text;
     }
 
+    // Capitalize the first letter function
     function capitalizeFirstLetter(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
+        if (typeof string === 'string' && string.length > 0) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+        return '';  // Return an empty string for non-valid inputs
     }
-
     // Function to add event listeners to table elements
     function addEventListeners() {
         // Editable cells
@@ -255,11 +284,6 @@ sip.productCreation = (function($) {
         $.ajax({
             url: sipAjax.ajax_url,
             method: 'POST',
-            // data: {
-            //     action: 'sip_update_new_product_data',
-            //     updated_data: updatedData,
-            //     sip_printify_manager_nonce_field: sipAjax.nonce
-            // },
 
             data: {
                 sip_printify_manager_nonce_field: sipAjax.nonce,
@@ -306,6 +330,7 @@ sip.productCreation = (function($) {
 
     // Expose the init function
     return {
-        init: init
+        init: init,
+        buildCreationTable: buildCreationTable
     };
 })(jQuery);
