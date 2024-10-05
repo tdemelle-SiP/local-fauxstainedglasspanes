@@ -119,16 +119,16 @@ a, a:hover, a:focus, a:active, a:visited {
 }
 
 /*///////////////////////////////////////////////////////////////////////////////////////////////*/
-/*//////////////////// STYLING FOR THE PRODUCTS/TEMPLATES/IMAGES SECTIONS////////////////////////*/
+/*//////////////////// STYLING FOR THE PRODUCTS/TEMPLATES/IMAGE SECTIONS////////////////////////*/
 /*///////////////////////////////////////////////////////////////////////////////////////////////*/
 
-/* Container for Products, Templates, and Images Sections */
-.products-templates-images-container {
+/* Container for Products, Templates, and Image Sections */
+.products-templates-image-container {
     display: flex; /* Aligns child elements horizontally */
     height: 635px; /* Sets a fixed height for the container */
 }
 
-/*////////////// Table Styling for Products, Templates, and Images ////////////////*/
+/*////////////// Table Styling for Products, Templates, and Image ////////////////*/
 
 /* Container for the template, product, and image list sections */
 #template-table-container,
@@ -186,15 +186,15 @@ a, a:hover, a:focus, a:active, a:visited {
     color: white;
 }
 
-.products-templates-images-container h2,
-#images-header-left h2 {
+.products-templates-image-container h2,
+#image-header-left h2 {
     margin: 0px;
     padding: 0px;
     font-size: 26px;
     font-weight: 700;
 }
 
-.products-templates-images-container th input[type=checkbox], 
+.products-templates-image-container th input[type=checkbox], 
 input[type=radio] {
     margin: 0;
     padding: 0;
@@ -205,7 +205,7 @@ input[type=radio] {
 }
 
 /* Styling for the Search Inputs */
-.products-templates-images-container input[type=text] {
+.products-templates-image-container input[type=text] {
     font-weight: 400;
 }
 
@@ -283,15 +283,15 @@ table tbody tr:nth-child(even) {
 }
 
 /*//////////////////////////////////////////////////////////////////////////////////////*/
-/*/////////////////////////// Styling for the Images Section ///////////////////////////*/
+/*/////////////////////////// Styling for the Image Section ///////////////////////////*/
 
-#images-column {
-    /*    overflow-y: auto; /* Enables vertical scrolling for the images section */
+#image-column {
+    /*    overflow-y: auto; /* Enables vertical scrolling for the image section */
     height: 100%; /* Fills the height of the parent container */
     width: 70%; /* Sets the width of the section */
 }
 
-#images-section {
+#image-section {
     display: flex; /* Aligns child elements vertically */
     flex-direction: column; /* Stacks child elements vertically */
     height: 100%; /* Limits the height of the products section */
@@ -299,7 +299,7 @@ table tbody tr:nth-child(even) {
     padding: 10px;
 }
 
-#images-header {
+#image-section-header {
     display: flex; /* Aligns child elements horizontally */
     flex-direction: row; /* Stacks child elements horizontally */
     justify-content: space-between; /* Distributes space between header elements */
@@ -307,22 +307,22 @@ table tbody tr:nth-child(even) {
     margin-bottom: 10px; /* Adds space below the header */
 }
 
-#images-header-left {
+#image-header-left {
     display: flex; 
     flex-direction: column;
     width: 40%
 }
 
-#images-header-left-top {
+#image-header-left-top {
     display: flex;
     flex-direction: row;
 }
 
-#images-header-left-bottom {
+#image-header-left-bottom {
     display: flex; /* Aligns child elements horizontally */
 }
 
-#images-header-right {
+#image-header-right {
     width: 60%
 }
 
@@ -343,7 +343,7 @@ table tbody tr:nth-child(even) {
 }
 
 
-/* Tooltip Styling for Hovering over Images in the Image List */
+/* Tooltip Styling for Hovering over Image in the Image List */
 #image-list tr td:first-child img:hover::after {
     cursor: pointer; /* Changes cursor to pointer over the first image */
     content: attr(title); /* Displays the image title as a tooltip */

@@ -70,29 +70,31 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
             </a>
         </h2>
 
-        <div id="products-templates-images-container" class="products-templates-images-container">
+        <div id="products-templates-image-container" class="products-templates-image-container">
     
             <!-- Left Column: Templates and Products -->
             <div id="templates-products-column" class="templates-products-column">
 
                 <!-- Products Section -->
                 <div id="products-section" class="products-section">
-                    <h2 style="display: flex; justify-content: space-between; align-items: center;">
-                        <?php esc_html_e('Products', 'sip-printify-manager'); ?>
-                        <label for="product-search" class="screen-reader-text"><?php esc_html_e('Search Products', 'sip-printify-manager'); ?></label>
-                        <input type="text" id="product-search" placeholder="<?php esc_attr_e('Search Products...', 'sip-printify-manager'); ?>">
-                    </h2>
-                    <form id="product-action-form" class="product-action-form" method="post" action="">
-                        <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
-                        <label for="product_action" class="screen-reader-text"><?php esc_html_e('Product Actions', 'sip-printify-manager'); ?></label>
-                        <select name="product_action" id="product_action">
-                            <option value="reload"><?php esc_html_e('Reload', 'sip-printify-manager'); ?></option>
-                            <option value="create_template"><?php esc_html_e('Create Template', 'sip-printify-manager'); ?></option>
-                            <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>
-                        </select>
-                        <input type="submit" name="execute_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" />
-                    </form>
-                    <div id="product-list" class="product-list">
+                    <div id="products-section-header" class="products-section-header">
+                        <h2 style="display: flex; justify-content: space-between; align-items: center;">
+                            <?php esc_html_e('Products', 'sip-printify-manager'); ?>
+                            <label for="product-search" class="screen-reader-text"><?php esc_html_e('Search Products', 'sip-printify-manager'); ?></label>
+                            <input type="text" id="product-search" placeholder="<?php esc_attr_e('Search Products...', 'sip-printify-manager'); ?>">
+                        </h2>
+                        <form id="product-action-form" class="product-action-form" method="post" action="">
+                            <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+                            <label for="product_action" class="screen-reader-text"><?php esc_html_e('Product Actions', 'sip-printify-manager'); ?></label>
+                            <select name="product_action" id="product_action">
+                                <option value="reload"><?php esc_html_e('Reload', 'sip-printify-manager'); ?></option>
+                                <option value="create_template"><?php esc_html_e('Create Template', 'sip-printify-manager'); ?></option>
+                                <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>
+                            </select>
+                            <input type="submit" name="execute_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" />
+                        </form>
+                    </div>
+                    <div id="product-table-list" class="product-table-list">
                         <?php if (!empty($products)) : ?>
                             <div id="product-table-container">
                                 <table id="product-table-header">
@@ -141,21 +143,23 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 
                 <!-- Template Section -->
                 <div id="template-section" class="template-section">
-                    <h2 style="display: flex; justify-content: space-between; align-items: center;">
-                        <?php esc_html_e('Templates', 'sip-printify-manager'); ?>
-                        <label for="template-search" class="screen-reader-text"><?php esc_html_e('Search Templates', 'sip-printify-manager'); ?></label>
-                        <input type="text" id="template-search" placeholder="<?php esc_attr_e('Search Templates...', 'sip-printify-manager'); ?>">
-                    </h2>
-                    <form id="template-action-form" class="template-action-form" method="post" action="">
-                        <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
-                        <label for="template_action" class="screen-reader-text"><?php esc_html_e('Template Actions', 'sip-printify-manager'); ?></label>
-                        <select name="template_action" id="template_action">
-                            <option value="create_new_products"><?php esc_html_e('Create New Products', 'sip-printify-manager'); ?></option>
-                            <option value="delete_template"><?php esc_html_e('Delete Template', 'sip-printify-manager'); ?></option>
-                        </select>
-                        <input type="submit" name="execute_template_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary"/>
-                    </form>
-                    <div id="template-list" class="template-list">
+                    <div id="template-section-header" class="template-section-header">
+                        <h2 style="display: flex; justify-content: space-between; align-items: center;">
+                            <?php esc_html_e('Templates', 'sip-printify-manager'); ?>
+                            <label for="template-search" class="screen-reader-text"><?php esc_html_e('Search Templates', 'sip-printify-manager'); ?></label>
+                            <input type="text" id="template-search" placeholder="<?php esc_attr_e('Search Templates...', 'sip-printify-manager'); ?>">
+                        </h2>
+                        <form id="template-action-form" class="template-action-form" method="post" action="">
+                            <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+                            <label for="template_action" class="screen-reader-text"><?php esc_html_e('Template Actions', 'sip-printify-manager'); ?></label>
+                            <select name="template_action" id="template_action">
+                                <option value="create_new_products"><?php esc_html_e('Create New Products', 'sip-printify-manager'); ?></option>
+                                <option value="delete_template"><?php esc_html_e('Delete Template', 'sip-printify-manager'); ?></option>
+                            </select>
+                            <input type="submit" name="execute_template_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary"/>
+                        </form>
+                    </div>    
+                    <div id="template-table-list" class="template-table-list">
                         <?php if (!empty($templates)) : ?>
                             <div id="template-table-container">
                                 <table id="template-table-header">
@@ -194,17 +198,17 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                 </div> <!-- End of template-section -->
             </div> <!-- End of templates-products-column -->
 
-            <!-- Right Column: Images -->
-            <div id="images-column" class="images-column">
-                <div id="images-section" class="images-section">
-                    <div id="images-header" class="images-header">
-                        <div id="images-header-left" class="images-header-left">
-                            <div id="images-header-left-top" class="images-header-left-top">
+            <!-- Right Column: Image -->
+            <div id="image-column" class="image-column">
+                <div id="image-section" class="image-section">
+                    <div id="image-section-header" class="image-section-header">
+                        <div id="image-header-left" class="image-header-left">
+                            <div id="image-header-left-top" class="image-header-left-top">
                                 <h2><?php esc_html_e('Images', 'sip-printify-manager'); ?></h2>
                                 <label for="image-search" class="screen-reader-text"><?php esc_html_e('Search Images', 'sip-printify-manager'); ?></label>
                                 <input type="text" id="image-search" placeholder="<?php esc_attr_e('Search Images...', 'sip-printify-manager'); ?>">                        
-                            </div> <!-- End of images-header-left-top -->
-                            <div id="images-header-left-bottom" class="images-header-left-bottom">
+                            </div> <!-- End of image-header-left-top -->
+                            <div id="image-header-left-bottom" class="image-header-left-bottom">
                                 <form id="image-action-form" class="image-action-form" method="post" action="">
                                     <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
                                     <label for="image_action" class="screen-reader-text"><?php esc_html_e('Image Actions', 'sip-printify-manager'); ?></label>
@@ -217,18 +221,18 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                     </select>
                                     <input type="submit" name="execute_image_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" />
                                 </form>
-                            </div> <!-- End of images-header-left-bottom -->
-                        </div> <!-- End of images-header-left -->
-                        <div id="images-header-right" class="images-header-right">
+                            </div> <!-- End of image-header-left-bottom -->
+                        </div> <!-- End of image-header-left -->
+                        <div id="image-header-right" class="image-header-right">
                             <div id="image-upload-area" class="image-upload-area">
                                 <label for="image-file-input" class="screen-reader-text"><?php esc_html_e('Select Images to Upload', 'sip-printify-manager'); ?></label>
                                 <p><?php esc_html_e('Drag and drop images here to upload, or', 'sip-printify-manager'); ?></p>
                                 <button id="select-images-button" class="button button-primary"><?php esc_html_e('Select Images', 'sip-printify-manager'); ?></button>
                                 <input type="file" id="image-file-input" accept=".jpg,.jpeg,.png,.webp,.svg" multiple style="display: none;">
                             </div> <!-- End of image-upload-area -->
-                        </div> <!-- End of images-header-right -->
-                    </div> <!-- End of images-header -->
-                    <div id="image-list">
+                        </div> <!-- End of image-header-right -->
+                    </div> <!-- End of image-header -->
+                    <div id="image-table-list">
                         <?php if (!empty($images)) : ?>
                             <div id="image-table-container">
                                 <table id="image-table-header">
@@ -295,10 +299,11 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                             <p><?php esc_html_e('No images found.', 'sip-printify-manager'); ?></p>
                         <?php endif; ?>
                     </div> <!-- End of image-list -->
-                </div> <!-- End of images-section -->
-            </div> <!-- End of images-column -->
+                </div> <!-- End of image-section -->
+            </div> <!-- End of image-column -->
 
-        </div> <!-- End of products-templates-images-container -->
+
+        </div> <!-- End of products-templates-image-container -->
 
     <?php else : ?>
         <h2><?php esc_html_e('Shop could not be loaded. Please try re-authorizing.', 'sip-printify-manager'); ?></h2>
