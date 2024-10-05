@@ -127,7 +127,61 @@ a, a:hover, a:focus, a:active, a:visited {
     display: flex; /* Aligns child elements horizontally */
     height: 635px; /* Sets a fixed height for the container */
 }
-.products-templates-images-container th {
+
+/*////////////// Table Styling for Products, Templates, and Images ////////////////*/
+
+/* Container for the template, product, and image list sections */
+#template-table-container,
+#product-table-container,
+#image-table-container {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden; /* Ensures no overflow from the container */
+}
+
+/* Styling for the table headers (template, product, and image) */
+#template-table-header,
+#product-table-header,
+#image-table-header {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Ensures header columns align with body columns */
+}
+
+/* Scrollable table body container (template, product, and image) */
+#template-table-body,
+#product-table-body,
+#image-table-body {
+    max-height: 200px; /* Adjust this height as needed for scrolling */
+    overflow-y: auto; /* Makes the table body scrollable */
+}
+
+/* Styling for the table content (template, product, and image) */
+#template-table-content,
+#product-table-content,
+#image-table-content {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Keeps column alignment consistent */
+}
+
+/* Styling for table header and table cells (template, product, and image) */
+#template-table-header th,
+#product-table-header th,
+#image-table-header th,
+#template-table-content td,
+#product-table-content td,
+#image-table-content td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+/* Specific styling for table headers (template, product, and image) */
+#template-table-header th,
+#product-table-header th,
+#image-table-header th {
     background-color: #0e5274;
     color: white;
 }
@@ -150,6 +204,7 @@ input[type=radio] {
     transform: translateY(-0.075em);
 }
 
+/* Styling for the Search Inputs */
 .products-templates-images-container input[type=text] {
     font-weight: 400;
 }
@@ -179,20 +234,6 @@ input[type=radio] {
     display: flex; /* Aligns child elements horizontally */
     align-items: center; /* Centers child elements vertically */
     padding: 5px 0px 5px 0px;
-}
-
-/* Styling for Product and Template Lists */
-.product-list,
-.template-list {
-    max-height: 100%; /* Ensures the lists fill their container */
-    border: 1px solid #ccc; /* Adds a light gray border around the lists */
-    padding: 10px; /* Adds padding inside the lists */
-}
-
-#product-list > div,
-#template-list > div {
-    overflow-y: auto; /* Enables vertical scrolling */
-    max-height: 200px; /* Limits the height of the div to allow scrolling */
 }
 
 table tbody tr:nth-child(odd) {

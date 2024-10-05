@@ -83,51 +83,6 @@ function sip_get_template_dir() {
 }
 
 /**
- * Display the list of templates in the WordPress admin interface.
- *
- * This function outputs the list of templates as a table with a sticky header.
- * The header includes a select-all checkbox and a label "Template Name".
- *
- * @param array $templates List of template names to display.
- */
-function sip_display_template_list($templates) {
-    if (empty($templates)) {
-        echo '<p>No templates found.</p>';
-    } else {
-        echo '<div style="overflow-y: auto;">'; // Contain the scroll within this div
-        echo '<table style="width: 100%; border-collapse: collapse; table-layout: fixed;">';
-
-        // Define column widths to prevent horizontal scrollbar
-        echo '<colgroup>';
-        echo '<col style="width: 8%;">';   // Select checkbox
-        echo '<col style="width: 92%;">';  // Template Name
-        echo '</colgroup>';
-
-        // Table Header
-        echo '<thead>';
-        echo '<tr>';
-        echo '<th><input type="checkbox" id="select-all-templates"></th>';
-        echo '<th style="text-align: left; padding-left: 8px;">Template Name</th>';
-        echo '</tr>';
-        echo '</thead>';
-
-        // Table Body
-        echo '<tbody>';
-        foreach ($templates as $template) {
-            echo '<tr>';
-            echo '<td>';
-            echo '<input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '" /></td>';
-            echo '<td style="text-align: left; padding-left: 8px;">' . esc_html($template) . '</td>';
-            echo '</tr>';
-        }
-        echo '</tbody>';
-
-        echo '</table>';
-        echo '</div>';
-    }
-}
-
-/**
  * Delete a specific template by name.
  *
  * This function deletes the specified template file from the template directory.

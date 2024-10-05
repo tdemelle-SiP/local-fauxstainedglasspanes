@@ -256,7 +256,7 @@ function sip_display_image_list($images) {
     // Define column widths to prevent horizontal scrollbar
     echo '<colgroup>';
     echo '<col style="width: 4%;">';   // Select checkbox
-    echo '<col style="width: 8%;">';  // Thumbnail
+    echo '<col style="width: 8%;">';   // Thumbnail
     echo '<col style="width: 42%;">';  // Filename
     echo '<col style="width: 15%;">';  // Location
     echo '<col style="width: 15%;">';  // Uploaded

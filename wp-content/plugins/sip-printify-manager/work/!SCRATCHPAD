@@ -1,816 +1,116 @@
-"print_areas": [
-    {
-        "variant_ids": [
-            12018,
-            12125,
-            12016,
-            12142,
-            12019,
-            11989,
-            11986,
-            12102,
-            12103,
-            12143,
-            12126,
-            11987,
-            11988,
-            12145,
-            12124,
-            12127,
-            12017,
-            12100,
-            12101,
-            12144,
-            12020,
-            12104,
-            12128,
-            12146,
-            11990,
-            12021,
-            11991
-        ],
-        "placeholders": [
-            {
-                "position": "front",
-                "images": [
-                    {
-                        "id": "66d5bce57c0b485c83827a0f",
-                        "name": "FSGPurl98989a.svg",
-                        "type": "image\/png",
-                        "height": 65,
-                        "width": 800,
-                        "x": 0.5,
-                        "y": 0.82486495233750334,
-                        "scale": 0.4556,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a40ef3e52e3c26057e06",
-                        "name": "square_empty_black.svg",
-                        "type": "image\/png",
-                        "height": 48,
-                        "width": 48,
-                        "x": 0.50001731643147573,
-                        "y": 0.43117991692078655,
-                        "scale": 0.94920000000000004,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a6f097b891fa1a26beae",
-                        "name": "fsgp_abstract_04_3600.jpg",
-                        "type": "image\/jpeg",
-                        "height": 3600,
-                        "width": 3600,
-                        "x": 0.50004999999999999,
-                        "y": 0.42394667563089777,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d5bc77bda93c130441db9e",
-                        "name": "FSGPtopper98989a.svg",
-                        "type": "image\/png",
-                        "height": 95,
-                        "width": 2000,
-                        "x": 0.49564999999999998,
-                        "y": 0.027382467092467638,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    }
-                ]
-            }
-        ],
-        "font_color": "#000",
-        "font_family": "Roboto"
-    },
-    {
-        "variant_ids": [
-            12191,
-            12193,
-            12192,
-            12190,
-            12194
-        ],
-        "placeholders": [
-            {
-                "position": "front",
-                "images": [
-                    {
-                        "id": "66d5c180dbd6b0f9d1c66790",
-                        "name": "FSGPurl151515.svg",
-                        "type": "image\/png",
-                        "height": 65,
-                        "width": 800,
-                        "x": 0.5,
-                        "y": 0.82486495233750334,
-                        "scale": 0.4556,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a40ef3e52e3c26057e06",
-                        "name": "square_empty_black.svg",
-                        "type": "image\/png",
-                        "height": 48,
-                        "width": 48,
-                        "x": 0.50001731643147573,
-                        "y": 0.43117991692078655,
-                        "scale": 0.94920000000000004,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a6f097b891fa1a26beae",
-                        "name": "fsgp_abstract_04_3600.jpg",
-                        "type": "image\/jpeg",
-                        "height": 3600,
-                        "width": 3600,
-                        "x": 0.50004999999999999,
-                        "y": 0.42394667563089777,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d5bebd9a790e46c1dc7350",
-                        "name": "FSGPtopper151515.svg",
-                        "type": "image\/png",
-                        "height": 95,
-                        "width": 2000,
-                        "x": 0.49564999999999998,
-                        "y": 0.027382467092467638,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    }
-                ]
-            }
-        ],
-        "font_color": "#000",
-        "font_family": "Roboto"
-    },
-    {
-        "variant_ids": [
-            11952,
-            11951,
-            11953,
-            11950,
-            11954
-        ],
-        "placeholders": [
-            {
-                "position": "front",
-                "images": [
-                    {
-                        "id": "66d5be686b5c992e67f3a5b1",
-                        "name": "FSGPurl303030.svg",
-                        "type": "image\/png",
-                        "height": 65,
-                        "width": 800,
-                        "x": 0.5,
-                        "y": 0.82486495233750334,
-                        "scale": 0.4556,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a40ef3e52e3c26057e06",
-                        "name": "square_empty_black.svg",
-                        "type": "image\/png",
-                        "height": 48,
-                        "width": 48,
-                        "x": 0.50001731643147573,
-                        "y": 0.43117991692078655,
-                        "scale": 0.94920000000000004,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a6f097b891fa1a26beae",
-                        "name": "fsgp_abstract_04_3600.jpg",
-                        "type": "image\/jpeg",
-                        "height": 3600,
-                        "width": 3600,
-                        "x": 0.50004999999999999,
-                        "y": 0.42394667563089777,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d5bd8647f35eb0f2ce08a6",
-                        "name": "FSGPtopper303030.svg",
-                        "type": "image\/png",
-                        "height": 95,
-                        "width": 2000,
-                        "x": 0.49564999999999998,
-                        "y": 0.027382467092467638,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    }
-                ]
-            }
-        ],
-        "font_color": "#000",
-        "font_family": "Roboto"
-    },
-    {
-        "variant_ids": [
-            11922,
-            11920,
-            11921,
-            11923,
-            11924
-        ],
-        "placeholders": [
-            {
-                "position": "front",
-                "images": [
-                    {
-                        "id": "66d5be686b5c992e67f3a5b1",
-                        "name": "FSGPurl303030.svg",
-                        "type": "image\/png",
-                        "height": 65,
-                        "width": 800,
-                        "x": 0.5,
-                        "y": 0.82486495233750334,
-                        "scale": 0.4556,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a40ef3e52e3c26057e06",
-                        "name": "square_empty_black.svg",
-                        "type": "image\/png",
-                        "height": 48,
-                        "width": 48,
-                        "x": 0.50001731643147573,
-                        "y": 0.43117991692078655,
-                        "scale": 0.94920000000000004,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a6f097b891fa1a26beae",
-                        "name": "fsgp_abstract_04_3600.jpg",
-                        "type": "image\/jpeg",
-                        "height": 3600,
-                        "width": 3600,
-                        "x": 0.50004999999999999,
-                        "y": 0.42394667563089777,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d5bd8647f35eb0f2ce08a6",
-                        "name": "FSGPtopper303030.svg",
-                        "type": "image\/png",
-                        "height": 95,
-                        "width": 2000,
-                        "x": 0.49564999999999998,
-                        "y": 0.027382467092467638,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    }
-                ]
-            }
-        ],
-        "font_color": "#000",
-        "font_family": "Roboto"
-    },
-    {
-        "variant_ids": [
-            12010,
-            12013,
-            12012,
-            12011,
-            12014
-        ],
-        "placeholders": [
-            {
-                "position": "front",
-                "images": [
-                    {
-                        "id": "66d5be686b5c992e67f3a5b1",
-                        "name": "FSGPurl303030.svg",
-                        "type": "image\/png",
-                        "height": 65,
-                        "width": 800,
-                        "x": 0.5,
-                        "y": 0.82486495233750334,
-                        "scale": 0.4556,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a40ef3e52e3c26057e06",
-                        "name": "square_empty_black.svg",
-                        "type": "image\/png",
-                        "height": 48,
-                        "width": 48,
-                        "x": 0.50001731643147573,
-                        "y": 0.43117991692078655,
-                        "scale": 0.94920000000000004,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a6f097b891fa1a26beae",
-                        "name": "fsgp_abstract_04_3600.jpg",
-                        "type": "image\/jpeg",
-                        "height": 3600,
-                        "width": 3600,
-                        "x": 0.50004999999999999,
-                        "y": 0.42394667563089777,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d5bd8647f35eb0f2ce08a6",
-                        "name": "FSGPtopper303030.svg",
-                        "type": "image\/png",
-                        "height": 95,
-                        "width": 2000,
-                        "x": 0.49564999999999998,
-                        "y": 0.027382467092467638,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    }
-                ]
-            }
-        ],
-        "font_color": "#000",
-        "font_family": "Roboto"
-    },
-    {
-        "variant_ids": [
-            12055,
-            12053,
-            12052,
-            12054,
-            12056
-        ],
-        "placeholders": [
-            {
-                "position": "front",
-                "images": [
-                    {
-                        "id": "66d5c1db897912fc25e3b212",
-                        "name": "FSGPurl646a6a.svg",
-                        "type": "image\/png",
-                        "height": 65,
-                        "width": 800,
-                        "x": 0.5,
-                        "y": 0.82486495233750334,
-                        "scale": 0.4556,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a40ef3e52e3c26057e06",
-                        "name": "square_empty_black.svg",
-                        "type": "image\/png",
-                        "height": 48,
-                        "width": 48,
-                        "x": 0.50001731643147573,
-                        "y": 0.43117991692078655,
-                        "scale": 0.94920000000000004,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a6f097b891fa1a26beae",
-                        "name": "fsgp_abstract_04_3600.jpg",
-                        "type": "image\/jpeg",
-                        "height": 3600,
-                        "width": 3600,
-                        "x": 0.50004999999999999,
-                        "y": 0.42394667563089777,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d5bff5dbd6b0f9d1c66749",
-                        "name": "FSGPtopper646a6a.svg",
-                        "type": "image\/png",
-                        "height": 95,
-                        "width": 2000,
-                        "x": 0.49564999999999998,
-                        "y": 0.027382467092467638,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    }
-                ]
-            }
-        ],
-        "font_color": "#000",
-        "font_family": "Roboto"
-    },
-    {
-        "variant_ids": [
-            11873,
-            11872,
-            11875,
-            11874,
-            11876
-        ],
-        "placeholders": [
-            {
-                "position": "front",
-                "images": [
-                    {
-                        "id": "66d5c180dbd6b0f9d1c66790",
-                        "name": "FSGPurl151515.svg",
-                        "type": "image\/png",
-                        "height": 65,
-                        "width": 800,
-                        "x": 0.5,
-                        "y": 0.82486495233750334,
-                        "scale": 0.4556,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a40ef3e52e3c26057e06",
-                        "name": "square_empty_black.svg",
-                        "type": "image\/png",
-                        "height": 48,
-                        "width": 48,
-                        "x": 0.50001731643147573,
-                        "y": 0.43117991692078655,
-                        "scale": 0.94920000000000004,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a6f097b891fa1a26beae",
-                        "name": "fsgp_abstract_04_3600.jpg",
-                        "type": "image\/jpeg",
-                        "height": 3600,
-                        "width": 3600,
-                        "x": 0.50004999999999999,
-                        "y": 0.42394667563089777,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d5bebd9a790e46c1dc7350",
-                        "name": "FSGPtopper151515.svg",
-                        "type": "image\/png",
-                        "height": 95,
-                        "width": 2000,
-                        "x": 0.49563262377421657,
-                        "y": 0.027381804211587861,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    }
-                ]
-            }
-        ],
-        "font_color": "#000",
-        "font_family": "Roboto"
-    },
-    {
-        "variant_ids": [
-            12029,
-            12030,
-            12028,
-            12031
-        ],
-        "placeholders": [
-            {
-                "position": "front",
-                "images": [
-                    {
-                        "id": "66d5bc77bda93c130441db9e",
-                        "name": "FSGPtopper98989a.svg",
-                        "type": "image\/png",
-                        "height": 95,
-                        "width": 2000,
-                        "x": 0.49564999999999998,
-                        "y": 0.027382467092467638,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a40ef3e52e3c26057e06",
-                        "name": "square_empty_black.svg",
-                        "type": "image\/png",
-                        "height": 48,
-                        "width": 48,
-                        "x": 0.50001731643147573,
-                        "y": 0.43117991692078655,
-                        "scale": 0.94920000000000004,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a6f097b891fa1a26beae",
-                        "name": "fsgp_abstract_04_3600.jpg",
-                        "type": "image\/jpeg",
-                        "height": 3600,
-                        "width": 3600,
-                        "x": 0.50004999999999999,
-                        "y": 0.42394667563089777,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d5bce57c0b485c83827a0f",
-                        "name": "FSGPurl98989a.svg",
-                        "type": "image\/png",
-                        "height": 65,
-                        "width": 800,
-                        "x": 0.5,
-                        "y": 0.82486495233750334,
-                        "scale": 0.4556,
-                        "angle": 0,
-                        "src": ""
-                    }
-                ]
-            }
-        ],
-        "font_color": "#000",
-        "font_family": "Roboto"
-    },
-    {
-        "variant_ids": [
-            11944,
-            11946,
-            11947,
-            11945,
-            11948,
-            11949
-        ],
-        "placeholders": [
-            {
-                "position": "front",
-                "images": [
-                    {
-                        "id": "66d5b1c1d43740d0a0396a7f",
-                        "name": "FSGPurlD3D3D3.svg",
-                        "type": "image\/png",
-                        "height": 76,
-                        "width": 1000,
-                        "x": 0.49999999999999994,
-                        "y": 0.82594001597894851,
-                        "scale": 0.44543064920510217,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a40ef3e52e3c26057e06",
-                        "name": "square_empty_black.svg",
-                        "type": "image\/png",
-                        "height": 48,
-                        "width": 48,
-                        "x": 0.50001731643147573,
-                        "y": 0.43117991692078655,
-                        "scale": 0.94920000000000004,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a6f097b891fa1a26beae",
-                        "name": "fsgp_abstract_04_3600.jpg",
-                        "type": "image\/jpeg",
-                        "height": 3600,
-                        "width": 3600,
-                        "x": 0.50004999999999999,
-                        "y": 0.42394667563089777,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d5b15d9a790e46c1dc7124",
-                        "name": "FSGPtopperD3D3D3.svg",
-                        "type": "image\/png",
-                        "height": 143,
-                        "width": 3000,
-                        "x": 0.49564999999999998,
-                        "y": 0.027443458205072789,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    }
-                ]
-            }
-        ],
-        "font_color": "#000",
-        "font_family": "Roboto"
-    },
-    {
-        "variant_ids": [
-            12130,
-            12133,
-            12131,
-            12132,
-            12134
-        ],
-        "placeholders": [
-            {
-                "position": "front",
-                "images": [
-                    {
-                        "id": "66d5c1b26141e095ae079ca7",
-                        "name": "FSGPurl000000.svg",
-                        "type": "image\/png",
-                        "height": 65,
-                        "width": 800,
-                        "x": 0.5,
-                        "y": 0.82486495233750334,
-                        "scale": 0.4556,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a40ef3e52e3c26057e06",
-                        "name": "square_empty_black.svg",
-                        "type": "image\/png",
-                        "height": 48,
-                        "width": 48,
-                        "x": 0.50001731643147573,
-                        "y": 0.43117991692078655,
-                        "scale": 0.94920000000000004,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a6f097b891fa1a26beae",
-                        "name": "fsgp_abstract_04_3600.jpg",
-                        "type": "image\/jpeg",
-                        "height": 3600,
-                        "width": 3600,
-                        "x": 0.50004999999999999,
-                        "y": 0.42394667563089777,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d5bfb497b891fa1a26e732",
-                        "name": "FSGPtopper000000.svg",
-                        "type": "image\/png",
-                        "height": 95,
-                        "width": 2000,
-                        "x": 0.49564999999999998,
-                        "y": 0.027382467092467638,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    }
-                ]
-            }
-        ],
-        "font_color": "#000",
-        "font_family": "Roboto"
-    },
-    {
-        "variant_ids": [
-            12150,
-            12149,
-            12151,
-            12148,
-            12152
-        ],
-        "placeholders": [
-            {
-                "position": "front",
-                "images": [
-                    {
-                        "id": "66d5be686b5c992e67f3a5b1",
-                        "name": "FSGPurl303030.svg",
-                        "type": "image\/png",
-                        "height": 65,
-                        "width": 800,
-                        "x": 0.5,
-                        "y": 0.82486495233750334,
-                        "scale": 0.4556,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a40ef3e52e3c26057e06",
-                        "name": "square_empty_black.svg",
-                        "type": "image\/png",
-                        "height": 48,
-                        "width": 48,
-                        "x": 0.50001731643147573,
-                        "y": 0.43117991692078655,
-                        "scale": 0.94920000000000004,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a6f097b891fa1a26beae",
-                        "name": "fsgp_abstract_04_3600.jpg",
-                        "type": "image\/jpeg",
-                        "height": 3600,
-                        "width": 3600,
-                        "x": 0.50004999999999999,
-                        "y": 0.42394667563089777,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d5bd8647f35eb0f2ce08a6",
-                        "name": "FSGPtopper303030.svg",
-                        "type": "image\/png",
-                        "height": 95,
-                        "width": 2000,
-                        "x": 0.49564999999999998,
-                        "y": 0.027382467092467638,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    }
-                ]
-            }
-        ],
-        "font_color": "#000",
-        "font_family": "Roboto"
-    },
-    {
-        "variant_ids": [
-            12064,
-            12066,
-            12067,
-            12065,
-            12068
-        ],
-        "placeholders": [
-            {
-                "position": "front",
-                "images": [
-                    {
-                        "id": "66d5c1db897912fc25e3b212",
-                        "name": "FSGPurl646a6a.svg",
-                        "type": "image\/png",
-                        "height": 65,
-                        "width": 800,
-                        "x": 0.5,
-                        "y": 0.82486495233750334,
-                        "scale": 0.4556,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a40ef3e52e3c26057e06",
-                        "name": "square_empty_black.svg",
-                        "type": "image\/png",
-                        "height": 48,
-                        "width": 48,
-                        "x": 0.50001731643147573,
-                        "y": 0.43117991692078655,
-                        "scale": 0.94920000000000004,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d4a6f097b891fa1a26beae",
-                        "name": "fsgp_abstract_04_3600.jpg",
-                        "type": "image\/jpeg",
-                        "height": 3600,
-                        "width": 3600,
-                        "x": 0.50004999999999999,
-                        "y": 0.42394667563089777,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    },
-                    {
-                        "id": "66d5bff5dbd6b0f9d1c66749",
-                        "name": "FSGPtopper646a6a.svg",
-                        "type": "image\/png",
-                        "height": 95,
-                        "width": 2000,
-                        "x": 0.49564999999999998,
-                        "y": 0.027382467092467638,
-                        "scale": 0.9113,
-                        "angle": 0,
-                        "src": ""
-                    }
-                ]
-            }
-        ],
-        "font_color": "#000",
-        "font_family": "Roboto"
-    }
-],
+<div id="image-upload-area" class="image-upload-area">
+    <label for="image-file-input" class="screen-reader-text"><?php esc_html_e('Select Images to Upload', 'sip-printify-manager'); ?></label>
+    <p><?php esc_html_e('Drag and drop images here to upload, or', 'sip-printify-manager'); ?></p>
+    <button id="select-images-button" class="button button-primary"><?php esc_html_e('Select Images', 'sip-printify-manager'); ?></button>
+    <input type="file" id="image-file-input" accept=".jpg,.jpeg,.png,.webp,.svg" multiple style="display: none;">
+</div> <!-- End of image-upload-area -->
+
+<div id="images-header-right" class="images-header-right">
+    <div id="image-upload-area" class="image-upload-area">
+        <label for="image-file-input" class="screen-reader-text"><?php esc_html_e('Select Images to Upload', 'sip-printify-manager'); ?></label>
+        <p><?php esc_html_e('Drag and drop images here to upload, or', 'sip-printify-manager'); ?></p>
+        <button id="select-images-button" class="button button-primary"><?php esc_html_e('Select Images', 'sip-printify-manager'); ?></button>
+        <input type="file" id="image-file-input" accept=".jpg,.jpeg,.png,.webp,.svg" multiple style="display: none;">
+    </div> <!-- End of image-upload-area -->
+</div> <!-- End of images-header-right -->
+
+<div id="images-header" class="images-header">
+    <div id="images-header-left" class="images-header-left">
+        <div id="images-header-left-top" class="images-header-left-top">
+            <h2><?php esc_html_e('Images', 'sip-printify-manager'); ?></h2>
+            <input type="text" id="image-search" placeholder="<?php esc_attr_e('Search Images...', 'sip-printify-manager'); ?>">
+        </div> <!-- End of images-header-left-top -->
+
+        <div id="images-header-left-bottom" class="images-header-left-bottom">
+            <form id="image-action-form" class="image-action-form" method="post" action="">
+                <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+                <select name="image_action" id="image_action">
+                    <option value="reload_shop_images"><?php esc_html_e('Reload Shop Images', 'sip-printify-manager'); ?></option>
+                    <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>
+                    <option value="add_to_new_product"><?php esc_html_e('Add to New Product', 'sip-printify-manager'); ?></option>
+                    <option value="upload_to_shop"><?php esc_html_e('Upload to Shop', 'sip-printify-manager'); ?></option>
+                    <option value="archive_shop_image"><?php esc_html_e('Archive Shop Image', 'sip-printify-manager'); ?></option>
+                </select>
+                <input type="submit" name="execute_image_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary">
+            </form>
+        </div> <!-- End of images-header-left-bottom -->
+    </div> <!-- End of images-header-left -->
+</div> <!-- End of images-header -->
+
+<div id="image-list">
+    <?php if (!empty($images)) : ?>
+        <div id="image-table-container">
+            <table id="image-table-header">
+                <colgroup>
+                    <col style="width: 4%;"> <!-- Select checkbox -->
+                    <col style="width: 8%;"> <!-- Thumbnail -->
+                    <col style="width: 42%;"> <!-- Filename -->
+                    <col style="width: 15%;"> <!-- Location -->
+                    <col style="width: 15%;"> <!-- Uploaded -->
+                    <col style="width: 10%;"> <!-- Dimensions -->
+                    <col style="width: 10%;"> <!-- Size -->
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-images"></th>
+                        <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Thumb</th>
+                        <th style="position: sticky; top: 0; z-index: 2; text-align: left; padding: 2px;">Filename</th>
+                        <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Location</th>
+                        <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Uploaded</th>
+                        <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Dimensions</th>
+                        <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Size</th>
+                    </tr>
+                </thead>
+            </table>
+            <div id="image-table-body">
+                <table id="image-table-content">
+                    <colgroup>
+                        <col style="width: 4%;"> <!-- Select checkbox -->
+                        <col style="width: 8%;"> <!-- Thumbnail -->
+                        <col style="width: 42%;"> <!-- Filename -->
+                        <col style="width: 15%;"> <!-- Location -->
+                        <col style="width: 15%;"> <!-- Uploaded -->
+                        <col style="width: 10%;"> <!-- Dimensions -->
+                        <col style="width: 10%;"> <!-- Size -->
+                    </colgroup>
+                    <tbody>
+                        <?php foreach ($images as $image) : ?>
+                            <?php
+                                $location = isset($image['location']) ? $image['location'] : 'Unknown';
+                                $upload_time = isset($image['upload_time']) ? date('y_m_d g:ia', strtotime($image['upload_time'])) : '';
+                                $dimensions = isset($image['width']) && isset($image['height']) ? esc_html($image['width']) . 'x' . esc_html($image['height']) : '';
+                                $size = isset($image['size']) ? esc_html(format_file_size($image['size'])) : '';
+                                $filename = esc_html($image['file_name']);
+                            ?>
+                            <tr title="<?php echo esc_attr($filename); ?>">
+                                <td style="text-align: center; padding: 2px;"><input type="checkbox" name="selected_images[]" value="<?php echo esc_attr($image['id']); ?>"></td>
+                                <td style="text-align: center; padding: 2px;">
+                                    <a href="<?php echo esc_url($image['preview_url']); ?>" target="_blank">
+                                        <img src="<?php echo esc_url($image['preview_url']); ?>" alt="<?php echo esc_attr($filename); ?>" style="width: 32px; height: auto; cursor: pointer;">
+                                    </a>
+                                </td>
+                                <td style="text-align: left; padding: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <?php echo $filename; ?>
+                                </td>
+                                <td style="text-align: center; padding: 2px;"> <?php echo esc_html($location); ?></td>
+                                <td style="text-align: center; padding: 2px;"> <?php echo $upload_time; ?></td>
+                                <td style="text-align: center; padding: 2px;"> <?php echo $dimensions; ?></td>
+                                <td style="text-align: center; padding: 2px;"> <?php echo $size; ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div> <!-- End of image-table-body -->
+        </div> <!-- End of image-table-container -->
+    <?php else : ?>
+        <p><?php esc_html_e('No images found.', 'sip-printify-manager'); ?></p>
+    <?php endif; ?>
+</div> <!-- End of image-list -->
+</div> <!-- End of images-section -->
+</div> <!-- End of images-column -->
+
+<!-- End of Products, Templates, and Images Section -->
+<?php else : ?>
+    <h2><?php esc_html_e('Shop could not be loaded. Please try re-authorizing.', 'sip-printify-manager'); ?></h2>
+<?php endif; ?>
+</div> <!-- End of shop-container -->
