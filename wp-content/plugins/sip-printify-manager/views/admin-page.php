@@ -102,7 +102,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         </div>
 
         <!-- Template Section -->
-        <div id="template-container" class="template-container">
+        <div id="template-section" class="template-section">
             <h2 style="display: flex; justify-content: space-between; align-items: center;">
                 <?php esc_html_e('Templates', 'sip-printify-manager'); ?>
                 <input type="text" id="template-search" placeholder="<?php esc_attr_e('Search Templates...', 'sip-printify-manager'); ?>">
