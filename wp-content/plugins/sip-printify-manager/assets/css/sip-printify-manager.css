@@ -118,6 +118,11 @@ a, a:hover, a:focus, a:active, a:visited {
     text-align: left; /* Aligns the third header to the left */
 }
 
+
+/*///////////////////////////////////////////////////////////////////////////////////////////////*/
+/*//////////////////////// STYLING FOR THE PRODUCTS/TEMPLATES/IMAGES ////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////////////////////////*/
+
 /* Container for Products, Templates, and Images Sections */
 .products-templates-images-container {
     display: flex; /* Aligns child elements horizontally */
@@ -128,14 +133,16 @@ a, a:hover, a:focus, a:active, a:visited {
     color: white;
 }
 
-.products-templates-images-container h2 {
+.products-templates-images-container h2,
+#images-header-left h2 {
     margin: 0px;
     padding: 0px;
     font-size: 26px;
     font-weight: 700;
 }
 
-.products-templates-images-container th input[type=checkbox], input[type=radio] {
+.products-templates-images-container th input[type=checkbox], 
+input[type=radio] {
     margin: 0;
     padding: 0;
     width: 1.2em;
@@ -147,6 +154,15 @@ a, a:hover, a:focus, a:active, a:visited {
 .products-templates-images-container input[type=text] {
     font-weight: 400;
 }
+
+#image-search,
+#product-search,
+#template-search {
+    width: 150px;
+    margin: auto 5px auto 5px;
+}
+
+
 
 table tbody tr:nth-child(odd) {
     background-color: #f9f9f9;
@@ -177,7 +193,9 @@ table tbody tr:nth-child(even) {
 }
 
 /* Flexbox styling for action forms in the product and image sections */
-.product-action-form,.template-action-form,.image-action-form {
+.product-action-form,
+.template-action-form,
+.image-action-form {
     display: flex; /* Aligns child elements horizontally */
     align-items: center; /* Centers child elements vertically */
     padding: 5px 0px 5px 0px;
@@ -202,7 +220,8 @@ table tbody tr:nth-child(even) {
     top: 0;
 }
 
-#template-list td, #template-list th {
+#template-list td, 
+#template-list th {
     padding: 5px;
     word-wrap: break-word;
     text-align: center;
@@ -281,14 +300,18 @@ table tbody tr:nth-child(even) {
     cursor: pointer;
 }
 
-#template-editor-header, #template-editor-description-header, #template-editor-json-header {
+#template-editor-header, 
+#template-editor-description-header, 
+#template-editor-json-header {
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
 }
 
-#template-editor-header span, #template-editor-description-header span, #template-editor-json-header span {
+#template-editor-header span, 
+#template-editor-description-header span, 
+#template-editor-json-header span {
     cursor: default;
     pointer-events: none;
 }
@@ -300,21 +323,24 @@ table tbody tr:nth-child(even) {
     overflow: hidden;
 }
 
-#template-editor-top-container, #template-editor-bottom-container {
+#template-editor-top-container, 
+#template-editor-bottom-container {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     overflow: hidden;
 }
 
-#template-editor-top-wrapper, #template-editor-bottom-wrapper {
+#template-editor-top-wrapper, 
+#template-editor-bottom-wrapper {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     min-height: 0;
 }
 
-#template-editor-description-header, #template-editor-json-header {
+#template-editor-description-header, 
+#template-editor-json-header {
     background-color: #e9ecef;
     color: #495057;
     padding: 5px 10px;
@@ -345,13 +371,15 @@ table tbody tr:nth-child(even) {
     border-radius: 2px;
 }
 
-#template-editor-top-editor, #template-editor-bottom-editor {
+#template-editor-top-editor, 
+#template-editor-bottom-editor {
     flex-grow: 1;
     transition: none;
     overflow: hidden;
 }
 
-#template-editor-top-editor .CodeMirror, #template-editor-bottom-editor .CodeMirror {
+#template-editor-top-editor .CodeMirror, 
+#template-editor-bottom-editor .CodeMirror {
     height: 100% !important;
 }
 
@@ -395,7 +423,6 @@ body.resizing * {
 }
 
 /*//////////////////////////////////////////////////////////////////////////////////////*/
-/*//////////////////////////////////////////////////////////////////////////////////////*/
 
 /* Styling for the Images Section */
 
@@ -411,6 +438,33 @@ body.resizing * {
     height: 100%; /* Limits the height of the products section */
     border: 1px solid #ccc; /* Adds a light gray border around the sections */
     padding: 10px;
+}
+
+#images-header {
+    display: flex; /* Aligns child elements horizontally */
+    flex-direction: row; /* Stacks child elements horizontally */
+    justify-content: space-between; /* Distributes space between header elements */
+    align-items: center; /* Centers header elements vertically */
+    margin-bottom: 10px; /* Adds space below the header */
+}
+
+#images-header-left {
+    display: flex; 
+    flex-direction: column;
+    width: 40%
+}
+
+#images-header-left-top {
+    display: flex;
+    flex-direction: row;
+}
+
+#images-header-left-bottom {
+    display: flex; /* Aligns child elements horizontally */
+}
+
+#images-header-right {
+    width: 60%
 }
 
 /* Image List Container Styling */
