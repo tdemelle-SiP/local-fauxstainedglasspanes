@@ -83,7 +83,6 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
             </h2>
             <form id="product-action-form" class="product-action-form" method="post" action="">
                 <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
-                <label for="product_action"><?php esc_html_e('Product Actions:', 'sip-printify-manager'); ?> </label>
                 <select name="product_action" id="product_action">
                     <option value="reload"><?php esc_html_e('Reload', 'sip-printify-manager'); ?></option>
                     <option value="create_template"><?php esc_html_e('Create Template', 'sip-printify-manager'); ?></option>
@@ -108,9 +107,8 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                 <?php esc_html_e('Templates', 'sip-printify-manager'); ?>
                 <input type="text" id="template-search" placeholder="<?php esc_attr_e('Search Templates...', 'sip-printify-manager'); ?>" style="margin-left: auto;">
             </h2>
-            <form id="template-action-form" method="post" action="">
+            <form id="template-action-form" class="template-action-form"  method="post" action="">
                 <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
-                <label for="template_action"><?php esc_html_e('Template Actions:', 'sip-printify-manager'); ?> </label>
                 <select name="template_action" id="template_action">
 
                     <option value="create_new_products"><?php esc_html_e('Create New Products', 'sip-printify-manager'); ?></option>
@@ -120,54 +118,53 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                 <input type="submit" name="execute_template_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary"/>
             </form>
             <!-- Ensure the container itself doesn't scroll -->
-            <div id="template-list-container" class="template-list-container">
-                <!-- The inner div that will scroll -->
-                <div id="template-list" class="template-list">
-                    <?php 
-                    if (!empty($templates)) {
-                        sip_display_template_list($templates);
-                    } else {
-                        echo '<p>' . esc_html__('No templates found.', 'sip-printify-manager') . '</p>';
-                    }
-                    ?>
-                </div>
+            <!-- The inner div that will scroll -->
+            <div id="template-list" class="template-list">
+                <?php 
+                if (!empty($templates)) {
+                    sip_display_template_list($templates);
+                } else {
+                    echo '<p>' . esc_html__('No templates found.', 'sip-printify-manager') . '</p>';
+                }
+                ?>
             </div>
         </div>
     </div>
 
     <!-- Right Column: Images -->
-    <div id="images-section" class="images-section">
-        <h2 style="display: flex; justify-content: space-between; align-items: center;">
-            <?php esc_html_e('Images', 'sip-printify-manager'); ?>
-            <input type="text" id="image-search" placeholder="<?php esc_attr_e('Search Images...', 'sip-printify-manager'); ?>" style="margin-left: auto;">
-        </h2>
-        <form id="image-action-form" class="image-action-form" method="post" action="">
-            <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
-            <label for="image_action"><?php esc_html_e('Image Actions:', 'sip-printify-manager'); ?> </label>
-            <select name="image_action" id="image_action">
-                <option value="reload_shop_images"><?php esc_html_e('Reload Shop Images', 'sip-printify-manager'); ?></option>
-                <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>
-                <option value="add_to_new_product"><?php esc_html_e('Add to New Product', 'sip-printify-manager'); ?></option>
-                <option value="upload_to_shop"><?php esc_html_e('Upload to Shop', 'sip-printify-manager'); ?></option>
-                <option value="archive_shop_image"><?php esc_html_e('Archive Shop Image', 'sip-printify-manager'); ?></option>
-            </select>
-            <input type="submit" name="execute_image_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" />
-        </form>
-        <div id="image-list">
-            <?php 
-            $images = get_option('sip_printify_images', array());
-            if (!empty($images)) {
-                sip_display_image_list($images);
-            } else {
-                echo '<p>' . esc_html__('No images found.', 'sip-printify-manager') . '</p>';
-            }
-            ?>
-        </div>
-        <!-- Drag and Drop Area -->
-        <div id="image-upload-area" class="image-upload-area">
-            <p><?php esc_html_e('Drag and drop images here to upload, or', 'sip-printify-manager'); ?></p>
-            <button id="select-images-button" class="button button-primary"><?php esc_html_e('Select Images', 'sip-printify-manager'); ?></button>
-            <input type="file" id="image-file-input" accept=".jpg,.jpeg,.png,.webp,.svg" multiple style="display: none;">
+    <div id="images-column" class="images-column">     
+        <div id="images-section" class="images-section">
+            <h2 style="display: flex; justify-content: space-between; align-items: center;">
+                <?php esc_html_e('Images', 'sip-printify-manager'); ?>
+                <input type="text" id="image-search" placeholder="<?php esc_attr_e('Search Images...', 'sip-printify-manager'); ?>" style="margin-left: auto;">
+            </h2>
+            <form id="image-action-form" class="image-action-form" method="post" action="">
+                <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+                <select name="image_action" id="image_action">
+                    <option value="reload_shop_images"><?php esc_html_e('Reload Shop Images', 'sip-printify-manager'); ?></option>
+                    <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>
+                    <option value="add_to_new_product"><?php esc_html_e('Add to New Product', 'sip-printify-manager'); ?></option>
+                    <option value="upload_to_shop"><?php esc_html_e('Upload to Shop', 'sip-printify-manager'); ?></option>
+                    <option value="archive_shop_image"><?php esc_html_e('Archive Shop Image', 'sip-printify-manager'); ?></option>
+                </select>
+                <input type="submit" name="execute_image_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" />
+            </form>
+            <div id="image-list">
+                <?php 
+                $images = get_option('sip_printify_images', array());
+                if (!empty($images)) {
+                    sip_display_image_list($images);
+                } else {
+                    echo '<p>' . esc_html__('No images found.', 'sip-printify-manager') . '</p>';
+                }
+                ?>
+            </div>
+            <!-- Drag and Drop Area -->
+            <div id="image-upload-area" class="image-upload-area">
+                <p><?php esc_html_e('Drag and drop images here to upload, or', 'sip-printify-manager'); ?></p>
+                <button id="select-images-button" class="button button-primary"><?php esc_html_e('Select Images', 'sip-printify-manager'); ?></button>
+                <input type="file" id="image-file-input" accept=".jpg,.jpeg,.png,.webp,.svg" multiple style="display: none;">
+            </div>
         </div>
     </div>
 </div>

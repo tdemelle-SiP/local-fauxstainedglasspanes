@@ -121,13 +121,7 @@ function sip_display_product_list($products) {
 
     // Table Body
     echo '<tbody>';
-    foreach ($products as $product) {
-        // Add type check and error logging
-        if (!is_array($product)) {
-            error_log('Expected $product to be an array, but got: ' . gettype($product));
-            continue; // Skip processing this item
-        }
-        
+    foreach ($products as $product) {        
         $thumbnail_src = !empty($product['images']) ? $product['images'][0]['src'] : '';
         $product['thumbnail_src'] = $thumbnail_src; // Add thumbnail src to product array
         
@@ -138,7 +132,7 @@ function sip_display_product_list($products) {
                 <a href="' . esc_url($thumbnail_src) . '" target="_blank">
                     <img src="' . esc_url($thumbnail_src) . '" alt="' . esc_html($product['title']) . '" style="width: 32px; height: auto; cursor: pointer;">
                 </a>
-              </td>';
+              </td>';              
         echo '<td style="text-align: left; padding: 2px;">' . esc_html($product['title']) . '</td>';
         echo '</tr>';
     }

@@ -85,74 +85,83 @@ sip.productCreation = (function($) {
         });
     }
 
+    // Function to load the Product Creation Table when a template is selected
+    function loadProductCreationTable(templateName) {
+        console.log('Loading Product Creation Table for template:', templateName);
 
-// Function to load the Product Creation Table when a template is selected
-function loadProductCreationTable(templateName) {
-    console.log('Loading Product Creation Table for template:', templateName);
+        // Show the product creation container if it's hidden
+        $('#product-creation-container').show();
 
-    // Show the product creation container if it's hidden
-    $('#product-creation-container').show();
+        // Update the header with the selected template name and show it
+        $('#selected-template-name').text(templateName);
 
-    // Update the header with the selected template name and show it
-    $('#selected-template-name').text(templateName);
+        // Show the spinner while waiting for the AJAX response
+        $('#loading-spinner').show();
+        $('#spinner-overlay').show();
 
-    // Show the spinner while waiting for the AJAX response
-    $('#loading-spinner').show();
-    $('#spinner-overlay').show();
+        // Make an AJAX call to fetch the new product JSON
+        $.ajax({
+            url: sipAjax.ajax_url,
+            method: 'POST',
+            data: {
+                sip_printify_manager_nonce_field: sipAjax.nonce, // Include the nonce
+                action: 'sip_handle_ajax_request',
+                action_type: 'template_action',
+                template_action: 'create_new_products',
+                template_name: templateName,
+                nonce: sipAjax.nonce
+            },
+            success: function(response) {
+                console.log('AJAX response received:', response);
 
-    // Make an AJAX call to fetch the new product JSON
-    $.ajax({
-        url: sipAjax.ajax_url,
-        method: 'POST',
-        data: {
-            sip_printify_manager_nonce_field: sipAjax.nonce, // Include the nonce
-            action: 'sip_handle_ajax_request',
-            action_type: 'template_action',
-            template_action: 'create_new_products',
-            template_name: templateName,
-            nonce: sipAjax.nonce
+                // Hide the spinner when response is received
+                $('#loading-spinner').hide();
+                $('#spinner-overlay').hide();
 
-        },
-        success: function(response) {
-            console.log('AJAX response received:', response);
-
-            // Hide the spinner when response is received
-            $('#loading-spinner').hide();
-            $('#spinner-overlay').hide();
-
-            if (response.success) {
-                // Build the table with the received data
-                console.log('Calling buildCreationTable with data:', response.data);
-                buildCreationTable(response.data); // Build the table
-            } else {
-                console.error('Error in AJAX response:', response.data);
-                alert('Error: ' + response.data);
+                if (response.success) {
+                    // Build the table with the received data
+                    console.log('Calling buildCreationTable with data:', response.data);
+                    buildCreationTable(response.data); // Build the table
+                } else {
+                    console.error('Error in AJAX response:', response.data);
+                    alert('Error: ' + response.data);
+                }
+            },
+            error: function() {
+                console.error('AJAX call failed.');
+                $('#loading-spinner').hide(); // Hide spinner in case of error
+                $('#spinner-overlay').hide();
             }
-        },
-        error: function() {
-            console.error('AJAX call failed.');
-            $('#loading-spinner').hide(); // Hide spinner in case of error
-            $('#spinner-overlay').hide();
-        }
-    });
-}
+        });
+    }
 
-// Function to escape HTML to prevent XSS
-function escapeHtml(string) {
-    var entityMap = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;',
-        '/': '&#x2F;'
-    };
-    return String(string).replace(/[&<>"'\/]/g, function (s) {
-        return entityMap[s];
-    });
-}
+    /**
+     * Function to escape HTML to prevent XSS
+     *
+     * @param {string} string - The string to escape.
+     * @returns {string} - Escaped string.
+     */
+    function escapeHtml(string) {
+        var entityMap = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+            '/': '&#x2F;'
+        };
+        return String(string).replace(/[&<>"'\/]/g, function (s) {
+            return entityMap[s];
+        });
+    }
 
-// Function to build the Product Creation Table with the data from the server
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Function to build the Product Creation Table with the data from the server
+ *
+ * @param {Object} productData - The product data received from the server.
+ */
 function buildCreationTable(productData) {
     console.log('Building Product Creation Table with product data:', productData);
 
@@ -168,43 +177,54 @@ function buildCreationTable(productData) {
     const headers = ['Design', 'Title', 'Sizes', 'Colors', 'Description', 'Tags'];
     console.log('Headers:', headers);
 
-    // Add headers for additional print areas
-    if (productData.print_areas) {
+    // Determine the maximum number of images across all print areas
+    let maxImages = 0;
+    if (productData.print_areas && Array.isArray(productData.print_areas)) {
         productData.print_areas.forEach(function(area) {
-            if (area.position && typeof area.position === 'string') {
-                headers.push(capitalizeFirstLetter(area.position) + ' Design');
-            } else {
-                console.error('Invalid or missing position in print_areas:', area);
+            const images = area.placeholders && area.placeholders[0].images ? area.placeholders[0].images.length : 0;
+            if (images > maxImages) {
+                maxImages = images;
             }
         });
     }
 
+    // Add headers for additional image columns based on maxImages
+    for (let i = 1; i <= maxImages; i++) {
+        headers.push('Image #' + i);
+    }
+
+    console.log('Final Headers:', headers);
+
     let headerRow = '<tr>';
     headers.forEach(function(header) {
-        headerRow += '<th>' + header + '</th>';
+        headerRow += '<th>' + escapeHtml(header) + '</th>';
     });
     headerRow += '</tr>';
     thead.append(headerRow);
     console.log('Table headers added:', headers);
 
-    // Correctly handle the sizes and colors, accounting for different key names
-    const sizes = productData['options - sizes'] ? productData['options - sizes'] : [];
-    const colors = productData['options - colors'] ? productData['options - colors'] : [];
+    // Extract color options
+    const colorOptions = productData['options - colors'] ? productData['options - colors'] : [];
+
+    // Create a mapping from color ID to color details for quick lookup
+    const colorMap = createColorMap(colorOptions);
+    console.log('Color Map:', colorMap);
 
     // Build table row with product data
     let row = '<tr>';
     row += buildDesignCell(productData, 'front');  // Front Design cell
-    row += '<td class="editable" data-key="title">' + productData.title + '<button class="reset-button" title="Reset">&#8635;</button></td>';
-    row += '<td>' + getSizesString(sizes) + '</td>';  // Sizes data
-    row += '<td>' + getColorsSwatches(colors) + '</td>';  // Colors data
-    row += '<td class="editable" data-key="description">' + truncateText(productData.description, 30) + '<button class="edit-button" title="Edit">&#9998;</button><button class="reset-button" title="Reset">&#8635;</button></td>';
-    row += '<td class="editable" data-key="tags">' + productData.tags.join(', ') + '<button class="reset-button" title="Reset">&#8635;</button></td>';
+    row += '<td class="editable" data-key="title">' + escapeHtml(productData.title) + '<button class="reset-button" title="Reset">&#8635;</button></td>';
+    row += '<td>' + getSizesString(productData) + '</td>';  // Sizes data
+    row += '<td>' + getColorsSwatches(productData.variant_ids, colorMap) + '</td>';  // Colors data
+    row += '<td class="editable" data-key="description">' + escapeHtml(truncateText(productData.description, 30)) + '<button class="edit-button" title="Edit">&#9998;</button><button class="reset-button" title="Reset">&#8635;</button></td>';
+    row += '<td class="editable" data-key="tags">' + escapeHtml(productData.tags.join(', ')) + '<button class="reset-button" title="Reset">&#8635;</button></td>';
 
-    // Add additional design cells for other print areas
+    // Add additional image cells for each print area
     if (productData.print_areas) {
-        productData.print_areas.forEach(function(area) {
+        productData.print_areas.forEach(function(area, index) {
             if (area.placeholders && area.placeholders.length > 0) {
-                row += buildDesignCell(productData, area.placeholders[0].position);
+                const position = area.placeholders[0].position;
+                row += buildDynamicImageCells(area.placeholders[0].images, maxImages);
             }
         });
     }
@@ -220,84 +240,183 @@ function buildCreationTable(productData) {
     isDirty = false; // Reset dirty flag after loading data
 }
 
-
-    // Function to build design cells for each print area
-    function buildDesignCell(productData, position) {
-        let cellContent = '<td>';
-        const printArea = productData.print_areas.find(area => area.position === position);
-        if (printArea && printArea.placeholders) {
-            printArea.placeholders.forEach(function(placeholder) {
-                if (placeholder.type === 'image' && placeholder.images) {
-                    placeholder.images.forEach(function(image) {
-                        cellContent += '<div class="image-cell" data-image-id="' + escapeHtml(image.id) + '">';
-                        cellContent += '<img src="' + escapeHtml(image.src) + '" alt="' + escapeHtml(image.name) + '" class="image-thumbnail">';
-                        cellContent += '<span>' + escapeHtml(image.name) + '</span>';
-                        cellContent += '<button class="reset-image-button" title="Reset Image">&#8635;</button>';
-                        cellContent += '</div>';
-                    });
-                }
-            });
-        }
-        cellContent += '</td>';
-        return cellContent;
+/**
+ * Function to build design cells for each print area
+ *
+ * @param {Object} productData - The product data received from the server.
+ * @param {string} position - The position of the print area (e.g., 'front').
+ * @returns {string} - HTML string for the design cell.
+ */
+function buildDesignCell(productData, position) {
+    let cellContent = '<td>';
+    const printArea = productData.print_areas.find(area => area.placeholders && area.placeholders[0].position === position);
+    if (printArea && printArea.placeholders) {
+        printArea.placeholders.forEach(function(placeholder) {
+            if (placeholder.type === 'image' && placeholder.images) {
+                placeholder.images.forEach(function(image) {
+                    cellContent += '<div class="image-cell" data-image-id="' + escapeHtml(image.id) + '">';
+                    cellContent += '<img src="' + escapeHtml(image.src) + '" alt="' + escapeHtml(image.name) + '" class="image-thumbnail">';
+                    cellContent += '<span>' + escapeHtml(image.name) + '</span>';
+                    cellContent += '<button class="reset-image-button" title="Reset Image">&#8635;</button>';
+                    cellContent += '</div>';
+                });
+            }
+        });
     }
+    cellContent += '</td>';
+    return cellContent;
+}
 
-    // Updated getSizesString function
-    function getSizesString(productData) {
-        if (productData['options - sizes'] && productData['options - sizes'].length > 0) {
-            const desiredSizeOrder = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
-            const sizes = productData['options - sizes'].slice();
+/**
+ * Function to build dynamic image cells based on the number of images
+ *
+ * @param {Array} images - Array of image objects.
+ * @param {number} maxImages - Maximum number of images across all print areas.
+ * @returns {string} - HTML string for dynamic image cells.
+ */
+function buildDynamicImageCells(images, maxImages) {
+    let cells = '';
+    for (let i = 0; i < maxImages; i++) {
+        if (i < images.length) {
+            const image = images[i];
+            const thumbnailSrc = image.src || 'placeholder.png'; // Ensure 'placeholder.png' exists or replace with a valid URL
+            const imageName = image.name || 'Image';
+            cells += `
+                <td>
+                    <img src="${escapeHtml(thumbnailSrc)}" alt="${escapeHtml(imageName)}" class="image-thumbnail">
+                    <div class="image-title">${escapeHtml(imageName)}</div>
+                    <button class="reset-image-button" title="Reset Image">&#8635;</button>
+                </td>
+            `;
+        } else {
+            // If fewer images, leave the cell empty
+            cells += '<td></td>';
+        }
+    }
+    return cells;
+}
+
+/**
+ * Updated getSizesString function
+ */
+function getSizesString(productData) {
+    if (productData['options - sizes'] && productData['options - sizes'].length > 0) {
+        const desiredSizeOrder = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
+        const sizes = productData['options - sizes'].slice();
+        
+        sizes.sort((a, b) => {
+            const indexA = desiredSizeOrder.indexOf(a.title);
+            const indexB = desiredSizeOrder.indexOf(b.title);
             
-            sizes.sort((a, b) => {
-                const indexA = desiredSizeOrder.indexOf(a.title);
-                const indexB = desiredSizeOrder.indexOf(b.title);
-                
-                if (indexA === -1) return 1;
-                if (indexB === -1) return -1;
-                
-                return indexA - indexB;
-            });
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
             
-            return sizes.map(size => escapeHtml(size.title)).join(', ');
-        }
-        return '';
+            return indexA - indexB;
+        });
+        
+        return sizes.map(size => escapeHtml(size.title)).join(', ');
     }
+    return '';
+}
 
-    // Updated getColorsSwatches function
-    function getColorsSwatches(productData) {
-        let swatches = '';
-        if (productData['options - colors'] && productData['options - colors'].length > 0) {
-            productData['options - colors'].forEach(function(colorObj) {
-                if (colorObj.colors && colorObj.colors.length > 0) {
-                    colorObj.colors.forEach(function(hex) {
-                        swatches += `
-                            <span 
-                                class="color-swatch" 
-                                title="${escapeHtml(colorObj.title)}" 
-                                style="background-color: ${escapeHtml(hex)};"
-                            ></span>
-                        `;
-                    });
-                }
-            });
-        }
-        return swatches;
-    }
+/**
+ * Updated getColorsSwatches function
+ *
+ * @param {Array} variantIds - Array of variant IDs associated with the print area.
+ * @param {Object} colorMap - Mapping of color ID to color details.
+ * @returns {string} - HTML string for color swatches.
+ */
+function getColorsSwatches(variantIds, colorMap) {
+    const uniqueColors = new Set();
 
-    function truncateText(text, maxLength) {
-        if (text.length > maxLength) {
-            return text.substring(0, maxLength) + '...';
+    variantIds.forEach(function(id) {
+        if (colorMap[id]) {
+            uniqueColors.add(JSON.stringify(colorMap[id]));
         }
-        return text;
-    }
+    });
 
-    // Capitalize the first letter function
-    function capitalizeFirstLetter(string) {
-        if (typeof string === 'string' && string.length > 0) {
-            return string.charAt(0).toUpperCase() + string.slice(1);
+    let swatchesHtml = '';
+    uniqueColors.forEach(function(colorStr) {
+        const color = JSON.parse(colorStr);
+        swatchesHtml += `
+            <span 
+                class="color-swatch" 
+                title="${escapeHtml(color.title)}" 
+                style="background-color: ${escapeHtml(color.hex)};"
+            ></span>
+        `;
+    });
+
+    return swatchesHtml;
+}
+
+/**
+ * Creates a mapping from color ID to color details.
+ *
+ * @param {Array} colorOptions - Array of color option objects.
+ * @returns {Object} - Mapping of color ID to { title, hex }.
+ */
+function createColorMap(colorOptions) {
+    const colorMap = {};
+    colorOptions.forEach(function(option) {
+        if (option && typeof option.id === 'number') {
+            colorMap[option.id] = {
+                title: option.title,
+                hex: option.colors[0] // Assuming one hex per color
+            };
         }
-        return '';  // Return an empty string for non-valid inputs
+    });
+    return colorMap;
+}
+
+/**
+ * Function to escape HTML to prevent XSS attacks.
+ *
+ * @param {string} string - The string to escape.
+ * @returns {string} - Escaped string.
+ */
+function escapeHtml(string) {
+    const entityMap = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+        '/': '&#x2F;'
+    };
+    return String(string).replace(/[&<>"'\/]/g, function (s) {
+        return entityMap[s];
+    });
+}
+
+/**
+ * Utility function to capitalize the first letter of a string.
+ *
+ * @param {string} string - The string to capitalize.
+ * @returns {string} - Capitalized string.
+ */
+function capitalizeFirstLetter(string) {
+    if (typeof string !== 'string' || string.length === 0) return '';
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+/**
+ * Function to truncate text to a specified length.
+ *
+ * @param {string} text - The text to truncate.
+ * @param {number} maxLength - The maximum length of the text.
+ * @returns {string} - Truncated text.
+ */
+function truncateText(text, maxLength) {
+    if (text.length > maxLength) {
+        return text.substring(0, maxLength) + '...';
     }
+    return text;
+}
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     // Function to add event listeners to table elements
     function addEventListeners() {
         // Editable cells
@@ -339,6 +458,11 @@ function buildCreationTable(productData) {
             e.stopPropagation();
             const imageCell = $(this).closest('.image-cell');
             resetImage(imageCell);
+        });
+
+        // Close button
+        $('#close-template').on('click', function() {
+            resetTemplateSelection();
         });
     }
 
@@ -505,9 +629,6 @@ function buildCreationTable(productData) {
         $('#creation-table thead').empty();
         $('#creation-table tbody').empty();
     }
-
-    // Function to handle Save action on Close confirmation
-    // Not needed separately since handleCloseTemplate manages it
 
     // Expose the init function
     return {

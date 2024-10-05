@@ -94,24 +94,20 @@ function sip_display_template_list($templates) {
     if (empty($templates)) {
         echo '<p>No templates found.</p>';
     } else {
-        echo '<div style="max-height: 250px; overflow-y: auto;">'; // Contain the scroll within this div
+        echo '<div style="overflow-y: auto;">'; // Contain the scroll within this div
         echo '<table style="width: 100%; border-collapse: collapse; table-layout: fixed;">';
 
         // Define column widths to prevent horizontal scrollbar
         echo '<colgroup>';
         echo '<col style="width: 8%;">';   // Select checkbox
-        echo '<col style="width: 76%;">';  // Template Name
-        echo '<col style="width: 8%;">';   // Actions (pencil icon)
-        echo '<col style="width: 8%;">';  // Edit (edit doc icon)
+        echo '<col style="width: 92%;">';  // Template Name
         echo '</colgroup>';
 
         // Table Header
         echo '<thead>';
         echo '<tr>';
-        echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-templates"></th>';
-        echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: left; padding: 2px;">Template Name</th>';
-        echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2;"></th>';
-        echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2;"></th>';
+        echo '<th><input type="checkbox" id="select-all-templates"></th>';
+        echo '<th style="text-align: left; padding-left: 8px;">Template Name</th>';
         echo '</tr>';
         echo '</thead>';
 
@@ -119,15 +115,9 @@ function sip_display_template_list($templates) {
         echo '<tbody>';
         foreach ($templates as $template) {
             echo '<tr>';
-            echo '<td style="text-align: center; padding: 2px;">';
-            echo '<input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '" />';
-            echo '<td class="template-name-cell" style="text-align: left; padding: 2px;" data-template-name="' . esc_attr($template) . '">' . esc_html($template) . '</td>';
-            echo '<td style="text-align: center; padding: 2px;">';
-            echo '<span class="rename-template" style="cursor: pointer;" title="Rename Template"><i class="dashicons dashicons-edit"></i></span>';
-            echo '</td>';
-            echo '<td style="text-align: center; padding: 2px;">';
-            echo '<span class="edit-template-content" style="cursor: pointer;" title="Edit Template"><i class="dashicons dashicons-edit-page"></i></span>';
-            echo '</td>';
+            echo '<td>';
+            echo '<input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '" /></td>';
+            echo '<td style="text-align: left; padding-left: 8px;">' . esc_html($template) . '</td>';
             echo '</tr>';
         }
         echo '</tbody>';
