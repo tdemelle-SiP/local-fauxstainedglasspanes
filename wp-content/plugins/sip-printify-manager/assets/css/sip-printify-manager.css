@@ -73,11 +73,13 @@ a, a:hover, a:focus, a:active, a:visited {
 }
 
 .wp-core-ui .button, .wp-core-ui .button-secondary {
-    font-size: 10px !important;
-    height: 18px !important;
+    font-size: 14px !important;
+    height: 30px !important;
     line-height: 10px !important;
     min-height: 18px !important;
     margin: 5px;
+    align-items: center;
+    font-weight: 600;
 }
 
 
@@ -121,20 +123,38 @@ a, a:hover, a:focus, a:active, a:visited {
     display: flex; /* Aligns child elements horizontally */
     height: 635px; /* Sets a fixed height for the container */
 }
+.products-templates-images-container th {
+    background-color: #0e5274;
+    color: white;
+}
 
 .products-templates-images-container h2 {
     margin: 0px;
     padding: 0px;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.products-templates-images-container th input[type=checkbox], input[type=radio] {
+    margin: 0;
+    padding: 0;
+    width: 1.2em;
+    height: 1.2em;
+    border: 0.1em solid #aaa;
+    transform: translateY(-0.075em);
+}
+
+.products-templates-images-container input[type=text] {
+    font-weight: 400;
 }
 
 table tbody tr:nth-child(odd) {
-    background-color: #f9f9f9; /* Light gray for odd rows */
+    background-color: #f9f9f9;
 }
 
 table tbody tr:nth-child(even) {
     background-color: #f2f2f2; /* Slightly darker gray for even rows */
 }
-
 
 /* Flexbox Styling for the Templates and Products Column */
 #templates-products-column {
@@ -180,18 +200,7 @@ table tbody tr:nth-child(even) {
 #template-list th {
     position: sticky;
     top: 0;
-    background-color: #fff;
 }
-
-#template-list th input[type=checkbox], input[type=radio] {
-    margin: 0;
-    padding: 0;
-    width: 1.2em;
-    height: 1.2em;
-    border: 0.1em solid #aaa;
-    transform: translateY(-0.075em);
-}
-
 
 #template-list td, #template-list th {
     padding: 5px;

@@ -113,9 +113,9 @@ function sip_display_product_list($products) {
     // Table Header
     echo '<thead>';
     echo '<tr>';
-    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-products"></th>';
-    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;">Thumb</th>';
-    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: left; padding: 2px;">Product Name</th>';
+    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-products"></th>';
+    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Thumb</th>';
+    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: left; padding: 2px;">Product Name</th>';
     echo '</tr>';
     echo '</thead>';
 

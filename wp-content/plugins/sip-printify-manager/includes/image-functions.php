@@ -268,13 +268,13 @@ function sip_display_image_list($images) {
     echo '<thead>';
     echo '<tr>';
     // Select all checkbox in header
-    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-images"></th>';
-    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;">Thumb</th>';
-    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: left; padding: 2px;">Filename</th>';
-    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;">Location</th>';
-    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;">Uploaded</th>';
-    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;">Dimensions</th>';
-    echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;">Size</th>';
+    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-images"></th>';
+    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Thumb</th>';
+    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: left; padding: 2px;">Filename</th>';
+    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Location</th>';
+    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Uploaded</th>';
+    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Dimensions</th>';
+    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Size</th>';
     echo '</tr>';
     echo '</thead>';
 
