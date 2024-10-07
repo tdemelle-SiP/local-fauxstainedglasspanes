@@ -67,7 +67,9 @@ sip.imageUpload = (function($) {
             var formData = new FormData();
             $.each(files, function (i, file) {
                 formData.append('images[]', file);
+                console.log('Appending file:', file.name);
             });
+            
             formData.append('action', 'sip_handle_ajax_request');
             formData.append('action_type', 'upload_images');
             formData.append('nonce', sipAjax.nonce);

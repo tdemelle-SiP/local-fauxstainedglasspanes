@@ -218,7 +218,7 @@ sip.ajaxModule = (function($) {
                     alert('Error: ' + response.data);
                 }
             },
-            error: function () {
+            error: function (jqXHR, textStatus, errorThrown) {
                 // Re-enable the button and hide spinner on error
                 if (buttonSelector) {
                     $(buttonSelector).attr('disabled', false);
@@ -227,7 +227,12 @@ sip.ajaxModule = (function($) {
                     $(spinnerSelector).hide();
                 }
                 $('#spinner-overlay').hide(); // Hide global spinner overlay on error
-                alert('AJAX Error occurred.');
+            
+                // Log more detailed information to the console
+                console.error('AJAX Error:', textStatus, errorThrown, jqXHR.responseText);
+            
+                // Alert the user of the error
+                alert('AJAX Error occurred: ' + textStatus + ' - ' + errorThrown);
             }
         });
     }
