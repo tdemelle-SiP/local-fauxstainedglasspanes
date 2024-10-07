@@ -150,7 +150,6 @@ function sip_handle_template_action() {
             // Start output buffering to capture the template list HTML
             ob_start();
             $templates = sip_load_templates();
-            sip_display_template_list($templates);
             $template_list_html = ob_get_clean();
 
             // Send a JSON response back to the AJAX call with the updated HTML content

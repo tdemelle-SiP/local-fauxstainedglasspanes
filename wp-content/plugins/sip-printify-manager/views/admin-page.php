@@ -30,8 +30,8 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 </div>
 
 <!-- Spinner Overlay -->
-<div id="spinner-overlay" style="display: flex; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 9999;">
-    <img id="spinner" src="<?php echo esc_url($sip_core_assets_url . '/images/spinner.webp'); ?>" alt="<?php esc_attr_e('Loading...', 'sip-printify-manager'); ?>" style="width: 50px; height: 50px;">
+<div id="spinner-overlay">
+    <img id="spinner" src="<?php echo esc_url($sip_core_assets_url . '/images/spinner.webp'); ?>" alt="<?php esc_attr_e('Loading...', 'sip-printify-manager'); ?>">
 </div>
 
 
@@ -105,9 +105,9 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                     </colgroup>
                                     <thead>
                                         <tr>
-                                            <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-products"></th>
-                                            <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Thumb</th>
-                                            <th style="position: sticky; top: 0; z-index: 2; text-align: left; padding: 2px;">Product Name</th>
+                                            <th><input type="checkbox" id="select-all-products"></th>
+                                            <th>Thumb</th>
+                                            <th>Product Name</th>
                                         </tr>
                                     </thead>
                                 </table>
@@ -122,13 +122,13 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                             <?php foreach ($products as $product) : ?>
                                                 <?php $thumbnail_src = !empty($product['images']) ? $product['images'][0]['src'] : ''; ?>
                                                 <tr>
-                                                    <td style="text-align: center; padding: 2px;"><input type="checkbox" name="selected_products[]" value="<?php echo esc_attr($product['id']); ?>" /></td>
-                                                    <td style="text-align: center; padding: 2px;">
+                                                    <td><input type="checkbox" name="selected_products[]" value="<?php echo esc_attr($product['id']); ?>" /></td>
+                                                    <td>
                                                         <a href="<?php echo esc_url($thumbnail_src); ?>" target="_blank">
-                                                            <img src="<?php echo esc_url($thumbnail_src); ?>" alt="<?php echo esc_html($product['title']); ?>" style="width: 32px; height: auto; cursor: pointer;">
+                                                            <img src="<?php echo esc_url($thumbnail_src); ?>" alt="<?php echo esc_html($product['title']); ?>">
                                                         </a>
                                                     </td>
-                                                    <td style="text-align: left; padding: 2px;"><?php echo esc_html($product['title']); ?></td>
+                                                    <td><?php echo esc_html($product['title']); ?></td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
@@ -170,7 +170,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                     <thead>
                                         <tr>
                                             <th><input type="checkbox" id="select-all-templates"></th>
-                                            <th style="text-align: left; padding-left: 8px;"><?php esc_html_e('Template Name', 'sip-printify-manager'); ?></th>
+                                            <th><?php esc_html_e('Template Name', 'sip-printify-manager'); ?></th>
                                         </tr>
                                     </thead>
                                 </table>
@@ -184,7 +184,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                             <?php foreach ($templates as $template) : ?>
                                                 <tr>
                                                     <td><input type="checkbox" name="selected_templates[]" value="<?php echo esc_attr($template); ?>"></td>
-                                                    <td style="text-align: left; padding-left: 8px;"><?php echo esc_html($template); ?></td>
+                                                    <td><?php echo esc_html($template); ?></td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
@@ -249,13 +249,13 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                     </colgroup>
                                     <thead>
                                         <tr>
-                                            <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-images"></th>
-                                            <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Thumb</th>
-                                            <th style="position: sticky; top: 0; z-index: 2; text-align: left; padding: 2px;">Filename</th>
-                                            <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Location</th>
-                                            <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Uploaded</th>
-                                            <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Dimensions</th>
-                                            <th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Size</th>
+                                            <th><input type="checkbox" id="select-all-images"></th>
+                                            <th>Thumb</th>
+                                            <th>Filename</th>
+                                            <th>Location</th>
+                                            <th>Uploaded</th>
+                                            <th>Dimensions</th>
+                                            <th>Size</th>
                                         </tr>
                                     </thead>
                                 </table>
@@ -280,17 +280,17 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                                     $filename = esc_html($image['file_name']);
                                                 ?>
                                                 <tr title="<?php echo esc_attr($filename); ?>">
-                                                    <td style="text-align: center; padding: 2px;"><input type="checkbox" name="selected_images[]" value="<?php echo esc_attr($image['id']); ?>" /></td>
-                                                    <td style="text-align: center; padding: 2px;">
+                                                    <td><input type="checkbox" name="selected_images[]" value="<?php echo esc_attr($image['id']); ?>" /></td>
+                                                    <td>
                                                         <a href="<?php echo esc_url($image['preview_url']); ?>" target="_blank">
-                                                            <img src="<?php echo esc_url($image['preview_url']); ?>" alt="<?php echo esc_attr($filename); ?>" style="width: 32px; height: auto; cursor: pointer;">
+                                                            <img src="<?php echo esc_url($image['preview_url']); ?>" alt="<?php echo esc_attr($filename); ?>">
                                                         </a>
                                                     </td>
-                                                    <td style="text-align: left; padding: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?php echo $filename; ?></td>
-                                                    <td style="text-align: center; padding: 2px;"> <?php echo esc_html($location); ?></td>
-                                                    <td style="text-align: center; padding: 2px;"> <?php echo $upload_time; ?></td>
-                                                    <td style="text-align: center; padding: 2px;"> <?php echo $dimensions; ?></td>
-                                                    <td style="text-align: center; padding: 2px;"> <?php echo $size; ?></td>
+                                                    <td><?php echo $filename; ?></td>
+                                                    <td> <?php echo esc_html($location); ?></td>
+                                                    <td> <?php echo $upload_time; ?></td>
+                                                    <td> <?php echo $dimensions; ?></td>
+                                                    <td> <?php echo $size; ?></td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
@@ -355,15 +355,15 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 
     <!-- Product Creation Header and Main Controls -->
     <section id="product-creation-table" class="sip-section">
-    <hr class="divider" style="margin-top: 20px; background-color: #c0bfbf;">
+    <hr class="divider">
     <h2 class="creation-table-title"><?php esc_html_e('Product Creation Table', 'sip-printify-manager'); ?></h2>
 
         <!-- Product Table Header -->
-        <div id="creation-header" class="creation-header" style="justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div class="template-name" style="flex: 1; text-align: center;">
+        <div id="creation-header" class="creation-header">
+            <div class="template-name">
                 <h3><?php esc_html_e('Template:', 'sip-printify-manager'); ?> <span id="selected-template-name"></span></h3>
             </div>
-            <div class="header-buttons" style="flex: 1; text-align: right;">
+            <div class="header-buttons">
                 <button id="edit-json" class="button"><?php esc_html_e('Edit JSON', 'sip-printify-manager'); ?></button>
                 <button id="save-template" class="button"><?php esc_html_e('Save', 'sip-printify-manager'); ?></button>
                 <button id="close-template" class="button"><?php esc_html_e('Close', 'sip-printify-manager'); ?></button>

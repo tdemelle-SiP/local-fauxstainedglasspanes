@@ -17,6 +17,18 @@ a, a:hover, a:focus, a:active, a:visited {
     border: none; /* Removes the border from the divider */
 }
 
+#product-creation-table > hr {
+    margin-top: 20px;
+}
+
+#creation-header > div.template-name > h3 {
+    text-align: center;
+    flex: 1;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 15px 0;
+}
+
 /* Spinner Overlay Styling */
 #spinner-overlay {
     position: fixed; /* Fixes the overlay in place over the entire screen */
@@ -245,7 +257,6 @@ a, a:hover, a:focus, a:active, a:visited {
     justify-content: center;
 }
 
-
 .product-action-form select,
 .template-action-form select,
 .image-action-form select {
@@ -282,6 +293,7 @@ a, a:hover, a:focus, a:active, a:visited {
 #product-table-body,
 #image-table-body {
     overflow-y: auto; /* Makes the table body scrollable */
+    table-layout: fixed; /* Enforces min-width constraints on cells */
 }
 
 #template-table-body,
@@ -309,18 +321,48 @@ max-height: 185px; /* Adjust this height as needed for scrolling */
 #template-table-content td,
 #product-table-content td,
 #image-table-content td {
-    padding: 10px;
-    text-align: left;
+    padding: 2px;
+    text-align: center;
     border: 1px solid #ccc;
-    box-sizing: border-box;
+    min-width: 24px !important;
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap;
+    box-sizing: border-box; 
 }
+
+#template-table-content td input[type=checkbox],
+#product-table-content td input[type=checkbox],
+#image-table-content td input[type=checkbox] {
+    padding-right: 8px;
+    cursor: pointer;
+    box-sizing: border-box; 
+}
+
+#product-table-content td img,
+#template-table-content td img,
+#image-table-content td img {
+    width: 32px; 
+    vertical-align: middle;
+    height: auto; 
+    cursor: pointer;
+    min-width: 32px;
+    box-sizing: border-box; 
+}
+
 
 /* Specific styling for table headers (template, product, and image) */
 #template-table-header th,
 #product-table-header th,
 #image-table-header th {
+    position: sticky; 
+    top: 0; 
+    z-index: 2; 
+    text-align: center; 
     background-color: #0e5274;
     color: white;
+    min-width: 24px !important;
+    box-sizing: border-box; 
 }
 
 .products-templates-image-container h2,

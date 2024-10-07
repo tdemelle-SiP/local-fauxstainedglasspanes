@@ -157,10 +157,10 @@ sip.ajaxModule = (function($) {
                         case 'product_action':
                             // Update the product list and template list if available
                             if (response.data.product_list_html) {
-                                $('#product-list').html(response.data.product_list_html).show();
+                                $('#product-table-list').html(response.data.product_list_html).show();
                             }
                             if (response.data.template_list_html) {
-                                $('#template-list').html(response.data.template_list_html).show();
+                                $('#template-table-list').html(response.data.template_list_html).show();
                             }
                             // Uncheck all selected products
                             $('input[name="selected_products[]"]').prop('checked', false);
@@ -173,7 +173,7 @@ sip.ajaxModule = (function($) {
                             // Handle template actions (e.g., delete, edit)
                             // Update the template list
                             if (response.data.template_list_html) {
-                                $('#template-list').html(response.data.template_list_html).show();
+                                $('#template-table-list').html(response.data.template_list_html).show();
                             }
                             $('input[name="selected_templates[]"]').prop('checked', false);
                             // Uncheck the select all checkbox
@@ -190,7 +190,7 @@ sip.ajaxModule = (function($) {
                         case 'image_action':
                             // Update the image list if available
                             if (response.data.image_list_html) {
-                                $('#image-list').html(response.data.image_list_html).show();
+                                $('#image-table-list').html(response.data.image_list_html).show();
                             }
                             // Uncheck all selected images
                             $('input[name="selected_images[]"]').prop('checked', false);
@@ -202,7 +202,7 @@ sip.ajaxModule = (function($) {
                         case 'upload_images':
                             // Images uploaded successfully
                             if (response.data.image_list_html) {
-                                $('#image-list').html(response.data.image_list_html).show();
+                                $('#image-table-list').html(response.data.image_list_html).show();
                             }
                             // Clear the file input
                             $('#image-file-input').val('');
