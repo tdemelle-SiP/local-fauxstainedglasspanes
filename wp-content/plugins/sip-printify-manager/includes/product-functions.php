@@ -165,7 +165,9 @@ function sip_handle_product_action() {
 
     // Start output buffering to capture the template list HTML
     ob_start();
-    $templates = sip_load_templates();
+    // Load templates before displaying them
+    $templates = sip_load_templates(); // Make sure templates are loaded into the $templates variable
+    sip_display_template_list($templates);
     // Get the template list HTML from the buffer
     $template_list_html = ob_get_clean();
 

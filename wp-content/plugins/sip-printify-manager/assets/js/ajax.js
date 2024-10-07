@@ -38,35 +38,29 @@ sip.ajaxModule = (function($) {
                     actionType = 'template_action';
                     var templateAction = $('#template_action').val();
                     console.log('Template action triggered:', templateAction); // Log the template action for debugging
-
+                
                     if (templateAction === 'create_new_products') {
-                        // Log that we're bypassing the AJAX call for this case
                         console.log('Bypassing AJAX call for create_new_products. Handled in productCreation.js.');
                         return;  // This should exit early for create_new_products
-                    
+                
                     } else if (templateAction === 'delete_template') {
-                        // Handle Delete Template action
                         var selectedTemplates = $('input[name="selected_templates[]"]:checked');
                         if (selectedTemplates.length === 0) {
                             alert('Please select at least one template to delete.');
                             return;
                         }
                         formData.delete('selected_templates[]');
-                        selectedTemplates.forEach(function (templateId) {
-                            formData.append('selected_templates[]', templateId);
+                        selectedTemplates.each(function () {
+                            formData.append('selected_templates[]', $(this).val());
                         });
                     } else {
-                        // Handle other template actions
-                        var selectedTemplates = [];
-                        $('input[name="selected_templates[]"]:checked').each(function () {
-                            selectedTemplates.push($(this).val());
-                        });
                         formData.delete('selected_templates[]');
-                        selectedTemplates.forEach(function (templateId) {
-                            formData.append('selected_templates[]', templateId);
+                        $('input[name="selected_templates[]"]:checked').each(function () {
+                            formData.append('selected_templates[]', $(this).val());
                         });
                     }
                     break;
+                    
 
                 case 'image-action-form':
                     actionType = 'image_action';

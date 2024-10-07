@@ -84,7 +84,7 @@ sip.eventHandlers = (function($) {
          */
         $('#product-search').on('keyup', function () {
             var value = $(this).val().toLowerCase();
-            $('#product-list tbody tr').filter(function () {
+            $('#product-table-list tbody tr').filter(function () {
                 $(this).toggle($(this).find('td:nth-child(3)').text().toLowerCase().indexOf(value) > -1);
             });
         });
@@ -92,7 +92,7 @@ sip.eventHandlers = (function($) {
         /* Search functionality for images. */
         $('#image-search').on('keyup', function () {
             var value = $(this).val().toLowerCase();
-            $('#image-list table tbody tr').filter(function () {
+            $('#image-table-list table tbody tr').filter(function () {
                 // Check if the filename or other relevant text in the row contains the search term
                 var rowText = $(this).text().toLowerCase();
                 $(this).toggle(rowText.indexOf(value) > -1);
@@ -102,7 +102,7 @@ sip.eventHandlers = (function($) {
         /* Search functionality for templates. */
         $('#template-search').on('keyup', function () {
             var value = $(this).val().toLowerCase();
-            $('#template-list tbody tr').filter(function () {
+            $('#template-table-list tbody tr').filter(function () {
                 $(this).toggle($(this).find('td:nth-child(2)').text().toLowerCase().indexOf(value) > -1);
             });
         });

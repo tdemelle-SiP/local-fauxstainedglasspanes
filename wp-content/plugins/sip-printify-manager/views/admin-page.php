@@ -192,7 +192,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                 </div> <!-- End of template-table-body -->
                             </div> <!-- End of template-table-container -->
                         <?php else : ?>
-                            <p><?php esc_html_e('No templates found.', 'sip-printify-manager'); ?></p>
+                            <p><?php esc_html_e('admin-page.php says No templates found.', 'sip-printify-manager'); ?></p>
                         <?php endif; ?>
                     </div> <!-- End of template-list -->
                 </div> <!-- End of template-section -->

@@ -143,14 +143,16 @@ a, a:hover, a:focus, a:active, a:visited {
     display: flex; /* Aligns child elements vertically */
     flex-direction: column; /* Stacks child elements vertically */
     height: 100%; /* Fills the height of the parent container */
+    max-height: 100%;
     width: 30%; /* Sets the width of the column */
     padding-right: 10px; /* Adds padding to the right of the column */
     box-sizing: border-box; 
 }
 
 #right-column {
-    /*    overflow-y: auto; /* Enables vertical scrolling for the image section */
+    display: flex;
     height: 100%; /* Fills the height of the parent container */
+    max-height: 100%;
     width: 70%; /* Sets the width of the section */
     box-sizing: border-box; 
 }
@@ -164,6 +166,7 @@ a, a:hover, a:focus, a:active, a:visited {
     display: flex; /* Aligns child elements vertically */
     flex-direction: column; /* Stacks child elements vertically */
     height: 50%; /* Limits the height of the products section */
+    max-height: 50%;
     border: 2px solid #646464; /* Adds a light gray border around the sections */
     padding: 10px 10px 0px 10px; /* Adds padding inside the sections */
     box-sizing: border-box; 
@@ -171,6 +174,7 @@ a, a:hover, a:focus, a:active, a:visited {
 
 #image-section {
     height: 100%; /* Fills the height of the image section */
+    max-height: 100%;
     box-sizing: border-box; 
 }
 
@@ -298,11 +302,13 @@ a, a:hover, a:focus, a:active, a:visited {
 
 #template-table-body,
 #product-table-body {
-max-height: 185px; /* Adjust this height as needed for scrolling */
+max-height: 195px; /* Adjust this height as needed for scrolling */
+box-sizing: border-box; 
 }
 
 #image-table-body {
     max-height: 515px; /* Adjust this height as needed for scrolling */
+    box-sizing: border-box; 
 } 
 
 /* Styling for the table content (template, product, and image) */
