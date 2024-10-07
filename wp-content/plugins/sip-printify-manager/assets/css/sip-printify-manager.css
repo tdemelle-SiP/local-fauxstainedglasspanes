@@ -279,10 +279,19 @@ a, a:hover, a:focus, a:active, a:visited {
 
 /* Scrollable table body container (template, product, and image) */
 #template-table-body,
-#product-table-body{
-    max-height: 200px; /* Adjust this height as needed for scrolling */
+#product-table-body,
+#image-table-body {
     overflow-y: auto; /* Makes the table body scrollable */
 }
+
+#template-table-body,
+#product-table-body {
+max-height: 185px; /* Adjust this height as needed for scrolling */
+}
+
+#image-table-body {
+    max-height: 515px; /* Adjust this height as needed for scrolling */
+} 
 
 /* Styling for the table content (template, product, and image) */
 #template-table-content,
