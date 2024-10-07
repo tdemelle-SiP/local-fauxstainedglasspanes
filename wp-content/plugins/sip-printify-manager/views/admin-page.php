@@ -87,9 +87,9 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                 <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
                                 <label for="product_action" class="screen-reader-text"><?php esc_html_e('Product Actions', 'sip-printify-manager'); ?></label>
                                 <select name="product_action" id="product_action">
-                                    <option value="reload"><?php esc_html_e('Reload', 'sip-printify-manager'); ?></option>
                                     <option value="create_template"><?php esc_html_e('Create Template', 'sip-printify-manager'); ?></option>
-                                    <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>
+                                    <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>                                    
+                                    <option value="reload"><?php esc_html_e('Reload', 'sip-printify-manager'); ?></option>
                                 </select>
                                 <input type="submit" name="execute_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" />
                             </form>
@@ -192,7 +192,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                 </div> <!-- End of template-table-body -->
                             </div> <!-- End of template-table-container -->
                         <?php else : ?>
-                            <p><?php esc_html_e('admin-page.php says No templates found.', 'sip-printify-manager'); ?></p>
+                            <p><?php esc_html_e('No templates found.', 'sip-printify-manager'); ?></p>
                         <?php endif; ?>
                     </div> <!-- End of template-list -->
                 </div> <!-- End of template-section -->
@@ -214,11 +214,11 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                     <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
                                     <label for="image_action" class="screen-reader-text"><?php esc_html_e('Image Actions', 'sip-printify-manager'); ?></label>
                                     <select name="image_action" id="image_action">
-                                        <option value="reload_shop_images"><?php esc_html_e('Reload Shop Images', 'sip-printify-manager'); ?></option>
-                                        <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>
                                         <option value="add_to_new_product"><?php esc_html_e('Add to New Product', 'sip-printify-manager'); ?></option>
                                         <option value="upload_to_shop"><?php esc_html_e('Upload to Shop', 'sip-printify-manager'); ?></option>
-                                        <option value="archive_shop_image"><?php esc_html_e('Archive Shop Image', 'sip-printify-manager'); ?></option>
+                                        <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>
+                                        <option value="reload_shop_images"><?php esc_html_e('Reload Shop Images', 'sip-printify-manager'); ?></option>
+                                        <option value="archive_shop_images"><?php esc_html_e('Archive Shop Image', 'sip-printify-manager'); ?></option>
                                     </select>
                                     <input type="submit" name="execute_image_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" />
                                 </form>
