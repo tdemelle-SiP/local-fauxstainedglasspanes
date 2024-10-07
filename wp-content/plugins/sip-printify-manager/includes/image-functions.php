@@ -20,6 +20,7 @@ function sip_handle_image_action() {
     $image_action = sanitize_text_field($_POST['image_action']);
     $selected_images = isset($_POST['selected_images']) ? $_POST['selected_images'] : array();
 
+    // Execute action based on user selection
     $result = sip_execute_image_action($image_action, $selected_images);
     $images = $result['images'];
     $message = isset($result['message']) ? $result['message'] : '';
@@ -238,7 +239,6 @@ function fetch_images($token) {
     return $all_images;
 }
 
-
 /**
  * Display the Image List in the Admin Interface
  *
@@ -246,10 +246,19 @@ function fetch_images($token) {
  */
 function sip_display_image_list($images) {
     if (empty($images)) {
-        echo '<p>No images found.</p>';
+        echo '<div id="no-images-found" style="padding: 10px;">';
+        echo '<p>' . esc_html__('No images found.', 'sip-printify-manager') . '</p>';
+        echo '<form id="reload-shop-images-form" method="post">';
+        echo wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field', true, false); // Adds the nonce field
+        echo '<input type="hidden" name="image_action" value="reload_shop_images">';
+        echo '<input type="hidden" name="action" value="sip_handle_ajax_request">';
+        echo '<input type="hidden" name="action_type" value="image_action">';
+        echo '<button type="button" id="reload-images-button" class="button button-primary">' . esc_html__('Reload Shop Images', 'sip-printify-manager') . '</button>';
+        echo '</form>';
+        echo '</div>';
         return;
     }
-
+    
     echo '<div style="overflow-y: auto;">';
     echo '<table style="width: 100%; border-collapse: collapse; table-layout: fixed;">';
 
@@ -278,9 +287,8 @@ function sip_display_image_list($images) {
     echo '</tr>';
     echo '</thead>';
 
-
     // Table Body
-    echo '<tbody>';  
+    echo '<tbody>';
     foreach ($images as $image) {
         // Ensure 'location' key exists
         $location = isset($image['location']) ? $image['location'] : 'Unknown';
@@ -288,7 +296,7 @@ function sip_display_image_list($images) {
         $upload_time = isset($image['upload_time']) ? date('y_m_d g:ia', strtotime($image['upload_time'])) : '';
         $dimensions = isset($image['width']) && isset($image['height']) ? esc_html($image['width']) . 'x' . esc_html($image['height']) : '';
         $size = isset($image['size']) ? esc_html(format_file_size($image['size'])) : '';
-    
+
         // Use full filename without truncation
         $filename = esc_html($image['file_name']);
 
@@ -308,7 +316,6 @@ function sip_display_image_list($images) {
         echo '</tr>';
     }
     echo '</tbody>';
-    
 
     echo '</table>';
     echo '</div>';
@@ -327,7 +334,6 @@ function format_file_size($bytes) {
         return number_format($bytes / 1024, 2) . ' kB';
     }
 }
-
 
 /**
  * Handle Image Uploads via AJAX
@@ -349,7 +355,7 @@ function sip_handle_image_upload() {
     $existing_images = get_option('sip_printify_images', array());
 
     // Create an array of existing image filenames
-    $existing_filenames = array_map(function($image) {
+    $existing_filenames = array_map(function ($image) {
         return $image['file_name'];
     }, $existing_images);
 

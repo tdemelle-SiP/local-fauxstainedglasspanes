@@ -106,6 +106,5 @@ function sip_send_product_to_printify($product_data) {
     // Implement API call here
     return array(
         'success' => true,
-        'message' => 'Product created successfully on Printify.'
     );
 }

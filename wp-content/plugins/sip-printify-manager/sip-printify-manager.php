@@ -93,6 +93,10 @@ class SiP_Printify_Manager {
 
         // Add CSS to hide admin notices on the custom admin page
         add_action('admin_head', array($this, 'hide_admin_notices_with_css'));
+
+        // Register AJAX handler for image actions
+        add_action('wp_ajax_sip_handle_image_action', 'sip_handle_image_action');
+
     }
 
     /**
@@ -116,57 +120,16 @@ class SiP_Printify_Manager {
         }
     
         // Enqueue CodeMirror from CDN
-        wp_enqueue_script(
-            'codemirror',
-            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js',
-            array(),
-            '5.65.13',
-            true
-        );
-        wp_enqueue_style(
-            'codemirror',
-            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css',
-            array(),
-            '5.65.13'
-        );
-    
+        wp_enqueue_script('codemirror', 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js', array(), '5.65.13', true);
+        wp_enqueue_style('codemirror', 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css', array(), '5.65.13');
+
         // Enqueue CodeMirror addons
-        wp_enqueue_script(
-            'codemirror-addon-foldcode',
-            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldcode.min.js',
-            array('codemirror'),
-            '5.65.13',
-            true
-        );
-        wp_enqueue_script(
-            'codemirror-addon-foldgutter',
-            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldgutter.min.js',
-            array('codemirror'),
-            '5.65.13',
-            true
-        );
-        wp_enqueue_script(
-            'codemirror-addon-brace-fold',
-            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/brace-fold.min.js',
-            array('codemirror'),
-            '5.65.13',
-            true
-        );
-        wp_enqueue_script(
-            'codemirror-addon-comment-fold',
-            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/comment-fold.min.js',
-            array('codemirror'),
-            '5.65.13',
-            true
-        );
-    
-        // Enqueue CodeMirror folding styles
-        wp_enqueue_style(
-            'codemirror-addon-foldgutter-style',
-            'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldgutter.min.css',
-            array('codemirror'),
-            '5.65.13'
-        );
+        $addons = ['foldcode', 'foldgutter', 'brace-fold', 'comment-fold'];
+        foreach ($addons as $addon) {
+            wp_enqueue_script("codemirror-addon-{$addon}", "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/{$addon}.min.js", ['codemirror'], '5.65.13', true);
+        }
+        wp_enqueue_style('codemirror-addon-foldgutter-style', 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldgutter.min.css', ['codemirror'], '5.65.13');
+
     
         // Enqueue jQuery UI
         wp_enqueue_script('jquery-ui-resizable');
@@ -253,15 +216,25 @@ class SiP_Printify_Manager {
             true
         );
     
+        // Get the PHP setting for max_file_uploads
+        $max_file_uploads = ini_get('max_file_uploads');
+        $max_filesize = sip_convert_to_bytes(ini_get('upload_max_filesize'));
+        $post_max_size = sip_convert_to_bytes(ini_get('post_max_size'));
+        $memory_limit = sip_convert_to_bytes(ini_get('memory_limit'));
+
         // Localize script to pass PHP variables to JavaScript
         wp_localize_script('sip-ajax', 'sipAjax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce'    => wp_create_nonce('sip_printify_manager_nonce')
+            'nonce'    => wp_create_nonce('sip_printify_manager_nonce'),
+            'max_file_uploads' => $max_file_uploads,
+            'max_filesize' => $max_filesize,
+            'post_max_size' => $post_max_size,
+            'memory_limit' => $memory_limit
         ));
     }
-    
-    
-    
+
+
+
     /**
      * Hide Admin Notices with CSS
      *
@@ -306,6 +279,29 @@ class SiP_Printify_Manager {
         // Generate the encryption key upon plugin activation
         sip_generate_encryption_key();
     }
+}
+
+/**
+ * Convert shorthand notation in php.ini to bytes.
+ *
+ * @param string $value Value from php.ini settings.
+ * @return int Converted value in bytes.
+ */
+function sip_convert_to_bytes($value) {
+    $value = trim($value);
+    $last = strtolower($value[strlen($value) - 1]);
+    $num = (int) $value;
+
+    switch ($last) {
+        case 'g':
+            $num *= 1024;
+        case 'm':
+            $num *= 1024;
+        case 'k':
+            $num *= 1024;
+    }
+
+    return $num;
 }
 
 // Initialize the plugin instance

@@ -95,7 +95,7 @@ function sip_display_template_list($templates) {
         echo '<p>sip_display_template_list says No templates found.</p>';
     } else {
         echo '<div style="overflow-y: auto;">'; // Contain the scroll within this div
-        echo '<table style="width: 100%; border-collapse: collapse; table-layout: fixed;">';
+        echo '<table>';
 
         // Define column widths to prevent horizontal scrollbar
         echo '<colgroup>';
@@ -107,7 +107,7 @@ function sip_display_template_list($templates) {
         echo '<thead>';
         echo '<tr>';
         echo '<th><input type="checkbox" id="select-all-templates"></th>';
-        echo '<th style="text-align: left; padding-left: 8px;">Template Name</th>';
+        echo '<th>Template Name</th>';
         echo '</tr>';
         echo '</thead>';
 
@@ -117,7 +117,7 @@ function sip_display_template_list($templates) {
             echo '<tr>';
             echo '<td>';
             echo '<input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '" /></td>';
-            echo '<td style="text-align: left; padding-left: 8px;">' . esc_html($template) . '</td>';
+            echo '<td>' . esc_html($template) . '</td>';
             echo '</tr>';
         }
         echo '</tbody>';

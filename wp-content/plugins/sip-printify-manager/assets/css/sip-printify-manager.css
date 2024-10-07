@@ -135,7 +135,7 @@ a, a:hover, a:focus, a:active, a:visited {
 /* Container for Products, Templates, and Image Sections */
 .products-templates-image-container {
     display: flex; /* Aligns child elements horizontally */
-    height: 635px; /* Sets a fixed height for the container */
+    height: 500px; /* Sets a fixed height for the container */
 }
 
 /* Flexbox Styling for the Templates and Products Column */
@@ -404,6 +404,12 @@ table tbody tr:nth-child(even) {
 
 /*//////////////////////////////////////////////////////////////////////////////////////*/
 /*/////////////////////////// Styling for the Image Section ///////////////////////////*/
+
+.no-images-found {
+    width: auto;
+    text-align: center; /* Centers the text within the container */
+    margin-top: 10px; /* Adds space above the text */
+}
 
 /* Tooltip Styling for Hovering over Image in the Image List */
 #image-list tr td:first-child img:hover::after {

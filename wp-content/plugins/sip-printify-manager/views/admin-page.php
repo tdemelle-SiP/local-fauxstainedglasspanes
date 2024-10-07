@@ -34,7 +34,6 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
     <img id="spinner" src="<?php echo esc_url($sip_core_assets_url . '/images/spinner.webp'); ?>" alt="<?php esc_attr_e('Loading...', 'sip-printify-manager'); ?>">
 </div>
 
-
 <!-- Auth Container for Token Entry -->
 <div id="auth-container" <?php echo empty($token) ? '' : 'style="display:none;"'; ?>>
     <h2><?php esc_html_e("To Begin, Please Enter Your Authorization Token From Printify.", 'sip-printify-manager'); ?></h2>
@@ -71,28 +70,27 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         </h2>
 
         <div id="products-templates-image-container" class="products-templates-image-container">
-    
             <!-- Left Column: Templates and Products -->
             <div id="left-column" class="left-column">
 
                 <!-- Products Section -->
                 <div id="products-section" class="products-section">
                     <div id="products-section-header" class="products-section-header">
-                            <h2>
-                                <?php esc_html_e('Products', 'sip-printify-manager'); ?>
-                                <label for="product-search" class="screen-reader-text"><?php esc_html_e('Search Products', 'sip-printify-manager'); ?></label>
-                                <input type="text" id="product-search" placeholder="<?php esc_attr_e('Search Products...', 'sip-printify-manager'); ?>">
-                            </h2>
-                                <form id="product-action-form" class="product-action-form" method="post" action="">
-                                <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
-                                <label for="product_action" class="screen-reader-text"><?php esc_html_e('Product Actions', 'sip-printify-manager'); ?></label>
-                                <select name="product_action" id="product_action">
-                                    <option value="create_template"><?php esc_html_e('Create Template', 'sip-printify-manager'); ?></option>
-                                    <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>                                    
-                                    <option value="reload"><?php esc_html_e('Reload', 'sip-printify-manager'); ?></option>
-                                </select>
-                                <input type="submit" name="execute_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" />
-                            </form>
+                        <h2>
+                            <?php esc_html_e('Products', 'sip-printify-manager'); ?>
+                            <label for="product-search" class="screen-reader-text"><?php esc_html_e('Search Products', 'sip-printify-manager'); ?></label>
+                            <input type="text" id="product-search" placeholder="<?php esc_attr_e('Search Products...', 'sip-printify-manager'); ?>">
+                        </h2>
+                        <form id="product-action-form" class="product-action-form" method="post" action="">
+                            <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+                            <label for="product_action" class="screen-reader-text"><?php esc_html_e('Product Actions', 'sip-printify-manager'); ?></label>
+                            <select name="product_action" id="product_action">
+                                <option value="create_template"><?php esc_html_e('Create Template', 'sip-printify-manager'); ?></option>
+                                <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>                                    
+                                <option value="reload"><?php esc_html_e('Reload', 'sip-printify-manager'); ?></option>
+                            </select>
+                            <input type="submit" name="execute_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" />
+                        </form>
                     </div>
                     <div id="product-table-list" class="product-table-list">
                         <?php if (!empty($products)) : ?>
@@ -125,7 +123,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                                     <td><input type="checkbox" name="selected_products[]" value="<?php echo esc_attr($product['id']); ?>" /></td>
                                                     <td>
                                                         <a href="<?php echo esc_url($thumbnail_src); ?>" target="_blank">
-                                                            <img src="<?php echo esc_url($thumbnail_src); ?>" alt="<?php echo esc_html($product['title']); ?>">
+                                                            <img src="<?php echo esc_url($thumbnail_src); ?>" alt="<?php esc_html_e($product['title']); ?>">
                                                         </a>
                                                     </td>
                                                     <td><?php echo esc_html($product['title']); ?></td>
@@ -287,10 +285,10 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                                         </a>
                                                     </td>
                                                     <td><?php echo $filename; ?></td>
-                                                    <td> <?php echo esc_html($location); ?></td>
-                                                    <td> <?php echo $upload_time; ?></td>
-                                                    <td> <?php echo $dimensions; ?></td>
-                                                    <td> <?php echo $size; ?></td>
+                                                    <td><?php echo esc_html($location); ?></td>
+                                                    <td><?php echo $upload_time; ?></td>
+                                                    <td><?php echo $dimensions; ?></td>
+                                                    <td><?php echo $size; ?></td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
@@ -298,12 +296,15 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                 </div> <!-- End of image-table-body -->
                             </div> <!-- End of image-table-container -->
                         <?php else : ?>
-                            <p><?php esc_html_e('No images found.', 'sip-printify-manager'); ?></p>
+                            <div id="no-images-found" style="padding: 10px;">
+                                <p><?php esc_html_e('No images found.', 'sip-printify-manager'); ?></p>
+                                <button type="button" id="reload-images-button" class="button button-primary"><?php esc_html_e('Reload Shop Images', 'sip-printify-manager'); ?></button>
+                            </div>
                         <?php endif; ?>
                     </div> <!-- End of image-list -->
+
                 </div> <!-- End of image-section -->
             </div> <!-- End of right-column -->
-
 
         </div> <!-- End of products-templates-image-container -->
 
@@ -311,9 +312,6 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         <h2><?php esc_html_e('Shop could not be loaded. Please try re-authorizing.', 'sip-printify-manager'); ?></h2>
     <?php endif; ?>
 </div> <!-- End of shop-container -->
-
-
-
 
 <!-- The Template Editor Modal -->
 <div id="template-editor-overlay" class="template-editor-overlay">
@@ -348,7 +346,6 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         </div>
     </div>
 </div>
-
 
 <!-- Product Creation Table Section -->
 <div id="product-creation-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>
@@ -389,4 +386,3 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         </div>
     </section>
 </div>
-
