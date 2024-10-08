@@ -4,6 +4,32 @@
     display: none !important; /* Forces hiding of notices */
 }
 
+/*//////////////////////////////SORTABLE TABLE STYLES///////////////////////////////////*/
+.sortable {
+    cursor: pointer;
+    position: relative;
+    padding-right: 18px;
+}
+
+.sortable svg {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    color: #fff; /* Set the default color to white */
+}
+
+.sortable.current-sort svg {
+    color: #fff; /* Ensure primary sort is white */
+}
+
+.sortable.secondary-sort svg {
+    opacity: 0.4; /* 40% opacity for secondary sort */
+}
+
+/*///////////////////////////////TOAST STYLES///////////////////////////////////////*/
 #toast-container {
     position: fixed;
     top: 35%;

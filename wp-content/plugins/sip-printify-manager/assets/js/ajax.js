@@ -185,6 +185,10 @@ sip.ajaxModule = (function($) {
                             // Update the image list if available
                             if (response.data.image_list_html) {
                                 $('#image-table-list').html(response.data.image_list_html).show();
+                                // Reinitialize sorting functionality
+                                if (typeof sip.eventHandlers.initImageSorting === 'function') {
+                                    sip.eventHandlers.initImageSorting();
+                                }
                             }
                             // Uncheck all selected images
                             $('input[name="selected_images[]"]').prop('checked', false);
@@ -197,6 +201,10 @@ sip.ajaxModule = (function($) {
                             // Images uploaded successfully
                             if (response.data.image_list_html) {
                                 $('#image-table-list').html(response.data.image_list_html).show();
+                                // Reinitialize sorting functionality
+                                if (typeof sip.eventHandlers.initImageSorting === 'function') {
+                                    sip.eventHandlers.initImageSorting();
+                                }
                             }
                             // Clear the file input
                             $('#image-file-input').val('');

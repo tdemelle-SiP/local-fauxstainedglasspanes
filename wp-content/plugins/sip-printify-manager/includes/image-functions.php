@@ -30,9 +30,7 @@ function sip_handle_image_action() {
     $message = isset($result['message']) ? $result['message'] : '';
 
     // Generate the updated image list HTML
-    ob_start();
-    sip_display_image_list($images);
-    $image_list_html = ob_get_clean();
+    $image_list_html = sip_display_image_list($existing_images);
 
     // Send the response back to the AJAX call
     wp_send_json_success(array(
@@ -265,92 +263,89 @@ function fetch_images($token) {
 }
 
 /**
- * Display the Image List in the Admin Interface
+ * Generate the Image List HTML for the Admin Interface
  *
  * @param array $images The array of images to display.
+ * @return string The HTML for the image list.
  */
 function sip_display_image_list($images) {
     if (empty($images)) {
-        echo '<div id="no-images-found" style="padding: 10px;">';
-        echo '<p>' . esc_html__('No images loaded.', 'sip-printify-manager') . '</p>';
-        echo '<button type="button" id="reload-images-button" class="button button-primary">' . esc_html__('Reload Shop Images', 'sip-printify-manager') . '</button>';
-        echo '</div>';
-        return;
+        return '<div id="no-images-found" style="padding: 10px;">
+            <p>' . esc_html__('No images loaded.', 'sip-printify-manager') . '</p>
+            <button type="button" id="reload-images-button" class="button button-primary">' . esc_html__('Reload Shop Images', 'sip-printify-manager') . '</button>
+        </div>';
     }
     
-    echo '<div id="image-table-container">';
-    echo '<table id="image-table-header">';
+    $html = '<div id="image-table-container">';
+    $html .= '<table id="image-table-header">';
 
     // Define column widths to prevent horizontal scrollbar
-    echo '<colgroup>';
-    echo '<col style="width: 4%;">';   // Select checkbox
-    echo '<col style="width: 8%;">';   // Thumbnail
-    echo '<col style="width: 42%;">';  // Filename
-    echo '<col style="width: 15%;">';  // Location
-    echo '<col style="width: 15%;">';  // Uploaded
-    echo '<col style="width: 10%;">';  // Dimensions
-    echo '<col style="width: 10%;">';  // Size
-    echo '</colgroup>';
+    $html .= '<colgroup>
+        <col style="width: 4%;">
+        <col style="width: 8%;">
+        <col style="width: 42%;">
+        <col style="width: 15%;">
+        <col style="width: 15%;">
+        <col style="width: 10%;">
+        <col style="width: 10%;">
+    </colgroup>';
 
     // Table Header
-    echo '<thead>';
-    echo '<tr>';
-    // Select all checkbox in header
-    echo '<th><input type="checkbox" id="select-all-images"></th>';
-    echo '<th>Thumb</th>';
-    echo '<th>Filename</th>';
-    echo '<th>Location</th>';
-    echo '<th>Uploaded</th>';
-    echo '<th>Dimensions</th>';
-    echo '<th>Size</th>';
-    echo '</tr>';
-    echo '</thead>';
-    echo '</table>';
+    $html .= '<thead>
+        <tr>
+            <th><input type="checkbox" id="select-all-images"></th>
+            <th>Thumb</th>
+            <th class="sortable" data-sort="file_name">Filename ' . sip_get_sort_icon('outline-down') . '</th>
+            <th class="sortable" data-sort="location">Location ' . sip_get_sort_icon('outline-down') . '</th>
+            <th class="sortable current-sort desc" data-sort="upload_time">Uploaded ' . sip_get_sort_icon('solid-down') . '</th>
+            <th class="sortable" data-sort="dimensions">Dimensions ' . sip_get_sort_icon('outline-down') . '</th>
+            <th class="sortable" data-sort="size">Size ' . sip_get_sort_icon('outline-down') . '</th>
+        </tr>
+    </thead>';
+    $html .= '</table>';
 
-    echo '<div id="image-table-body">';
-    echo '<table id="image-table-content">';
-    echo '<colgroup>';
-    echo '<col style="width: 4%;">';   // Select checkbox
-    echo '<col style="width: 8%;">';   // Thumbnail
-    echo '<col style="width: 42%;">';  // Filename
-    echo '<col style="width: 15%;">';  // Location
-    echo '<col style="width: 15%;">';  // Uploaded
-    echo '<col style="width: 10%;">';  // Dimensions
-    echo '<col style="width: 10%;">';  // Size
-    echo '</colgroup>';
+    $html .= '<div id="image-table-body">';
+    $html .= '<table id="image-table-content">';
+    $html .= '<colgroup>
+        <col style="width: 4%;">
+        <col style="width: 8%;">
+        <col style="width: 42%;">
+        <col style="width: 15%;">
+        <col style="width: 15%;">
+        <col style="width: 10%;">
+        <col style="width: 10%;">
+    </colgroup>';
+    
     // Table Body
-    echo '<tbody>';
+    $html .= '<tbody>';
     foreach ($images as $image) {
-        // Ensure 'location' key exists
         $location = isset($image['location']) ? $image['location'] : 'Unknown';
-        // Format upload time as "24_09_02 1:25pm"
         $upload_time = isset($image['upload_time']) ? date('y_m_d g:ia', strtotime($image['upload_time'])) : '';
         $dimensions = isset($image['width']) && isset($image['height']) ? esc_html($image['width']) . 'x' . esc_html($image['height']) : '';
         $size = isset($image['size']) ? esc_html(format_file_size($image['size'])) : '';
-
-        // Use full filename without truncation
         $filename = esc_html($image['file_name']);
 
-        echo '<tr title="' . esc_attr($filename) . '">';
-        echo '<td><input type="checkbox" name="selected_images[]" value="' . esc_attr($image['id']) . '" /></td>';
-        // Link the thumbnail to the preview image with cursor pointer
-        echo '<td>
+        $html .= '<tr title="' . esc_attr($filename) . '">
+            <td><input type="checkbox" name="selected_images[]" value="' . esc_attr($image['id']) . '" /></td>
+            <td>
                 <a href="' . esc_url($image['preview_url']) . '" target="_blank">
                     <img src="' . esc_url($image['preview_url']) . '" alt="' . esc_attr($filename) . '">
                 </a>
-              </td>';
-        echo '<td>' . $filename . '</td>';
-        echo '<td>' . esc_html($location) . '</td>';
-        echo '<td>' . $upload_time . '</td>';
-        echo '<td>' . $dimensions . '</td>';
-        echo '<td>' . $size . '</td>';
-        echo '</tr>';
+            </td>
+            <td>' . $filename . '</td>
+            <td>' . esc_html($location) . '</td>
+            <td>' . $upload_time . '</td>
+            <td>' . $dimensions . '</td>
+            <td>' . $size . '</td>
+        </tr>';
     }
-    echo '</tbody>';
+    $html .= '</tbody>';
 
-    echo '</table>';
-    echo '</div>';
-    echo '</div>';
+    $html .= '</table>';
+    $html .= '</div>';
+    $html .= '</div>';
+
+    return $html;
 }
 
 /**
@@ -454,9 +449,7 @@ function sip_handle_image_upload() {
     }
 
     // Re-display the image list
-    ob_start();
-    sip_display_image_list($existing_images);
-    $image_list_html = ob_get_clean();
+    $image_list_html = sip_display_image_list($existing_images);
 
     wp_send_json_success(array('message' => $message, 'image_list_html' => $image_list_html));
 }

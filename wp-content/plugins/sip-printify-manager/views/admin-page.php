@@ -233,79 +233,28 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                         </div> <!-- End of image-header-right -->
                     </div> <!-- End of image-header -->
                     <div id="image-table-list">
-                        <?php if (!empty($images)) : ?>
-                            <div id="image-table-container">
-                                <table id="image-table-header">
-                                    <colgroup>
-                                        <col style="width: 4%;"> <!-- Select checkbox -->
-                                        <col style="width: 8%;"> <!-- Thumbnail -->
-                                        <col style="width: 42%;"> <!-- Filename -->
-                                        <col style="width: 15%;"> <!-- Location -->
-                                        <col style="width: 15%;"> <!-- Uploaded -->
-                                        <col style="width: 10%;"> <!-- Dimensions -->
-                                        <col style="width: 10%;"> <!-- Size -->
-                                    </colgroup>
-                                    <thead>
-                                        <tr>
-                                            <th><input type="checkbox" id="select-all-images"></th>
-                                            <th>Thumb</th>
-                                            <th>Filename</th>
-                                            <th>Location</th>
-                                            <th>Uploaded</th>
-                                            <th>Dimensions</th>
-                                            <th>Size</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                                <div id="image-table-body">
-                                    <table id="image-table-content">
-                                        <colgroup>
-                                            <col style="width: 4%;"> <!-- Select checkbox -->
-                                            <col style="width: 8%;"> <!-- Thumbnail -->
-                                            <col style="width: 42%;"> <!-- Filename -->
-                                            <col style="width: 15%;"> <!-- Location -->
-                                            <col style="width: 15%;"> <!-- Uploaded -->
-                                            <col style="width: 10%;"> <!-- Dimensions -->
-                                            <col style="width: 10%;"> <!-- Size -->
-                                        </colgroup>
-                                        <tbody>
-                                            <?php foreach ($images as $image) : ?>
-                                                <?php
-                                                    $location = isset($image['location']) ? $image['location'] : 'Unknown';
-                                                    $upload_time = isset($image['upload_time']) ? date('y_m_d g:ia', strtotime($image['upload_time'])) : '';
-                                                    $dimensions = isset($image['width']) && isset($image['height']) ? esc_html($image['width']) . 'x' . esc_html($image['height']) : '';
-                                                    $size = isset($image['size']) ? esc_html(format_file_size($image['size'])) : '';
-                                                    $filename = esc_html($image['file_name']);
-                                                ?>
-                                                <tr title="<?php echo esc_attr($filename); ?>">
-                                                    <td><input type="checkbox" name="selected_images[]" value="<?php echo esc_attr($image['id']); ?>" /></td>
-                                                    <td>
-                                                        <a href="<?php echo esc_url($image['preview_url']); ?>" target="_blank">
-                                                            <img src="<?php echo esc_url($image['preview_url']); ?>" alt="<?php echo esc_attr($filename); ?>">
-                                                        </a>
-                                                    </td>
-                                                    <td><?php echo $filename; ?></td>
-                                                    <td><?php echo esc_html($location); ?></td>
-                                                    <td><?php echo $upload_time; ?></td>
-                                                    <td><?php echo $dimensions; ?></td>
-                                                    <td><?php echo $size; ?></td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div> <!-- End of image-table-body -->
-                            </div> <!-- End of image-table-container -->
-                        <?php else : ?>
-                            <form id="reload-shop-images-form" method="post">
-                                <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
-                                <input type="hidden" name="action" value="sip_handle_ajax_request">
-                                <input type="hidden" name="action_type" value="image_action">
-                                <input type="hidden" name="image_action" value="reload_shop_images">
-                                <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('sip_printify_manager_nonce'); ?>">
-                                <button type="button" id="reload-images-button" class="button button-primary"><?php esc_html_e('Reload Shop Images', 'sip-printify-manager'); ?></button>
-                            </form>
-                        <?php endif; ?>
-                    </div> <!-- End of image-list -->
+                        <?php 
+                        if (!empty($images)) {
+                            echo sip_display_image_list($images);
+                        } else {
+                            ?>
+                            <div id="no-images-found" style="padding: 10px;">
+                                <p><?php esc_html_e('No images loaded.', 'sip-printify-manager'); ?></p>
+                                <form id="reload-shop-images-form" method="post">
+                                    <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+                                    <input type="hidden" name="action" value="sip_handle_ajax_request">
+                                    <input type="hidden" name="action_type" value="image_action">
+                                    <input type="hidden" name="image_action" value="reload_shop_images">
+                                    <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('sip_printify_manager_nonce'); ?>">
+                                    <button type="button" id="reload-images-button" class="button button-primary">
+                                        <?php esc_html_e('Reload Shop Images', 'sip-printify-manager'); ?>
+                                    </button>
+                                </form>
+                            </div>
+                            <?php
+                        }
+                        ?>
+                    </div> <!-- End of image-table-list -->
 
                 </div> <!-- End of image-section -->
             </div> <!-- End of right-column -->

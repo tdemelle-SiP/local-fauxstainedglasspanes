@@ -102,6 +102,10 @@ sip.imageUpload = (function($) {
                 success: function(response) {
                     if (response.success) {
                         $('#image-table-list').html(response.data.image_list_html);
+                        // Reinitialize sorting functionality
+                        if (typeof sip.eventHandlers.initImageSorting === 'function') {
+                            sip.eventHandlers.initImageSorting();
+                        }
                         if (originalFileCount > maxUploads && sip.eventHandlers && typeof sip.eventHandlers.showToast === 'function') {
                             sip.eventHandlers.showToast(`${maxUploads} out of ${originalFileCount} images were uploaded successfully.`, 5000);
                         }
@@ -157,6 +161,10 @@ sip.imageUpload = (function($) {
                 success: function(response) {
                     if (response.success) {
                         $('#image-table-list').html(response.data.image_list_html);
+                        // Reinitialize sorting functionality
+                        if (typeof sip.eventHandlers.initImageSorting === 'function') {
+                            sip.eventHandlers.initImageSorting();
+                        }                        
                         attachReloadImagesEvent();  // Reattach event listener after refresh
                     } else {
                         console.error('Failed to reload images:', response.data.message);
@@ -201,6 +209,10 @@ sip.imageUpload = (function($) {
                 success: function(response) {
                     if (response.success) {
                         $('#image-table-list').html(response.data.image_list_html);
+                        // Reinitialize sorting functionality
+                        if (typeof sip.eventHandlers.initImageSorting === 'function') {
+                            sip.eventHandlers.initImageSorting();
+                        }                        
                         attachReloadImagesEvent();
                     } else {
                         console.error('Action failed:', response.data.message);
