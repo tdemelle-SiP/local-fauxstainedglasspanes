@@ -109,46 +109,97 @@ sip.imageUpload = (function($) {
             });
         }
 
-        // Handle the Reload Shop Images button click event.
-        $('#reload-images-button').on('click', function (e) {
-            e.preventDefault(); // Prevent default action
-            
-            // Show spinner while processing
+        function attachReloadImagesEvent() {
+            $(document).on('click', '#reload-images-button', function(e) {
+                e.preventDefault();
+                reloadShopImages();
+            });
+        }
+
+        function reloadShopImages() {
+            // Show spinner overlay
             $('#spinner-overlay').show();
-            
-            // Prepare the data payload as expected by the backend
-            var formData = {
-                sip_printify_manager_nonce_field: sipAjax.nonce,  // Including the nonce
-                action: 'sip_handle_ajax_request',                // General action handler
-                action_type: 'image_action',                      // Specific action type
-                image_action: 'reload_shop_images',               // Actual image action
-                nonce: sipAjax.nonce                              // Nonce for verification
-            };
+
+            var formData;
+            if ($('#reload-shop-images-form').length) {
+                formData = new FormData($('#reload-shop-images-form')[0]);
+            } else {
+                formData = new FormData();
+                formData.append('action', 'sip_handle_ajax_request');
+                formData.append('action_type', 'image_action');
+                formData.append('image_action', 'reload_shop_images');
+                formData.append('nonce', sipAjax.nonce);
+            }
 
             $.ajax({
                 url: sipAjax.ajax_url,
                 type: 'POST',
                 data: formData,
-                success: function (response) {
+                processData: false,
+                contentType: false,
+                success: function(response) {
                     if (response.success) {
-                        // Replace the current image list with the updated HTML
                         $('#image-table-list').html(response.data.image_list_html);
-                        
-                        // Optional: Add a message to indicate success
-                        alert(response.data.message);
+                        attachReloadImagesEvent();  // Reattach event listener after refresh
                     } else {
-                        alert('Failed to reload images. Please try again.');
+                        console.error('Failed to reload images:', response.data.message);
                     }
                 },
-                error: function () {
-                    alert('An error occurred while reloading the images.');
+                error: function() {
+                    console.error('An error occurred while reloading the images.');
                 },
-                complete: function () {
-                    // Hide spinner after processing
+                complete: function() {
+                    // Hide spinner overlay after processing
+                    $('#spinner-overlay').hide();
+                }
+            });
+
+        }
+    
+        // Attach event to remove selected images button
+        $('.image-action-form').on('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            var action = $('#image_action').val();
+
+            // Ensure we're adding selected images to the formData
+            $('input[name="selected_images[]"]:checked').each(function() {
+                formData.append('selected_images[]', $(this).val());
+            });
+            formData.append('action', 'sip_handle_ajax_request');
+            formData.append('action_type', 'image_action');
+            formData.append('image_action', action);
+            formData.append('nonce', sipAjax.nonce);
+
+
+            // Show spinner while processing
+            $('#spinner-overlay').show();
+
+            $.ajax({
+                url: sipAjax.ajax_url,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,                
+                success: function(response) {
+                    if (response.success) {
+                        $('#image-table-list').html(response.data.image_list_html);
+                        attachReloadImagesEvent();
+                    } else {
+                        console.error('Action failed:', response.data.message);
+                    }
+                },
+                error: function() {
+                    console.error('An error occurred while processing the action.');
+                },
+                complete: function() {
+                    // Hide spinner overlay after processing
                     $('#spinner-overlay').hide();
                 }
             });
         });
+        // Attach the event listener initially
+        attachReloadImagesEvent();
     }
 
     // Expose the init function

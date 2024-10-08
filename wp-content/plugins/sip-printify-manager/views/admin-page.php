@@ -296,10 +296,14 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                                 </div> <!-- End of image-table-body -->
                             </div> <!-- End of image-table-container -->
                         <?php else : ?>
-                            <div id="no-images-found" style="padding: 10px;">
-                                <p><?php esc_html_e('No images found.', 'sip-printify-manager'); ?></p>
+                            <form id="reload-shop-images-form" method="post">
+                                <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+                                <input type="hidden" name="action" value="sip_handle_ajax_request">
+                                <input type="hidden" name="action_type" value="image_action">
+                                <input type="hidden" name="image_action" value="reload_shop_images">
+                                <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('sip_printify_manager_nonce'); ?>">
                                 <button type="button" id="reload-images-button" class="button button-primary"><?php esc_html_e('Reload Shop Images', 'sip-printify-manager'); ?></button>
-                            </div>
+                            </form>
                         <?php endif; ?>
                     </div> <!-- End of image-list -->
 

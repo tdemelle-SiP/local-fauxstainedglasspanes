@@ -174,7 +174,14 @@ The purpose of a template is to represent the data necessary to use the Printify
         │   ├── css/
         │   │   └── sip-printify-manager.css
         │   └── js/
-        │       └── sip-ajax.js
+        │       ├── ajax.js
+        │       ├── eventHandler.js   
+        │       ├── imageUpload.js
+        │       ├── main.js
+        │       ├── productCreation.js
+        │       ├── spinner.js
+        │       ├── templateEditor.js
+        │       └── utilities.js
         ├── includes/
         │   ├── creation-functions.php     
         │   ├── image-functions.php     

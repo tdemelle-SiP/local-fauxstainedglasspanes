@@ -20,6 +20,10 @@ function sip_handle_image_action() {
     $image_action = sanitize_text_field($_POST['image_action']);
     $selected_images = isset($_POST['selected_images']) ? $_POST['selected_images'] : array();
 
+    // Log the received data for debugging
+    error_log('Action: ' . $image_action);
+    error_log('Selected images: ' . print_r($selected_images, true));
+
     // Execute action based on user selection
     $result = sip_execute_image_action($image_action, $selected_images);
     $images = $result['images'];
@@ -31,7 +35,10 @@ function sip_handle_image_action() {
     $image_list_html = ob_get_clean();
 
     // Send the response back to the AJAX call
-    wp_send_json_success(array('image_list_html' => $image_list_html, 'message' => $message));
+    wp_send_json_success(array(
+        'image_list_html' => $image_list_html,
+        'message' => $message
+    ));
 }
 
 /**
@@ -71,19 +78,34 @@ function sip_execute_image_action($action, $selected_images = array()) {
             // Update the images option with the merged array
             update_option('sip_printify_images', $images);
 
-            return array('images' => $images, 'message' => 'Shop images reloaded successfully.');
+            return array(
+                'images' => $images, 
+                'message' => 'Shop images reloaded successfully.'
+            );
         } else {
             return array('images' => $images, 'message' => 'Failed to reload shop images.');
         }
     }
 
     if ($action === 'remove_from_manager') {
+
+        if (empty($selected_images)) {
+            return array(
+                'images' => $images,
+                'message' => 'No images selected for removal.'
+            );
+        }
+
         // Remove selected images from the manager (local database)
         $images = array_filter($images, function($image) use ($selected_images) {
             return !in_array($image['id'], $selected_images);
         });
         update_option('sip_printify_images', $images);
-        return array('images' => $images, 'message' => 'Selected images removed from manager.');
+        
+        return array(
+            'images' => $images, 
+            'message' => 'Selected images removed from manager.'
+        );
     }
 
     if ($action === 'upload_to_shop') {
@@ -129,7 +151,10 @@ function sip_execute_image_action($action, $selected_images = array()) {
             $message .= 'Errors: ' . implode(' ', $errors);
         }
     
-        return array('images' => $images, 'message' => $message);
+        return array(
+            'images' => $images,
+            'message' => 'No action performed.'
+        );
     }
 
     if ($action === 'archive_shop_image') {
@@ -247,20 +272,14 @@ function fetch_images($token) {
 function sip_display_image_list($images) {
     if (empty($images)) {
         echo '<div id="no-images-found" style="padding: 10px;">';
-        echo '<p>' . esc_html__('No images found.', 'sip-printify-manager') . '</p>';
-        echo '<form id="reload-shop-images-form" method="post">';
-        echo wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field', true, false); // Adds the nonce field
-        echo '<input type="hidden" name="image_action" value="reload_shop_images">';
-        echo '<input type="hidden" name="action" value="sip_handle_ajax_request">';
-        echo '<input type="hidden" name="action_type" value="image_action">';
+        echo '<p>' . esc_html__('No images loaded.', 'sip-printify-manager') . '</p>';
         echo '<button type="button" id="reload-images-button" class="button button-primary">' . esc_html__('Reload Shop Images', 'sip-printify-manager') . '</button>';
-        echo '</form>';
         echo '</div>';
         return;
     }
     
-    echo '<div style="overflow-y: auto;">';
-    echo '<table style="width: 100%; border-collapse: collapse; table-layout: fixed;">';
+    echo '<div id="image-table-container">';
+    echo '<table id="image-table-header">';
 
     // Define column widths to prevent horizontal scrollbar
     echo '<colgroup>';
@@ -277,16 +296,28 @@ function sip_display_image_list($images) {
     echo '<thead>';
     echo '<tr>';
     // Select all checkbox in header
-    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-images"></th>';
-    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Thumb</th>';
-    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: left; padding: 2px;">Filename</th>';
-    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Location</th>';
-    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Uploaded</th>';
-    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Dimensions</th>';
-    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Size</th>';
+    echo '<th><input type="checkbox" id="select-all-images"></th>';
+    echo '<th>Thumb</th>';
+    echo '<th>Filename</th>';
+    echo '<th>Location</th>';
+    echo '<th>Uploaded</th>';
+    echo '<th>Dimensions</th>';
+    echo '<th>Size</th>';
     echo '</tr>';
     echo '</thead>';
+    echo '</table>';
 
+    echo '<div id="image-table-body">';
+    echo '<table id="image-table-content">';
+    echo '<colgroup>';
+    echo '<col style="width: 4%;">';   // Select checkbox
+    echo '<col style="width: 8%;">';   // Thumbnail
+    echo '<col style="width: 42%;">';  // Filename
+    echo '<col style="width: 15%;">';  // Location
+    echo '<col style="width: 15%;">';  // Uploaded
+    echo '<col style="width: 10%;">';  // Dimensions
+    echo '<col style="width: 10%;">';  // Size
+    echo '</colgroup>';
     // Table Body
     echo '<tbody>';
     foreach ($images as $image) {
@@ -301,23 +332,24 @@ function sip_display_image_list($images) {
         $filename = esc_html($image['file_name']);
 
         echo '<tr title="' . esc_attr($filename) . '">';
-        echo '<td style="text-align: center; padding: 2px;"><input type="checkbox" name="selected_images[]" value="' . esc_attr($image['id']) . '" /></td>';
+        echo '<td><input type="checkbox" name="selected_images[]" value="' . esc_attr($image['id']) . '" /></td>';
         // Link the thumbnail to the preview image with cursor pointer
-        echo '<td style="text-align: center; padding: 2px;">
+        echo '<td>
                 <a href="' . esc_url($image['preview_url']) . '" target="_blank">
-                    <img src="' . esc_url($image['preview_url']) . '" alt="' . esc_attr($filename) . '" style="width: 32px; height: auto; cursor: pointer;">
+                    <img src="' . esc_url($image['preview_url']) . '" alt="' . esc_attr($filename) . '">
                 </a>
               </td>';
-        echo '<td style="text-align: left; padding: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' . $filename . '</td>';
-        echo '<td style="text-align: center; padding: 2px;">' . esc_html($location) . '</td>';
-        echo '<td style="text-align: center; padding: 2px;">' . $upload_time . '</td>';
-        echo '<td style="text-align: center; padding: 2px;">' . $dimensions . '</td>';
-        echo '<td style="text-align: center; padding: 2px;">' . $size . '</td>';
+        echo '<td>' . $filename . '</td>';
+        echo '<td>' . esc_html($location) . '</td>';
+        echo '<td>' . $upload_time . '</td>';
+        echo '<td>' . $dimensions . '</td>';
+        echo '<td>' . $size . '</td>';
         echo '</tr>';
     }
     echo '</tbody>';
 
     echo '</table>';
+    echo '</div>';
     echo '</div>';
 }
 
