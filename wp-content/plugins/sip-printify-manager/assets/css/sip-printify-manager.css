@@ -135,7 +135,7 @@ a, a:hover, a:focus, a:active, a:visited {
 
 .wp-core-ui .button, .wp-core-ui .button-secondary {
     font-size: 14px !important;
-    height: 30px !important;
+    height: 30px;
     line-height: 10px !important;
     min-height: 18px !important;
     margin: 5px;
@@ -191,6 +191,7 @@ a, a:hover, a:focus, a:active, a:visited {
 #left-column {
     display: flex; /* Aligns child elements vertically */
     flex-direction: column; /* Stacks child elements vertically */
+    justify-content: space-between; /* Distributes space between elements */
     height: 100%; /* Fills the height of the parent container */
     max-height: 100%;
     width: 30%; /* Sets the width of the column */
@@ -211,11 +212,9 @@ a, a:hover, a:focus, a:active, a:visited {
 #products-section,
 #template-section,
 #image-section {
-    margin-bottom: 10px; /* Adds space below each section */
     display: flex; /* Aligns child elements vertically */
     flex-direction: column; /* Stacks child elements vertically */
-    height: 50%; /* Limits the height of the products section */
-    max-height: 50%;
+    height: 245px; /* Limits the height of the products section */
     border: 2px solid #646464; /* Adds a light gray border around the sections */
     padding: 10px 10px 0px 10px; /* Adds padding inside the sections */
     box-sizing: border-box; 
@@ -287,8 +286,8 @@ a, a:hover, a:focus, a:active, a:visited {
 #image-search,
 #product-search,
 #template-search {
-    flex: 0 0 120px; /* Fixed width of 150px */
-    margin-left: auto; /* Center the search field in the remaining space */
+    flex: 0 0 130px; /* Fixed width */
+    width: 130px;
     position: relative;
     margin: auto 5px auto 10px;
 }
@@ -422,7 +421,7 @@ box-sizing: border-box;
 
 .products-templates-image-container h2,
 #image-header-left h2 {
-    margin: 0px;
+    margin: -10px 0px 0px 0px;
     padding: 0px;
     font-size: 26px;
     font-weight: 700;
@@ -477,14 +476,25 @@ table tbody tr:nth-child(even) {
 
 /* Styling for the Image Upload Area */
 .image-upload-area {
+    display: flex; /* Aligns child elements horizontally */
+    flex-direction: column; /* Stacks child elements vertically */
     border: 2px dashed #848484; /* Adds a dashed border around the upload area */
     text-align: center; /* Centers text within the upload area */
+    align-items: center;
     margin-top: -10px;
     background-color: white;
+    height: 70px;
 }
 
 .image-upload-area p {
-    margin: 3px 0 0 0; /* Adds space above and below the text */
+    margin:  0 0 3px 0; /* Adds space above and below the text */
+    height: 15px;
+}
+
+#select-images-button {
+    margin: 3px 0 0 0; /* Adds space above the button */
+    height: 26px;
+
 }
 
 /*//////////////////////////////////////////////////////////////////////////////////////*/
