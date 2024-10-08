@@ -234,20 +234,25 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
     <!-- Product Creation Header and Main Controls -->
     <section id="product-creation-table" class="sip-section">
     <hr class="divider">
-    <h2 class="creation-table-title"><?php esc_html_e('Product Creation Table', 'sip-printify-manager'); ?></h2>
-
         <!-- Product Table Header -->
         <div id="creation-header" class="creation-header">
-            <div class="template-name">
-                <h3><?php esc_html_e('Template:', 'sip-printify-manager'); ?> <span id="selected-template-name"></span></h3>
-            </div>
             <div class="header-buttons">
-                <button id="edit-json" class="button"><?php esc_html_e('Edit JSON', 'sip-printify-manager'); ?></button>
-                <button id="save-template" class="button"><?php esc_html_e('Save', 'sip-printify-manager'); ?></button>
                 <button id="close-template" class="button"><?php esc_html_e('Close', 'sip-printify-manager'); ?></button>
+                <button id="save-template" class="button"><?php esc_html_e('Save', 'sip-printify-manager'); ?></button>
+                <button id="edit-json" class="button"><?php esc_html_e('Edit JSON', 'sip-printify-manager'); ?></button>
+
+            </div>
+            <div class="creation-header-titles">
+                <h2 class="creation-table-title"><?php esc_html_e('Product Creation Table', 'sip-printify-manager'); ?></h2>
+                <h3><span id="selected-template-name"></span></h3>
+            </div>
+            <div class="import-export">
+                <button id="import-csv" class="button">Import CSV</button>
+                <button id="export-csv" class="button">Export CSV</button>
+                <button id="create-product-button" class="button button-primary">Create Product</button>
             </div>
         </div>
-
+        <hr class="divider">
         <!-- Dynamic Product Table -->
         <table id="creation-table" class="wp-list-table widefat fixed striped">
             <!-- Table headers and rows will be populated dynamically -->
@@ -258,12 +263,5 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
             <!-- Rows will be inserted here by JavaScript -->
             </tbody>
         </table>
-        <div class="footer-controls">
-            <div class="import-export">
-                <button id="import-csv" class="button">Import CSV</button>
-                <button id="export-csv" class="button">Export CSV</button>
-            </div>
-            <button id="create-product-button" class="button button-primary">Create Product</button>
-        </div>
     </section>
 </div>

@@ -281,13 +281,14 @@ function sip_display_image_list($images) {
 
     // Define column widths to prevent horizontal scrollbar
     $html .= '<colgroup>
-        <col style="width: 4%;">
-        <col style="width: 8%;">
-        <col style="width: 42%;">
-        <col style="width: 15%;">
-        <col style="width: 15%;">
+        <col style="width: 3%;">
+        <col style="width: 6%;">
+        <col style="width: 41%;">
+        <col style="width: 12%;">
+        <col style="width: 14%;">
+        <col style="width: 14%;">
         <col style="width: 10%;">
-        <col style="width: 10%;">
+        <col style="width: 17px;">
     </colgroup>';
 
     // Table Header
@@ -307,12 +308,12 @@ function sip_display_image_list($images) {
     $html .= '<div id="image-table-body">';
     $html .= '<table id="image-table-content">';
     $html .= '<colgroup>
-        <col style="width: 4%;">
-        <col style="width: 8%;">
-        <col style="width: 42%;">
-        <col style="width: 15%;">
-        <col style="width: 15%;">
-        <col style="width: 10%;">
+        <col style="width: 3%;">
+        <col style="width: 6%;">
+        <col style="width: 41%;">
+        <col style="width: 12%;">
+        <col style="width: 14%;">
+        <col style="width: 14%;">
         <col style="width: 10%;">
     </colgroup>';
     

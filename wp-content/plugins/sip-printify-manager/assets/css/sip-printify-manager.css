@@ -66,18 +66,6 @@ a, a:hover, a:focus, a:active, a:visited {
     border: none; /* Removes the border from the divider */
 }
 
-#product-creation-table > hr {
-    margin-top: 20px;
-}
-
-#creation-header > div.template-name > h3 {
-    text-align: center;
-    flex: 1;
-    font-size: 24px;
-    font-weight: 600;
-    margin: 15px 0;
-}
-
 /* Spinner Overlay Styling */
 #spinner-overlay {
     position: fixed; /* Fixes the overlay in place over the entire screen */
@@ -682,25 +670,52 @@ body.resizing * {
 /*//////////////////////////////////////////////////////////////////////////////////////*/
 /* Product Creation Table Styles */
 
+#product-creation-table > hr {
+    margin-top: 10px;
+}
+
+#creation-header {
+    display: flex;
+    align-items: center; 
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0px 30px -15px 30px;
+}
+
+#creation-header > div.creation-header-titles {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 6px 0px 0px 0px;
+}
+
 .creation-table-title {
     font-size: 36px; /* Sets the font size for the creation table title */
     font-weight: bold; /* Makes the creation table title bold */
-    margin-bottom: 10px; /* Adds space below the creation table title */
     text-align: center; /* Centers the shop name text */
     color: #0273AB; /* Sets the color of the shop name */
     text-transform: uppercase; /* Transforms the shop name to uppercase */
-    margin-top: 15px; /* Adds space above the shop name */
-    margin-bottom: 0px; /* Adds space below the shop name */
+    margin: 0px; /* Adds space below the shop name */
+}
+
+#selected-template-name {
+    text-align: center;
+    flex: 1;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 6px 0 0 0;
 }
 
 #creation-table {
-    width: auto;   
-    margin: 10px 0px 10px 0px;
+    width: 100%;   
+    margin: 0px;
     overflow-x: auto;
 }
 
 #creation-table th {
-    font-size: 12px;
+    font-size: 20px;
     text-align: center;
     background-color: #0273AB;
     color: white;
