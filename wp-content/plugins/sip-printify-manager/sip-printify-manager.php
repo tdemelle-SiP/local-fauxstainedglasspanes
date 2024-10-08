@@ -162,7 +162,25 @@ class SiP_Printify_Manager {
             '1.0.0',
             true
         );
-    
+        
+        // Enqueue sip-event-handlers
+        wp_enqueue_script(
+            'sip-event-handlers',
+            plugin_dir_url(__FILE__) . 'assets/js/eventHandlers.js',
+            array('jquery', 'sip-ajax'),
+            '1.0.0',
+            true
+        );
+
+        // Enqueue sip-image-upload
+        wp_enqueue_script(
+            'sip-image-upload',
+            plugin_dir_url(__FILE__) . 'assets/js/imageUpload.js',
+            array('jquery', 'sip-ajax'),
+            '1.0.0',
+            true
+        );
+
         // Enqueue sip-product-creation
         wp_enqueue_script(
             'sip-product-creation',
@@ -177,24 +195,6 @@ class SiP_Printify_Manager {
             'sip-template-editor',
             plugin_dir_url(__FILE__) . 'assets/js/templateEditor.js',
             array('jquery', 'sip-ajax', 'codemirror'),
-            '1.0.0',
-            true
-        );
-    
-        // Enqueue sip-image-upload
-        wp_enqueue_script(
-            'sip-image-upload',
-            plugin_dir_url(__FILE__) . 'assets/js/imageUpload.js',
-            array('jquery', 'sip-ajax'),
-            '1.0.0',
-            true
-        );
-    
-        // Enqueue sip-event-handlers
-        wp_enqueue_script(
-            'sip-event-handlers',
-            plugin_dir_url(__FILE__) . 'assets/js/eventHandlers.js',
-            array('jquery', 'sip-ajax'),
             '1.0.0',
             true
         );

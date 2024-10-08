@@ -65,9 +65,15 @@ sip.imageUpload = (function($) {
          */
         function handleImageUpload(files) {
             var maxUploads = parseInt(sipAjax.max_file_uploads);
+            var originalFileCount = files.length;
+
             if (files.length > maxUploads) {
-                alert('Number of Simultaneous Uploads is limited to ' + maxUploads + ' by your server settings. This limit can be changed in your php.ini file.');
                 files = Array.from(files).slice(0, maxUploads);
+                if (sip.eventHandlers && typeof sip.eventHandlers.showToast === 'function') {
+                    sip.eventHandlers.showToast(`We are uploading ${maxUploads} images, the maximum simultaneous uploads limit set in your server settings. This limit can be changed in your php.ini file.`, 7000, true); // Wait for spinner
+                } else {
+                    console.warn('Toast function not available');
+                }
             }
 
             var formData = new FormData();
@@ -82,6 +88,9 @@ sip.imageUpload = (function($) {
 
             // Show spinner overlay
             $('#spinner-overlay').show();
+            if (sip.eventHandlers && typeof sip.eventHandlers.setSpinnerVisibility === 'function') {
+                sip.eventHandlers.setSpinnerVisibility(true);
+            }
 
             // Send the AJAX request to upload images
             $.ajax({
@@ -92,19 +101,27 @@ sip.imageUpload = (function($) {
                 contentType: false,
                 success: function(response) {
                     if (response.success) {
-                        // Update the image list with the new HTML
                         $('#image-table-list').html(response.data.image_list_html);
-                        alert(response.data.message);
+                        if (originalFileCount > maxUploads && sip.eventHandlers && typeof sip.eventHandlers.showToast === 'function') {
+                            sip.eventHandlers.showToast(`${maxUploads} out of ${originalFileCount} images were uploaded successfully.`, 5000);
+                        }
                     } else {
-                        alert('Failed to upload images. Please try again.');
+                        if (sip.eventHandlers && typeof sip.eventHandlers.showToast === 'function') {
+                            sip.eventHandlers.showToast('Failed to upload images. Please try again.', 5000);
+                        }
                     }
                 },
                 error: function() {
-                    alert('An error occurred while uploading the images.');
+                    if (sip.eventHandlers && typeof sip.eventHandlers.showToast === 'function') {
+                        sip.eventHandlers.showToast('An error occurred while uploading the images.', 5000);
+                    }
                 },
                 complete: function() {
                     // Hide spinner after processing
                     $('#spinner-overlay').hide();
+                    if (sip.eventHandlers && typeof sip.eventHandlers.setSpinnerVisibility === 'function') {
+                        sip.eventHandlers.setSpinnerVisibility(false);
+                    }
                 }
             });
         }

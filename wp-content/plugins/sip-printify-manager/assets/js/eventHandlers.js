@@ -6,9 +6,19 @@
 var sip = sip || {};
 
 sip.eventHandlers = (function($) {
-    function init() {
-        ///////////////////////////////SELECT ALL AND SEARCH FUNCTIONALITY////////////////////////////////////////
+    var toastQueue = [];
+    var isShowingToast = false;
+    var currentToast = null;
+    var spinnerVisible = false;
 
+
+    function init() {
+
+        // Add toast container to the body
+        $('body').append('<div id="toast-container"></div>');
+
+
+        ///////////////////////////////SELECT ALL AND SEARCH FUNCTIONALITY////////////////////////////////////////
         /**
          * Select All / Deselect All functionality for images.
          * When the select-all checkbox is changed, all individual image checkboxes are set accordingly.
@@ -108,8 +118,55 @@ sip.eventHandlers = (function($) {
         });
     }
 
+    function showToast(message, duration = 3000, waitForSpinner = false) {
+        toastQueue.push({ message, duration, waitForSpinner });
+        if (!isShowingToast) {
+            displayNextToast();
+        }
+    }
+
+    function displayNextToast() {
+        if (toastQueue.length === 0) {
+            isShowingToast = false;
+            currentToast = null;
+            return;
+        }
+
+        isShowingToast = true;
+        var { message, duration, waitForSpinner } = toastQueue.shift();
+        var toast = $('<div class="toast"></div>').text(message);
+        $('#toast-container').append(toast);
+
+        toast.fadeIn(400);
+        currentToast = { element: toast, startTime: Date.now(), duration, waitForSpinner };
+
+        checkToastDuration();
+    }
+
+    function checkToastDuration() {
+        if (!currentToast) return;
+
+        var now = Date.now();
+        var elapsedTime = now - currentToast.startTime;
+
+        if (elapsedTime >= currentToast.duration && (!currentToast.waitForSpinner || !spinnerVisible)) {
+            currentToast.element.fadeOut(400, function() {
+                $(this).remove();
+                displayNextToast();
+            });
+        } else {
+            setTimeout(checkToastDuration, 100);
+        }
+    }
+
+    function setSpinnerVisibility(visible) {
+        spinnerVisible = visible;
+    }
+
     // Expose the init function
     return {
-        init: init
+        init: init,
+        showToast: showToast,
+        setSpinnerVisibility: setSpinnerVisibility        
     };
 })(jQuery);

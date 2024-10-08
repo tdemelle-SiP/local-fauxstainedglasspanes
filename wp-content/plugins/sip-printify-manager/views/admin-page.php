@@ -317,6 +317,9 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
     <?php endif; ?>
 </div> <!-- End of shop-container -->
 
+<!-- The Toast -->
+<div id="toast-container"></div>
+
 <!-- The Template Editor Modal -->
 <div id="template-editor-overlay" class="template-editor-overlay">
     <div id="template-editor-outer-window">
