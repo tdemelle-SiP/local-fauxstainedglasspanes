@@ -47,7 +47,6 @@ require_once plugin_dir_path(__FILE__) . 'includes/product-functions.php';   // 
 require_once plugin_dir_path(__FILE__) . 'includes/image-functions.php';     // Image-related functions
 require_once plugin_dir_path(__FILE__) . 'includes/template-functions.php';  // Template-related functions
 require_once plugin_dir_path(__FILE__) . 'includes/creation-functions.php';
-require_once plugin_dir_path(__FILE__) . 'includes/svg-icons.php';
 require_once plugin_dir_path(__FILE__) . 'includes/icon-functions.php';
 
 /**

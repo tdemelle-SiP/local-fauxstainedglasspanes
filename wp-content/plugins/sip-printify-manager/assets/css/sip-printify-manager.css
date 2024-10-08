@@ -351,12 +351,12 @@ a, a:hover, a:focus, a:active, a:visited {
 
 #template-table-body,
 #product-table-body {
-max-height: 195px; /* Adjust this height as needed for scrolling */
+max-height: 125px; /* Adjust this height as needed for scrolling */
 box-sizing: border-box; 
 }
 
 #image-table-body {
-    max-height: 515px; /* Adjust this height as needed for scrolling */
+    max-height: 375px; /* Adjust this height as needed for scrolling */
     box-sizing: border-box; 
 } 
 
