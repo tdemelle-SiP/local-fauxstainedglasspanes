@@ -26,7 +26,7 @@
 }
 
 .sortable.secondary-sort svg {
-    opacity: 0.4; /* 40% opacity for secondary sort */
+    color: #fff; /* Ensure primary sort is white */
 }
 
 /*///////////////////////////////TOAST STYLES///////////////////////////////////////*/
