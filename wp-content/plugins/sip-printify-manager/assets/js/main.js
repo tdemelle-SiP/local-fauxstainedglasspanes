@@ -27,5 +27,8 @@ jQuery(document).ready(function($) {
     if (sip.eventHandlers && typeof sip.eventHandlers.init === 'function') {
         sip.eventHandlers.init();
     }
+    if (sip.productHandlers && typeof sip.productHandlers.init === 'function') {
+        sip.productHandlers.init();
+    }
     // Any global event listeners can be added here
 });

@@ -92,39 +92,46 @@ function sip_get_template_dir() {
  */
 function sip_display_template_list($templates) {
     if (empty($templates)) {
-        echo '<p>sip_display_template_list says No templates found.</p>';
-    } else {
-        echo '<div style="overflow-y: auto;">'; // Contain the scroll within this div
-        echo '<table>';
-
-        // Define column widths to prevent horizontal scrollbar
-        echo '<colgroup>';
-        echo '<col style="width: 8%;">';   // Select checkbox
-        echo '<col style="width: 92%;">';  // Template Name
-        echo '</colgroup>';
-
-        // Table Header
-        echo '<thead>';
-        echo '<tr>';
-        echo '<th><input type="checkbox" id="select-all-templates"></th>';
-        echo '<th>Template Name</th>';
-        echo '</tr>';
-        echo '</thead>';
-
-        // Table Body
-        echo '<tbody>';
-        foreach ($templates as $template) {
-            echo '<tr>';
-            echo '<td>';
-            echo '<input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '" /></td>';
-            echo '<td>' . esc_html($template) . '</td>';
-            echo '</tr>';
-        }
-        echo '</tbody>';
-
-        echo '</table>';
-        echo '</div>';
+        return '<div id="no-templates-found" style="padding: 10px;">
+            <p>' . esc_html__('To Make A Template, Select a Product above, Choose "Create Template" and Press Execute.', 'sip-printify-manager') . '</p>
+        </div>';
     }
+    
+    $html = '<div id="template-table-container">';
+    $html .= '<table id="template-table-header">';
+    $html .= '<colgroup>
+        <col style="width: 8%;">
+        <col style="width: 92%;">
+    </colgroup>';
+    $html .= '<thead>
+        <tr>
+            <th><input type="checkbox" id="select-all-templates"></th>
+            <th>' . esc_html__('Template Name', 'sip-printify-manager') . '</th>
+        </tr>
+    </thead>';
+    $html .= '</table>';
+
+    $html .= '<div id="template-table-body">';
+    $html .= '<table id="template-table-content">';
+    $html .= '<colgroup>
+        <col style="width: 8%;">
+        <col style="width: 92%;">
+    </colgroup>';
+    
+    $html .= '<tbody>';
+    foreach ($templates as $template) {
+        $html .= '<tr>
+            <td><input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '" /></td>
+            <td>' . esc_html($template) . '</td>
+        </tr>';
+    }
+    $html .= '</tbody>';
+
+    $html .= '</table>';
+    $html .= '</div>';
+    $html .= '</div>';
+
+    return $html;
 }
 
 /**

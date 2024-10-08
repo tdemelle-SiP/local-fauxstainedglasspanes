@@ -96,7 +96,6 @@ class SiP_Printify_Manager {
 
         // Register AJAX handler for image actions
         add_action('wp_ajax_sip_handle_image_action', 'sip_handle_image_action');
-
     }
 
     /**
@@ -168,6 +167,14 @@ class SiP_Printify_Manager {
             'sip-event-handlers',
             plugin_dir_url(__FILE__) . 'assets/js/eventHandlers.js',
             array('jquery', 'sip-ajax'),
+            '1.0.0',
+            true
+        );
+        
+        wp_enqueue_script(
+            'sip-product-handlers',
+            plugin_dir_url(__FILE__) . 'assets/js/product-handlers.js',
+            array('jquery', 'sip-ajax'), // Make sure to include any dependencies
             '1.0.0',
             true
         );

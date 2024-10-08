@@ -93,50 +93,8 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                         </form>
                     </div>
                     <div id="product-table-list" class="product-table-list">
-                        <?php if (!empty($products)) : ?>
-                            <div id="product-table-container">
-                                <table id="product-table-header">
-                                    <colgroup>
-                                        <col style="width: 8%;"> <!-- Select checkbox -->
-                                        <col style="width: 20%;"> <!-- Thumbnail -->
-                                        <col style="width: 72%;"> <!-- Product Name -->
-                                    </colgroup>
-                                    <thead>
-                                        <tr>
-                                            <th><input type="checkbox" id="select-all-products"></th>
-                                            <th>Thumb</th>
-                                            <th>Product Name</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                                <div id="product-table-body">
-                                    <table id="product-table-content">
-                                        <colgroup>
-                                            <col style="width: 8%;"> <!-- Select checkbox -->
-                                            <col style="width: 20%;"> <!-- Thumbnail -->
-                                            <col style="width: 72%;"> <!-- Product Name -->
-                                        </colgroup>
-                                        <tbody>
-                                            <?php foreach ($products as $product) : ?>
-                                                <?php $thumbnail_src = !empty($product['images']) ? $product['images'][0]['src'] : ''; ?>
-                                                <tr>
-                                                    <td><input type="checkbox" name="selected_products[]" value="<?php echo esc_attr($product['id']); ?>" /></td>
-                                                    <td>
-                                                        <a href="<?php echo esc_url($thumbnail_src); ?>" target="_blank">
-                                                            <img src="<?php echo esc_url($thumbnail_src); ?>" alt="<?php esc_html_e($product['title']); ?>">
-                                                        </a>
-                                                    </td>
-                                                    <td><?php echo esc_html($product['title']); ?></td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div> <!-- End of product-table-body -->
-                            </div> <!-- End of product-table-container -->
-                        <?php else : ?>
-                            <p><?php esc_html_e('No products found.', 'sip-printify-manager'); ?></p>
-                        <?php endif; ?>
-                    </div> <!-- End of product-list -->
+                        <?php echo sip_display_product_list($products); ?>
+                    </div>
                 </div> <!-- End of products-section -->
 
                 <!-- Template Section -->
@@ -158,41 +116,8 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                         </form>
                     </div>    
                     <div id="template-table-list" class="template-table-list">
-                        <?php if (!empty($templates)) : ?>
-                            <div id="template-table-container">
-                                <table id="template-table-header">
-                                    <colgroup>
-                                        <col style="width: 8%;"> <!-- Select checkbox -->
-                                        <col style="width: 92%;"> <!-- Template Name -->
-                                    </colgroup>
-                                    <thead>
-                                        <tr>
-                                            <th><input type="checkbox" id="select-all-templates"></th>
-                                            <th><?php esc_html_e('Template Name', 'sip-printify-manager'); ?></th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                                <div id="template-table-body">
-                                    <table id="template-table-content">
-                                        <colgroup>
-                                            <col style="width: 8%;"> <!-- Select checkbox -->
-                                            <col style="width: 92%;"> <!-- Template Name -->
-                                        </colgroup>
-                                        <tbody>
-                                            <?php foreach ($templates as $template) : ?>
-                                                <tr>
-                                                    <td><input type="checkbox" name="selected_templates[]" value="<?php echo esc_attr($template); ?>"></td>
-                                                    <td><?php echo esc_html($template); ?></td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div> <!-- End of template-table-body -->
-                            </div> <!-- End of template-table-container -->
-                        <?php else : ?>
-                            <p><?php esc_html_e('No templates found.', 'sip-printify-manager'); ?></p>
-                        <?php endif; ?>
-                    </div> <!-- End of template-list -->
+                        <?php echo sip_display_template_list($templates); ?>
+                    </div>
                 </div> <!-- End of template-section -->
             </div> <!-- End of templates-products-column -->
 

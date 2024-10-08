@@ -93,53 +93,56 @@ function save_products_to_json($products) {
  */
 function sip_display_product_list($products) {
     if (empty($products)) {
-        echo '<p>No products found.</p>';
-        return;
+        return '<div id="no-products-found" style="padding: 10px;">
+            <p>' . esc_html__('No products found.', 'sip-printify-manager') . '</p>
+            <button type="button" id="reload-products-button" class="button button-primary">' . esc_html__('Reload Shop Products', 'sip-printify-manager') . '</button>
+        </div>';
     }
+    
+    $html = '<div id="product-table-container">';
+    $html .= '<table id="product-table-header">';
+    $html .= '<colgroup>
+        <col style="width: 8%;">
+        <col style="width: 20%;">
+        <col style="width: 72%;">
+    </colgroup>';
+    $html .= '<thead>
+        <tr>
+            <th><input type="checkbox" id="select-all-products"></th>
+            <th>Thumb</th>
+            <th>Product Name</th>
+        </tr>
+    </thead>';
+    $html .= '</table>';
 
-    // Filter out any non-array elements
-    $products = array_filter($products, 'is_array');
-
-    echo '<div style="overflow-y: auto;">';
-    echo '<table style="width: 100%; border-collapse: collapse; table-layout: fixed;">';
-
-    // Define column widths to prevent horizontal scrollbar
-    echo '<colgroup>';
-    echo '<col style="width: 8%;">';   // Select checkbox
-    echo '<col style="width: 20%;">';  // Thumbnail
-    echo '<col style="width: 72%;">';  // Product Name
-    echo '</colgroup>';
-
-    // Table Header
-    echo '<thead>';
-    echo '<tr>';
-    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-products"></th>';
-    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: center; padding: 2px;">Thumb</th>';
-    echo '<th style="position: sticky; top: 0; z-index: 2; text-align: left; padding: 2px;">Product Name</th>';
-    echo '</tr>';
-    echo '</thead>';
-
-    // Table Body
-    echo '<tbody>';
-    foreach ($products as $product) {        
+    $html .= '<div id="product-table-body">';
+    $html .= '<table id="product-table-content">';
+    $html .= '<colgroup>
+        <col style="width: 8%;">
+        <col style="width: 20%;">
+        <col style="width: 72%;">
+    </colgroup>';
+    
+    $html .= '<tbody>';
+    foreach ($products as $product) {
         $thumbnail_src = !empty($product['images']) ? $product['images'][0]['src'] : '';
-        $product['thumbnail_src'] = $thumbnail_src; // Add thumbnail src to product array
-        
-        echo '<tr>';
-        echo '<td style="text-align: center; padding: 2px;">';
-        echo '<input type="checkbox" name="selected_products[]" value="' . esc_attr($product['id']) . '" /></td>';
-        echo '<td style="text-align: center; padding: 2px;">
+        $html .= '<tr>
+            <td><input type="checkbox" name="selected_products[]" value="' . esc_attr($product['id']) . '" /></td>
+            <td>
                 <a href="' . esc_url($thumbnail_src) . '" target="_blank">
-                    <img src="' . esc_url($thumbnail_src) . '" alt="' . esc_html($product['title']) . '" style="width: 32px; height: auto; cursor: pointer;">
+                    <img src="' . esc_url($thumbnail_src) . '" alt="' . esc_attr($product['title']) . '">
                 </a>
-              </td>';              
-        echo '<td style="text-align: left; padding: 2px;">' . esc_html($product['title']) . '</td>';
-        echo '</tr>';
+            </td>
+            <td>' . esc_html($product['title']) . '</td>
+        </tr>';
     }
-    echo '</tbody>';
+    $html .= '</tbody>';
 
-    echo '</table>';
-    echo '</div>';
+    $html .= '</table>';
+    $html .= '</div>';
+    $html .= '</div>';
+
+    return $html;
 }
 
 // Handle product actions triggered via AJAX
@@ -155,24 +158,23 @@ function sip_handle_product_action() {
     $shop_id = get_option('sip_printify_shop_id');
 
     // Fetch and display products
-    $updated_products = sip_execute_product_action($product_action, $selected_products);
+    $result = sip_execute_product_action($product_action, $selected_products);
 
-    // Start output buffering to capture the product list HTML
-    ob_start();
-    sip_display_product_list($updated_products);
-    // Get the product list HTML from the buffer
-    $product_list_html = ob_get_clean();
+    // Generate the product list HTML
+    $product_list_html = sip_display_product_list($result['products']);
 
-    // Start output buffering to capture the template list HTML
-    ob_start();
-    // Load templates before displaying them
-    $templates = sip_load_templates(); // Make sure templates are loaded into the $templates variable
-    sip_display_template_list($templates);
-    // Get the template list HTML from the buffer
-    $template_list_html = ob_get_clean();
+    // Load templates
+    $templates = sip_load_templates();
+    
+    // Generate the template list HTML
+    $template_list_html = sip_display_template_list($templates);
 
     // Send a JSON response back to the AJAX call with the updated HTML content
-    wp_send_json_success(array('product_list_html' => $product_list_html, 'template_list_html' => $template_list_html));
+    wp_send_json_success(array(
+        'product_list_html' => $product_list_html, 
+        'template_list_html' => $template_list_html,
+        'message' => $result['message']
+    ));
 }
 
 // Execute product actions based on the user's selection
@@ -187,6 +189,9 @@ function sip_execute_product_action($action, $selected_products = array()) {
     error_log('Using API Token: ' . substr($token, 0, 5) . '***');
     error_log('Using Shop ID: ' . $shop_id);
 
+    // Retrieve current products
+    $products = get_option('sip_printify_products', array());
+
     if ($action === 'reload') {
         error_log('Reloading products from Printify API.');
 
@@ -195,10 +200,16 @@ function sip_execute_product_action($action, $selected_products = array()) {
         if ($fetched_products) {
             update_option('sip_printify_products', $fetched_products);
             error_log('Products reloaded and updated in options.');
-            return $fetched_products;
+            return array(
+                'products' => $fetched_products,
+                'message' => 'Shop products reloaded successfully.'
+            );
         } else {
             error_log('Failed to fetch products during reload action.');
-            return array(); // return empty array to avoid errors
+            return array(
+                'products' => $products,
+                'message' => 'Failed to reload shop products.'
+            );
         }
     }
 
@@ -254,7 +265,7 @@ function sip_execute_product_action($action, $selected_products = array()) {
         error_log('Unknown action requested: ' . $action);
     }
 
-    return $products;
+    return array('products' => $products, 'message' => 'Action completed.');
 }
 
 /**
