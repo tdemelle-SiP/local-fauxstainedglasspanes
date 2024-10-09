@@ -1,0 +1,206 @@
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////CREATE PRODUCTS TABLE///////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////CREATE PRODUCTS TABLE OVERVIEW//////////////////////////////////////////////
+
+For the next phase of development of the SiP Product Manager for Printify, a wordpress plugin for managing and creating Printify products with a woocommerce store, the focus is the create products table.  
+
+By the time they will be using the new product creator, the user will have registered their shop (which also populates a products table and an images table, the 'sources' tables), added new images to the images table and created templates from the products to fill the templates table.  The interactive UI of the admin panel at this point will show the products table, the images table and the templates table.
+
+
+////////////////////////////////////////////////////MORE ON TEMPLATES///////////////////////////////////////////////////////////
+while products and images come largely from the printify store, templates are a data form that is exclusive to the sip printify manager plugin.  They are the backbone of the efficient bulk new product creation that the plugin enables.
+templates store the following data:
+-source product tag
+-a record of the variants that the template has been used to create in the form of:
+creations [
+	title [
+		tags []
+		description []
+		price []
+		sizes [] //maybe? only if we're customizing template sizes
+		colors [] //maybe? only if we're customizing template colors
+		print-area [
+			image#: reference to printify image # from image table images
+		]
+	]
+]
+-products in production - if a product row is not made into a product, its content is still saved and repopulates the table the next time the template is loaded
+-critical data culled from the source product json that can be re-used to create new products using the same product base and source product design elements as a starting point.  The elements that are culled from the product json include:
+
+title				
+description			
+tags				
+blueprint id			
+print provider id		
+variants			
+	id
+	price
+	is_enabled
+print areas			
+	variant ids		
+	placeholders
+		position
+		images
+			id	
+			name	
+			type
+			height
+			width
+			x
+			y
+			scale
+			angle
+options - colors
+	id
+	title
+	colors
+options - sizes
+	id
+	title
+
+Of these elements only a handful are displayed and editable in the product creation editor.
+title				
+description			
+tags					
+print areas			
+		images
+options - colors
+options - sizes
+
+if a template is archived from the template table (add archive template pulldown option), if it is active in the product creation table, the table is closed.
+	delete template option should be safeguarded with alerts.  templates contain irreplaceable plugin data and should not be accidentally deleted.
+
+//////////////////////////////////////////ACTIVTATING THE POWER OF THE TEMPLATE///////////////////////////////////////////////
+
+the create products table occupies a section in the plugins main admin panel under the source tables and is where they are brought together to quickly and easily create new printify products.
+
+LOAD TEMPLATE
+The users experience creating a new product begins when they select a particular template, select the "create new product" action from the pulldown and click execute.
+
+EDIT TEMPLATE
+At this point the header controls and the table populate under the Product Creation Table header enabling the user to begin editing.
+
+The user can then move on to edit each cell using tools made available by the plugin including adding images, tags, updating titles and descriptions.
+
+PRODUCT CREATION
+when the user has completed the population of a new product row or rows to create new products, the rows can be selected and the publish new product button can be clicked.  This will trigger the assembly of the product rows into json files that will be submitted to printify through its api so printify can create new products from them and deliver them to the users woocommerce store for sale.
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////A BIT MORE PRODUCT CREATION TABLE DETAIL/////////////////////////////////////
+
+///////////////////////////////////////////////////THE HEADER/////////////////////////////////////////////////////////
+The header area of the product creation table contains a title, a subtitle that shows the name of the currently selected template and controls for building new products. 
+
+The current slate of controls includes:
+
+import csv - The import csv button brings up a file upload dialog that allows the user to upload a csv file that will populate the table with new products.  The csv file should be structured in the same way as the template json file.
+
+export csv - The export csv button saves the current table data to a csv file that can be downloaded by the user.
+
+edit template json - The edit json button brings up the existing template editor overlay.  This already exists.  The code to bring it up is in the templateEditor.js file
+
+save - The save button saves changes reflected in the table to the template.json.  The table remains open for continued editing.
+
+close - The close button removes the selected template from the table.  If there are unsaved changes it prompts whether the user would like to save before closing.
+
+publish products - assembles the selected rows into json files that are submitted to printify through its api
+		
+//////////////////////////////////////////////////THE TABLE////////////////////////////////////////////////////////////
+Below the product creation table header section is the creation table itself.
+
+The first row of the table consists of table header cells populated dynamically by the keys from the loaded template arrrays.  The text in this row will be bold.  The typical compliment will include the following:
+title				
+description			
+tags					
+print areas			
+		images
+options - colors
+options - sizes
+
+The second row of the table will populate with the template values associated with the template keys.  This is editable but not selectable for product creation.  Edits to the template will populate any new product rows created thereafter. (existing product rows will not be updated)
+
+Subsequent rows below the template data are where new products are made, one product per row. There is an add product button next to each empty row.  These can be shift clicked. Table rows are initially blank, but When they are triggered by the user by either clicking the add product button next to the row, importing a csv or adding images to the product table, each new row will be numbered and populated with the main template data (in grey text) so that new products can be made by switching out the relevant cells with new images or text (turning the text black) as needed.
+
+each cell will have a revert icon that will revert the cell to the template data.  The revert icon will be a small circular arrow that will appear on the far right side of the cell when the cell is hovered over.
+
+Once the user has created new products and saved their template, each time the template is subsequently loaded, there will be new types of rows below the main template data row.  These rows will be color coded as follows:
+	-rows containing products that have been published to printify have a light green background (these are no longer editable)
+	-rows that contain saved products that have not been published to printify have a light yellow background (these are editable)
+	-rows that contain products made in the current session have a white background.
+
+////////////////////////////////////////////////THE DATA AND THE DETAILS///////////////////////////////////////////////
+
+TABLE FEATURES
+	*Once a template has been selected, Create New Products has been executed and the table has opened, it should remain open until closed and persist through browser refreshes and sessions.
+
+    *If another template is selected in the template list and the Create New Product action is executed, it should replace the currently open template.  If there are unsaved changes, the user should be prompted to save them before continuing with a pop-up that has a save option that will save the current template and open the new one and a cancel option that will stop opening the new template and return to the current template.
+
+	*Rows containing already made products can be toggled off so that the user can just review new products
+
+    each column that represents an image in the template has a number of features.  
+    *selection toggle that will designate the column as a target for image addition.  
+        When a column is selected, the user can then select a number of images in the image table, choose 'add images to new products' from the pulldown, click 'execute' and the images will populate unedited image cells one per row in the selected column.  If there ara no numbered new product rows for the images to populate, they will be automatically created with the other cells filled in with the main template data.  In this way the user can select a large number of products and quickly create indiviudal products from each.
+
+    *each image cell in the table will also have a selection toggle.  
+        These can be used to designate multiple cells to send a single image to.  When a user selects cells as targets and uses the 'add image to new products' button, the selected image populates all the selected cells.
+
+    *a radio button in the shape of a star appears at the left side of each image cell header in the template.  
+        This star designates the "main" image.  This is the image that is used as the thumbnail in the design cell.  By default it should be the first image in the front print location.  Each radio button should have a tooltip that says "choose as main image".
+
+    *reset icon button to the left of each image name 
+        resets them individually 
+
+    *reset button to the left of the Front Images header
+        resets them all.
+
+ON TEMPLATE LOAD 
+	*The images table list is updated to show which images the template has used to create new products (background color?) these should be sortable and selectable
+	*metadata shows up in a template data window above the product creation table
+		-number of product variants made
+		-number of colors
+		-number of sizes
+		-number of variant permutations
+		-list of print-areas
+		-eventually blueprint info, printer info
+
+    Design			| A product may have multiple print areas each with multiple images arranged together to create the design that is printed there, but should nearly always have at least a Front design.  The front design comes first in our table headers called simply "design" because it is the most visually representative of the product.  The template for how the front design is presented in the table is also used later in the columns for the other print area designs.
+				| The front design header should span however many images there are in the area with the front "position". the images should appear in columns under the header from left to right in the order they appear from top to bottom in the source array.  Each cell should contain a small 30x30 image thumbnail derived from the url in the "src" key with the image title centered beneath it. The thumbnail should be clickable and open up a lightbox with the image in it.
+
+	| 						Front Design					|
+	| image thumbnail	| image thumbnail	| image thumbnail	| image thumbnail	|	
+	| image name		| image name		| image name		| image name		|	
+
+    title				| The title in the table is assembled in part from the template title and in part from the front image name.  The code should look up the front image name in the template, find its string in the title string (or the placeholder "[title]") and replace it with the image name of whatever image is in the front image cell whether that's pulled in from the template or the user enters or drags a new image into the image thumb or front image name cells of the table - the name should then be editable.  There should be a reset icon on the far right side of the name cell that will revert it to the template name with the current front image.
+
+    
+    colors				| For all the ids in the colors array create a series of swatches in the "colors" table cell associated with that product.  The swatches are filled with the their associated color's hexadecimal value with rollover text that shows the associated color's title.
+
+    sizes				| For all the ids in the sizes array create a series of strings in the "sizes" table cell associated with that product.  For each size show "title" values separated by commas
+
+    description			| The description should populate from the template description.  The cell should only show the first 20 or 30 characters of the description followed by ellipsis.  There should be a document edit button on the far right side of the cell that brings up a text editor overlay using the same implementation used in the description editor already implemented in the code.  Next to the document edit button should be a reset icon that will revert it to the description in the source template.
+
+    tags				| The tags cell should be populated from the template and the cell should be editable.  There should be a reset button on the far right of the cell that reverts the contents of the cell back to the tags in the source template.
+
+    price			| not quite sure how to implement this yet.  Perhaps to start it could just show the range of lowest to highest price shown in the template.
+
+    print areas			| appear in the template in the context of the design locations	
+
+    position	| the solution for the "front" position has been included above.  Each additional position in the template should be structured in the same way and the associated headers, columns and data should be appended to the table in the order in which they appear in the template
+
+    images		| images data is integrated as described above
+
+//////////////////////////////////////////////////EDITING THE DATA////////////////////////////////////
+
+
+
+-----------------------------------
+
+FOR LATER DEVELOPMENT: template sync button 
+		This should be an advanced control in the settings tab or in the advanced controls tab of the sip printify manager plugin.  it scans the images list for images that have tags that share the source product, then it scans the products list for products that have the same blueprint as the template with images that correspond to the tags in the images list.  It then updates the create product table with the products that have been identified.
+
+
+--------------------------------
