@@ -1,3 +1,6 @@
+///////////////////////////////////IMAGES AND IMAGE TABLE NOTES///////////////////////////////////////////////
+
+
 I would like to add functionality to my printify manager plugin to support the management of images associated with product creation.  There are two categories of images to be managed, local images and remote images.  remote images are images that are in the printify shop data that have been loaded into the plugin through the printify API.  Local images are images that are in a local or cloud directory (google drive) that have been loaded into the plugin by the user through, ideally, drag and drop.  
 
  remote images are fetched when a shop is loaded. In addition to fetching and displaying products, the plugin also fetches and displays images associated with the shop.  GET /v1/uploads.json
