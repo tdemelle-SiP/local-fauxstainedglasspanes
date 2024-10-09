@@ -85,10 +85,18 @@ a, a:hover, a:focus, a:active, a:visited {
     height: 50px; /* Sets the height of the spinner */
 }
 
-.header-title {
-    margin: 0; /* Removes default margin */
+#wpbody-content > div.wrap > div.header-section > h1 {
+    display: flex; /* Make the header a flex container */
+    align-items: center; /* Vertically center the items */
+    justify-content: center; /* Horizontally center the items */
+    margin: 0 -75px 0 0; /* Removes default margin */
     flex-grow: 1; /* Allows the title to grow to fill available space */
     text-align: center; /* Centers the title text */
+}
+
+.inline-image {
+    height: 30px; /* Adjust height as needed */
+    margin: 0 5px 0 8px; /* Adjust margins to control spacing */
 }
 
 /* General Header Section Styling */

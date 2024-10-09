@@ -23,7 +23,11 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 <!-- Header Section -->
 <link rel="preload" href="<?php echo esc_url($sip_core_assets_url . '/images/spinner.webp'); ?>" as="image">
 <div class="header-section">
-    <h1 class="header-title"><?php esc_html_e('Welcome to SIP Printify Manager!', 'sip-printify-manager'); ?></h1>
+    <h1 class="header-title">
+        Welcome to 
+        <img src="<?php echo esc_url($sip_core_assets_url . '/images/SiP-LogoBlue44.svg'); ?>" alt="SiP Logo" class="inline-image">
+        SiP Printify Manager!
+    </h1>
     <div id="button-container" <?php echo empty($token) ? 'style="display:none;"' : ''; ?>>
         <button id="new-token-button" class="button button-primary"><?php esc_html_e('New Shop Token', 'sip-printify-manager'); ?></button>
     </div>
