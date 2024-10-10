@@ -178,6 +178,7 @@ The purpose of a template is to represent the data necessary to use the Printify
         │       ├── eventHandler.js   
         │       ├── imageUpload.js
         │       ├── main.js
+        |       ├── product-handlers.js
         │       ├── productCreation.js
         │       ├── spinner.js
         │       ├── templateEditor.js
