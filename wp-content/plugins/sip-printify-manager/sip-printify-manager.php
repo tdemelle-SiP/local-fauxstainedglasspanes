@@ -121,14 +121,13 @@ class SiP_Printify_Manager {
         // Enqueue CodeMirror from CDN
         wp_enqueue_script('codemirror', 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js', array(), '5.65.13', true);
         wp_enqueue_style('codemirror', 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css', array(), '5.65.13');
-
+    
         // Enqueue CodeMirror addons
         $addons = ['foldcode', 'foldgutter', 'brace-fold', 'comment-fold'];
         foreach ($addons as $addon) {
             wp_enqueue_script("codemirror-addon-{$addon}", "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/{$addon}.min.js", ['codemirror'], '5.65.13', true);
         }
         wp_enqueue_style('codemirror-addon-foldgutter-style', 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldgutter.min.css', ['codemirror'], '5.65.13');
-
     
         // Enqueue jQuery UI
         wp_enqueue_script('jquery-ui-resizable');
@@ -142,12 +141,12 @@ class SiP_Printify_Manager {
             '1.0.0'
         );
     
-        // Enqueue your custom JS files
+        // Enqueue your custom JS files in the correct order
     
-        // Enqueue sip-spinner
+        // Enqueue sip-utilities (replacing sip-spinner)
         wp_enqueue_script(
-            'sip-spinner',
-            plugin_dir_url(__FILE__) . 'assets/js/spinner.js',
+            'sip-utilities',
+            plugin_dir_url(__FILE__) . 'assets/js/core/utilities.js',
             array('jquery'),
             '1.0.0',
             true
@@ -156,43 +155,35 @@ class SiP_Printify_Manager {
         // Enqueue sip-ajax
         wp_enqueue_script(
             'sip-ajax',
-            plugin_dir_url(__FILE__) . 'assets/js/ajax.js',
-            array('jquery', 'codemirror', 'jquery-ui-resizable', 'jquery-ui-draggable'),
+            plugin_dir_url(__FILE__) . 'assets/js/core/ajax.js',
+            array('jquery', 'sip-utilities'),
             '1.0.0',
             true
         );
-        
-        // Enqueue sip-event-handlers
+    
+        // Enqueue sip-product-actions (replacing sip-product-handlers)
         wp_enqueue_script(
-            'sip-event-handlers',
-            plugin_dir_url(__FILE__) . 'assets/js/eventHandlers.js',
-            array('jquery', 'sip-ajax'),
+            'sip-product-actions',
+            plugin_dir_url(__FILE__) . 'assets/js/modules/product-actions.js',
+            array('jquery', 'sip-ajax', 'sip-utilities'),
             '1.0.0',
             true
         );
-        
+    
+        // Enqueue sip-image-actions (replacing sip-image-upload)
         wp_enqueue_script(
-            'sip-product-handlers',
-            plugin_dir_url(__FILE__) . 'assets/js/product-handlers.js',
-            array('jquery', 'sip-ajax'), // Make sure to include any dependencies
+            'sip-image-actions',
+            plugin_dir_url(__FILE__) . 'assets/js/modules/image-actions.js',
+            array('jquery', 'sip-ajax', 'sip-utilities'),
             '1.0.0',
             true
         );
-
-        // Enqueue sip-image-upload
+    
+        // Enqueue sip-template-actions
         wp_enqueue_script(
-            'sip-image-upload',
-            plugin_dir_url(__FILE__) . 'assets/js/imageUpload.js',
-            array('jquery', 'sip-ajax'),
-            '1.0.0',
-            true
-        );
-
-        // Enqueue sip-product-creation
-        wp_enqueue_script(
-            'sip-product-creation',
-            plugin_dir_url(__FILE__) . 'assets/js/productCreation.js',
-            array('jquery', 'sip-ajax'),
+            'sip-template-actions',
+            plugin_dir_url(__FILE__) . 'assets/js/modules/template-actions.js',
+            array('jquery', 'sip-ajax', 'sip-utilities'),
             '1.0.0',
             true
         );
@@ -200,25 +191,44 @@ class SiP_Printify_Manager {
         // Enqueue sip-template-editor
         wp_enqueue_script(
             'sip-template-editor',
-            plugin_dir_url(__FILE__) . 'assets/js/templateEditor.js',
-            array('jquery', 'sip-ajax', 'codemirror'),
+            plugin_dir_url(__FILE__) . 'assets/js/modules/template-editor.js',
+            array('jquery', 'sip-ajax', 'sip-utilities', 'codemirror'),
             '1.0.0',
             true
         );
     
-        // Enqueue sip-main
+        // Enqueue sip-creation-actions (replacing sip-product-creation)
+        wp_enqueue_script(
+            'sip-creation-actions',
+            plugin_dir_url(__FILE__) . 'assets/js/modules/creation-actions.js',
+            array('jquery', 'sip-ajax', 'sip-utilities'),
+            '1.0.0',
+            true
+        );
+    
+        // Enqueue sip-init
+        wp_enqueue_script(
+            'sip-init',
+            plugin_dir_url(__FILE__) . 'assets/js/init.js',
+            array(
+                'jquery',
+                'sip-utilities',
+                'sip-ajax',
+                'sip-product-actions',
+                'sip-image-actions',
+                'sip-template-actions',
+                'sip-template-editor',
+                'sip-creation-actions'
+            ),
+            '1.0.0',
+            true
+        );
+    
+        // Enqueue sip-main (should be last)
         wp_enqueue_script(
             'sip-main',
             plugin_dir_url(__FILE__) . 'assets/js/main.js',
-            array(
-                'jquery',
-                'sip-spinner',
-                'sip-ajax',
-                'sip-product-creation',
-                'sip-template-editor',
-                'sip-image-upload',
-                'sip-event-handlers'
-            ),
+            array('sip-init'),
             '1.0.0',
             true
         );
@@ -228,7 +238,7 @@ class SiP_Printify_Manager {
         $max_filesize = sip_convert_to_bytes(ini_get('upload_max_filesize'));
         $post_max_size = sip_convert_to_bytes(ini_get('post_max_size'));
         $memory_limit = sip_convert_to_bytes(ini_get('memory_limit'));
-
+    
         // Localize script to pass PHP variables to JavaScript
         wp_localize_script('sip-ajax', 'sipAjax', array(
             'ajax_url' => admin_url('admin-ajax.php'),

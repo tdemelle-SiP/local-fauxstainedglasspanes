@@ -89,7 +89,8 @@ $table_prefix = 'wp_';
  *
  * @link https://wordpress.org/support/article/debugging-in-wordpress/
  */
-
+ error_reporting(E_ALL);
+ ini_set('display_errors', 1);
  define('WP_DEBUG', true);
  define( 'WP_DEBUG_LOG', true );
 
