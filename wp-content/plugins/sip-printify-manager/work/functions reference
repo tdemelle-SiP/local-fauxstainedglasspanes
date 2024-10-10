@@ -1,165 +1,280 @@
 
 js and php files and functions reference
 
+The sequence of events for an AJAX call in the new JavaScript implementation, using a typical interaction as an example. Let's say we're performing a product action, like reloading products.
+
+User Interaction:
+The user clicks the "Reload Products" button.
+Event Listener (in product-actions.js):
+attachReloadProductsEvent() function catches this click event.
+Handler Function (in product-actions.js):
+The click triggers reloadShopProducts() function.
+Prepare AJAX Data (in product-actions.js):
+reloadShopProducts() prepares the FormData for the AJAX call.
+Initiate AJAX Call (in product-actions.js):
+reloadShopProducts() calls sip.ajax.handleAjaxAction('product_action', formData).
+AJAX Handler (in ajax.js):
+handleAjaxAction(actionType, formData) function is called.
+Show Spinner (in ajax.js):
+handleAjaxAction() calls sip.utilities.showSpinner().
+Perform AJAX Call (in ajax.js):
+handleAjaxAction() performs the actual $.ajax() call.
+Server Processing:
+The server processes the request (not in JS).
+AJAX Success (in ajax.js):
+On successful AJAX completion, the success callback in handleAjaxAction() is triggered.
+Success Handler (in ajax.js):
+The success callback calls handleSuccessResponse(actionType, response).
+Module-Specific Handler (back to product-actions.js):
+handleSuccessResponse() in ajax.js calls the registered success handler for 'product_action', which is sip.productActions.handleSuccessResponse(response).
+Update UI (in product-actions.js):
+handleSuccessResponse() in product-actions.js updates the product list in the UI.
+Hide Spinner (in ajax.js):
+The complete callback in handleAjaxAction() calls sip.utilities.hideSpinner().
+Potential Error Handling:
+If an error occurs, handleAjaxError() in ajax.js is called, which might use sip.utilities.showToast() to display an error message.
+-----------------------------------------------------------------------
+description of the sequence:
+
+Page Load and Initialization:
+
+The main PHP file includes and registers various JavaScript modules.
+JavaScript files are loaded in a specific order to ensure dependencies are met.
+On document ready, initialization functions are called, setting up event listeners.
+
+
+User Interaction:
+
+A user interacts with the page, for example, clicking a button in a data table.
+
+
+Event Listener Activation:
+
+An event listener, previously attached to the button during initialization, detects the click.
+This listener was set up in a module-specific JavaScript file (e.g., table-actions.js).
+
+
+Event Handler Execution:
+
+The click triggers a specific handler function within the module.
+This function was designed to respond to this particular user action.
+
+
+Action Identification:
+
+The handler identifies the specific action (e.g., "delete row") based on button attributes or context.
+
+
+Data Collection:
+
+Relevant data is gathered, such as the ID of the row to be deleted.
+This might involve traversing the DOM or accessing data attributes.
+
+
+AJAX Request Preparation:
+
+The handler prepares data for an AJAX request, including:
+
+The action type (e.g., "delete_row")
+Necessary data (e.g., row ID)
+Security tokens or nonces
+
+
+
+
+Central AJAX Function Call:
+
+The module calls a centralized AJAX handling function, likely defined in a core JavaScript file.
+This function is designed to manage all AJAX requests consistently across the application.
+
+
+Pre-Request UI Update:
+
+Before sending the request, the UI is updated:
+
+A loading spinner might appear over the affected area.
+The clicked button or relevant section might be disabled to prevent double submission.
+
+
+
+
+AJAX Request Execution:
+
+The actual AJAX request is sent to the server.
+This typically involves a POST request to a specific endpoint defined in the main PHP file.
+
+
+Server-Side Processing:
+
+The server receives the request and routes it to the appropriate handler.
+Server-side code processes the action, e.g., deleting a record from the database.
+
+
+Response Preparation and Sending:
+
+The server prepares a response, typically in JSON format.
+This response is sent back to the client.
+
+
+Client-Side Response Reception:
+
+The JavaScript AJAX function receives the server's response.
+
+
+Response Parsing and Validation:
+
+The response is parsed from JSON to a JavaScript object.
+The response structure and content are validated.
+
+
+Success/Error Determination:
+
+Based on the response, the code determines if the operation was successful.
+
+
+Handler Selection and Execution:
+
+If successful, a success handler specific to the action type is called.
+If an error occurred, an error handler is invoked instead.
+These handlers were likely registered earlier during initialization.
+
+
+Module-Specific Processing:
+
+The relevant success or error handler, defined in the original module, processes the response.
+This might involve preparing data for UI updates.
+
+
+UI Update:
+
+The user interface is updated based on the action's result:
+
+For a deletion, the row might be removed from the table.
+For an edit, the row's content might be updated.
+
+
+
+
+Feedback to User:
+
+The user is informed of the action's result, possibly through a toast notification.
+
+
+Post-Request Cleanup:
+
+Temporary UI elements like loading spinners are removed.
+Disabled UI elements are re-enabled.
+
+
+State Management:
+
+If necessary, the application's state is updated.
+This might involve updating cached data or modifying global variables.
+
+
+Event Triggering:
+
+Custom events might be triggered to notify other parts of the application about the change.
+
+
+Logging:
+
+Important information about the action and its result are logged to the console.
+This aids in debugging and monitoring application behavior.
+
+
+Error Handling (if applicable):
+
+If an error occurred, additional error-specific processes might be initiated.
+This could include detailed logging or displaying an error modal to the user.
+------------------------------------------------
+NEW JS implementation
+---------------------
+core/ajax.js
+    init()
+    handleAjaxAction(actionType, formData, buttonSelector, spinnerSelector)
+    handleSuccessResponse(actionType, response)
+    handleErrorResponse(errorMessage)
+    handleAjaxError(jqXHR, textStatus, errorThrown, buttonSelector, spinnerSelector)
+    registerSuccessHandler(actionType, handler)
+
+core/utilities.js
+    init()
+    showSpinner()
+    hideSpinner()
+    showToast(message, duration, waitForSpinner)
+    initCheckboxHandlers()
+    initSearchHandlers()
+    initSortHandlers()
+    handleSort()
+    updateSortIcons()
+    sortRows()
+    compareValues(a, b, column)
+    getColumnIndex(column)
+    comparePixels(a, b)
+    compareFileSize(a, b)
+    compareDates(a, b)
+    parseCustomDate(dateString)
+    getSortIcon(type)
+
+modules/product-actions.js
+    init()
+    attachReloadProductsEvent()
+    reloadShopProducts()
+    attachProductActionFormSubmit()
+    handleSuccessResponse(response)
+
+modules/image-actions.js
+    init()
+    attachDragAndDropEvents()
+    attachFileInputEvents()
+    handleImageUpload(files)
+    attachReloadImagesEvent()
+    reloadShopImages()
+    attachImageActionFormSubmit()
+    handleSuccessResponse(response)
+
+modules/template-actions.js
+    init()
+    attachInlineRenaming()
+    attachTemplateActionFormSubmit()
+    handleSuccessResponse(response)
+
+modules/template-editor.js
+    init()
+    initializeTemplateEditor()
+    initializeEditors(content)
+    separateContent(content)
+    setupResizeFunctionality(outerWindow, header, resizer, descriptionEditor, jsonEditor)
+    setupToggleView(toggleButton, renderedHtml, topEditorContainer, descriptionEditor)
+    setupDragging(header, outerWindow)
+    handleSuccessResponse(response)
+
+modules/creation-actions.js
+    init()
+    attachTemplateActionFormSubmit()
+    loadProductCreationTable(templateName)
+    handleCreateProduct()
+    handleEditJson()
+    handleSaveTemplate()
+    handleCloseTemplate()
+    updateProductData(key, value)
+    buildCreationTable(productData)
+    buildDesignCell(productData, position)
+    buildDynamicImageCells(images, maxImages)
+    getSizesString(productData)
+    getColorsSwatches(variantIds, colorMap)
+    createColorMap(colorOptions)
+    handleSuccessResponse(response)
+
+init.js
+    initializeAllModules()
+    initializeGlobalEventListeners()
+
 main.js
-    // Initialize modules
-    sip.spinner.init();
-    sip.ajaxModule.init();
-    sip.productCreation.init();
-    sip.templateEditor.init();
-    sip.imageUpload.init();
-    sip.eventHandlers.init();
+    (anonymous function to initialize all modules on document ready)
 
-ajax.js
-    sip.AjaxModule()
-
-        init()
-            '#save-token-form, #product-action-form, #template-action-form, #image-action-form'
-                // Append common data to formData for the AJAX request
-                formData.append('action', 'sip_handle_ajax_request'); // WordPress AJAX action hook
-                formData.append('action_type', actionType); // Specific action to perform
-                formData.append('nonce', sipAjax.nonce);
-            '#new-token-button'
-                formData.append('action', 'sip_handle_ajax_request');
-                formData.append('action_type', 'new_token');
-                formData.append('nonce', sipAjax.nonce);
-
-        handleAjaxAction()
-            $.ajax
-                sip_printify_manager_nonce_field: sipAjax.nonce,
-                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
-                action: 'sip_handle_ajax_request',
-                action_type: actionType,
-                nonce: sipAjax.nonce
-            success:
-                save_token
-                new_token
-                product_action
-                template_action
-                save_template
-                image_action
-                upload_images
-
-eventHandlers.js
-    sip.eventHandlers()
-
-        init()
-            $(document).on('change', '#select-all-images'
-            $(document).on('change', 'input[name="selected_images[]"]'
-            $(document).on('change', '#select-all-products'
-            $(document).on('change', 'input[name="selected_products[]"]'
-            $(document).on('change', '#select-all-templates'
-            $(document).on('change', 'input[name="selected_templates[]"]'
-            $('#product-search').on('keyup'
-            $('#image-search').on('keyup'
-            $('#template-search').on('keyup'
-
-imaageUpload.js
-    sip.imageUpload()
-
-        init()
-            $('#image-upload-area').on('dragover'
-            $('#image-upload-area').on('dragleave'
-            $('#image-upload-area').on('drop'
-            $('#select-images-button').on('click'
-            $('#image-file-input').on('change'
-
-        handleImageUpload()
-            formData.append('action', 'sip_handle_ajax_request');
-            formData.append('action_type', 'upload_images');
-            formData.append('nonce', sipAjax.nonce);
-
-templateEditor.js
-    sip.templateEditor()
-
-        init()
-            $('.rename-template').on('click'
-            initializeTemplateEditor($);
-
-        initializeTemplateEditor()
-            initializeEditors()
-                descriptionEditor
-                jsonEditor
-                adjustModalSize()
-                    adjustEditors()
-                ...resizing stuff...
-            $('.edit-template-content').on('click'
-                '#template-editor-overlay'
-                formData.append('action', 'sip_handle_ajax_request');
-                formData.append('action_type', 'template_action');
-                formData.append('template_action', 'edit_template');
-                formData.append('template_name', templateName);
-                formData.append('nonce', sipAjax.nonce);
-                $.ajax
-                    formData
-                success:
-                    initializeEditors()
-                    separateContent()
-                    descriptionEditor.setValue
-                    jsonEditor.setValue
-            $('#template-editor-close').on('click'
-            $('#template-editor-save').on('click'
-                formData.append('action', 'sip_handle_ajax_request');
-                formData.append('action_type', 'save_template');
-                formData.append('template_name', templateName);
-                formData.append('template_content', finalContent);
-                formData.append('nonce', sipAjax.nonce);
-
-productcreation.js
-	sip.productCreation()
-		let selectedTempateId
-
-		init()
-            $('#template-action-form').on('submit'
-				if (action === 'create_new_products')
-					selectedTemplates = [name="selected_templates[]"]
-					loadProductCreationTable()
-
-//////////////think this may be redundant with function in template.js?
-            $('#create-product-button').on('click'    
-                $.ajax
-                    sip_printify_manager_nonce_field: sipAjax.nonce,
-                    action: 'sip_handle_ajax_request',
-                    action_type: 'template_action',
-                    template_action: 'sip_create_product',
-                    template_name: selectedTemplateId,
-                success:
-                    alert('Product created successfully.');
-
-		loadProductCreationTable()
-            show #product-creation-container
-			$.ajax
-	            sip_printify_manager_nonce_field: sipAjax.nonce,
-                _wp_http_referer: '/wp-admin/admin.php?page=sip-printify-manager',
-                action: 'sip_handle_ajax_request',
-                action_type: 'template_action',
-                template_action: 'create_new_products',
-                template_name: selectedTemplateId,
-                nonce: sipAjax.nonce			
-            success:
-                buildCreationTable();
-
-        buildCreationTable()
-
-        buildDesignCell()
-
-        getSizesString()
-
-        getColorSwatches()
-    
-        truncateText()
-
-        CapitalizeFirstLetter()
-
-        addEventListners()
-
-        UpdateProductData()
-
-        resetCellVallue()
-
-        openTextEditor()
-
-        resetImage()
+-----------------------------------------------------------------------
 
 creation-functions.php
 	sip_handle_creation_action()
