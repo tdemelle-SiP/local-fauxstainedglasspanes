@@ -198,15 +198,12 @@ function sip_handle_template_action() {
             foreach ($selected_templates as $templateId) {
                 sip_delete_template(sanitize_text_field($templateId));
             }
-
-            // Start output buffering to capture the template list HTML
-            ob_start();
-            // Load templates before displaying them
-            $templates = sip_load_templates(); // Make sure templates are loaded into the $templates variable
-            sip_display_template_list($templates);
-            // Get the template list HTML from the buffer
-            $template_list_html = ob_get_clean();
-
+        
+            // Load the updated list of templates
+            $templates = sip_load_templates();
+        
+            $template_list_html = sip_display_template_list($templates);
+        
             // Send a JSON response back to the AJAX call with the updated HTML content
             wp_send_json_success(array('template_list_html' => $template_list_html));
             break;

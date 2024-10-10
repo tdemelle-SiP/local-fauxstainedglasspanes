@@ -30,7 +30,7 @@ function sip_handle_image_action() {
     $message = isset($result['message']) ? $result['message'] : '';
 
     // Generate the updated image list HTML
-    $image_list_html = sip_display_image_list($existing_images);
+    $image_list_html = sip_display_image_list($images);
 
     // Send the response back to the AJAX call
     wp_send_json_success(array(
