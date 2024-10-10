@@ -1,5 +1,21 @@
 TO DO
 ---------------------
+
+remove image triggers two ajax calls.  one from ajax.js and one from imageUpload.js.  the latter has a duplicate image_action: remove_from_manager line in the payload
+
+both of them fail to return the correct list of images with the console error:
+query-monitor.js?ver=3.16.4:400 {key: '66d3fc65c5e9f4878110ee006e0136f9', type: 'warning', message: 'Undefined variable $existing_images', file: 'wp-content/plugins/sip-printify-manager/includes/image-functions.php', line: 33, …}
+
+
+remove template from manager seems to work, but the table list doesn't update to show the removed template as part of the ajax response.  The template disappears when the browser window is reloaded however.  again, the latter payload has an extra, duplicate product_action: remove_from_manager line
+
+remove product from manager works as expected but it also seems to trigger two ajax calls.  one from ajax.js and one from product-handlers.js
+
+create template action is also generating two ajax calls and creating two templates.  one from ajax.js and the other from product-handlers.js
+
+--------------------------------------------
+
+
 Figure out image storage protocols
 	-store images in the uploads/sip-printify-manager/images/ directory when they are in the local images state.
 	-when images are uploaded to printify, remove them from local storage.
