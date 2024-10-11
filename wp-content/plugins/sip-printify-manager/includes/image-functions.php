@@ -28,6 +28,8 @@ function sip_handle_image_action() {
 
     switch ($image_action) {
         case 'reload_shop_images':
+            $result = sip_execute_image_action($image_action);
+            break;
         case 'remove_from_manager':
             $result = sip_remove_images_from_manager($selected_images);
             break;
@@ -95,12 +97,18 @@ function sip_execute_image_action($action, $selected_images = array()) {
                 update_option('sip_printify_images', $images);
 
                 return array(
-                    'images' => $images, 
+                    'images' => $images,
+                    'image_list_html' => sip_display_image_list($images),
                     'message' => 'Shop images reloaded successfully.'
                 );
             } else {
-                return array('images' => $images, 'message' => 'Failed to reload shop images.');
-            }
+                return array(
+                    'images' => get_option('sip_printify_images', array()),
+                    'image_list_html' => sip_display_image_list(get_option('sip_printify_images', array())),
+                    'message' => 'Failed to reload shop images.'
+                );
+            };
+
         case 'remove_from_manager':
             if (empty($selected_images)) {
                 return array(
@@ -238,11 +246,10 @@ function sip_remove_images_from_manager($selected_images) {
 function fetch_images($token) {
     $all_images = array();
     $page = 1;
-    $per_page = 100; // Maximum allowed per Printify API documentation
+    $per_page = 100;
 
     do {
         $url = "https://api.printify.com/v1/uploads.json?page={$page}&limit={$per_page}";
-
         $response = wp_remote_get($url, array(
             'headers' => array(
                 'Authorization' => 'Bearer ' . $token,
@@ -262,21 +269,14 @@ function fetch_images($token) {
             return null;
         }
 
-        // Add 'location' => 'Remote' or 'Remote (Archived)' to each image
         foreach ($images['data'] as &$image) {
-            // Determine location based on Printify API response
-            if (isset($image['is_archived']) && $image['is_archived']) {
-                $image['location'] = 'Printify Shop (Archived)';
-            } else {
-                $image['location'] = 'Printify Shop'; // Set location for remote images
-            }
-            // Other processing as needed
+            $image['location'] = isset($image['is_archived']) && $image['is_archived'] ? 'Printify Shop (Archived)' : 'Printify Shop';
         }
 
         $all_images = array_merge($all_images, $images['data']);
 
         if (count($images['data']) < $per_page) {
-            break; // No more pages
+            break;
         }
 
         $page++;
