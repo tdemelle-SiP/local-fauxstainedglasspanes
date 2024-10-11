@@ -16,7 +16,7 @@ sip.utilities = (function($) {
         // Initialize event handlers
         initCheckboxHandlers();
         initSearchHandlers();
-        initSortHandlers();
+        initImageSorting();
 
         // Initialize spinner
         initSpinner();
@@ -126,67 +126,116 @@ sip.utilities = (function($) {
     var sortOrder = ['upload_time'];
     var sortDirections = { 'upload_time': 'desc' };
 
-    function initSortHandlers() {
-        $('#image-table-header').on('click', '.sortable', handleSort);
+    function initImageSorting() {
+        console.log('Initializing image sorting');
+        $('#image-table-header').off('click', '.sortable').on('click', '.sortable', function(e) {
+            console.log('Sort header clicked:', $(this).data('sort'));
+            handleSort.call(this);
+        });
+        updateSortIcons();
+    
+        // Apply initial sort
+        var initialSortColumn = 'upload_time'; // or whatever column you want to sort by default
+        var initialSortDirection = 'asc'; // or 'asc' if you prefer
+        $('#image-table-header th[data-sort="' + initialSortColumn + '"]').addClass(initialSortDirection);
+        sortRows(initialSortColumn, initialSortDirection);
         updateSortIcons();
     }
 
     function handleSort() {
-        var column = $(this).data('sort');
-
-        if (sortOrder[0] === column) {
-            sortDirections[column] = sortDirections[column] === 'asc' ? 'desc' : 'asc';
-        } else {
-            sortOrder = [column].concat(sortOrder.filter(col => col !== column));
-            if (sortOrder.length > 2) sortOrder.pop();
-            if (!(column in sortDirections)) sortDirections[column] = 'asc';
-        }
-
+        console.log('Handling sort');
+        var $this = $(this);
+        var column = $this.data('sort');
+        var currentDirection = $this.hasClass('asc') ? 'asc' : 'desc';
+        var newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+    
+        console.log('Sorting column:', column);
+        console.log('Current direction:', currentDirection);
+        console.log('New direction:', newDirection);
+    
+        // Remove sorting classes from all headers
+        $('#image-table-header th').removeClass('asc desc');
+    
+        // Add sorting class to current header
+        $this.addClass(newDirection);
+    
+        sortRows(column, newDirection);
         updateSortIcons();
-        sortRows();
+    
+        // Store the current sort column and direction
+        $('#image-table-header').data('sort-column', column);
+        $('#image-table-header').data('sort-direction', newDirection);
+    
+        console.log('Sort complete');
     }
 
     function updateSortIcons() {
+        console.log('Updating sort icons');
         $('.sortable').each(function() {
             var column = $(this).data('sort');
             var icon;
-            if (sortOrder[0] === column) {
-                icon = sortDirections[column] === 'asc' ? 'solid-up' : 'solid-down';
-            } else if (sortOrder[1] === column) {
-                icon = sortDirections[column] === 'asc' ? 'dim-up' : 'dim-down';
+            if ($(this).hasClass('asc')) {
+                icon = 'solid-up';
+            } else if ($(this).hasClass('desc')) {
+                icon = 'solid-down';
             } else {
                 icon = 'outline-down';
             }
+            console.log('Column:', column, 'Icon:', icon);
             $(this).find('svg').replaceWith($(getSortIcon(icon)));
         });
+        console.log('Sort icons updated');
     }
 
-    function sortRows() {
+    function sortRows(column, direction) {
+        console.log('Sorting rows by', column, 'in', direction, 'direction');
         var $tbody = $('#image-table-content tbody');
         var rows = $tbody.find('tr').get();
-
+    
+        console.log('Number of rows to sort:', rows.length);
+    
         rows.sort(function(a, b) {
-            for (var i = 0; i < sortOrder.length; i++) {
-                var column = sortOrder[i];
-                var result = compareValues(a, b, column);
-                if (result !== 0) return sortDirections[column] === 'asc' ? result : -result;
+            var aValue = $(a).find('td').eq(getColumnIndex(column)).text().trim();
+            var bValue = $(b).find('td').eq(getColumnIndex(column)).text().trim();
+            console.log('Comparing:', aValue, 'and', bValue);
+            
+            var result = compareValues(aValue, bValue, column);
+            
+            // If the primary sort values are equal, use a secondary sort criterion
+            if (result === 0) {
+                var aSecondary = $(a).find('td').eq(getColumnIndex('file_name')).text().trim();
+                var bSecondary = $(b).find('td').eq(getColumnIndex('file_name')).text().trim();
+                result = aSecondary.localeCompare(bSecondary);
             }
-            return 0;
+            
+            return result * (direction === 'asc' ? 1 : -1);
         });
-
+    
         $.each(rows, function(index, row) {
             $tbody.append(row);
         });
+    
+        console.log('Rows reordered');
     }
 
     function compareValues(a, b, column) {
-        var aValue = $(a).find('td').eq(getColumnIndex(column)).text().trim();
-        var bValue = $(b).find('td').eq(getColumnIndex(column)).text().trim();
-
-        if (column === 'upload_time') return compareDates(aValue, bValue);
-        if (column === 'dimensions') return comparePixels(aValue, bValue);
-        if (column === 'size') return compareFileSize(aValue, bValue);
-        return aValue.localeCompare(bValue);
+        console.log('Comparing values for column:', column);
+        console.log('Value A:', a);
+        console.log('Value B:', b);
+    
+        var result;
+        if (column === 'upload_time') {
+            result = compareDates(a, b);
+        } else if (column === 'dimensions') {
+            result = comparePixels(a, b);
+        } else if (column === 'size') {
+            result = compareFileSize(a, b);
+        } else {
+            result = a.localeCompare(b);
+        }
+    
+        console.log('Comparison result:', result);
+        return result;
     }
 
     function getColumnIndex(column) {
@@ -219,33 +268,39 @@ sip.utilities = (function($) {
         if ((a === '' || a === 'Local File') && (b === '' || b === 'Local File')) return 0;
         if (a === '' || a === 'Local File') return 1;
         if (b === '' || b === 'Local File') return -1;
-
+    
         var dateA = parseCustomDate(a);
         var dateB = parseCustomDate(b);
-
-        return dateB - dateA;
+    
+        return dateB - dateA;  // This will sort in descending order (newest first)
     }
-
+    
     function parseCustomDate(dateString) {
-        var parts = dateString.split(' ');
-        var dateParts = parts[0].split('_');
-        var timeParts = parts[1].split(':');
-        
-        var year = parseInt('20' + dateParts[0]);
-        var month = parseInt(dateParts[1]) - 1;
-        var day = parseInt(dateParts[2]);
-        
-        var hour = parseInt(timeParts[0]);
-        var minute = parseInt(timeParts[1].substring(0, 2));
-        
-        if (timeParts[1].toLowerCase().includes('pm') && hour !== 12) {
-            hour += 12;
+        if (dateString.includes('_')) {
+            // Parse the custom format (e.g., "23_10_11 2:30pm")
+            var parts = dateString.split(' ');
+            var dateParts = parts[0].split('_');
+            var timeParts = parts[1].split(':');
+            
+            var year = parseInt('20' + dateParts[0]);
+            var month = parseInt(dateParts[1]) - 1;
+            var day = parseInt(dateParts[2]);
+            
+            var hour = parseInt(timeParts[0]);
+            var minute = parseInt(timeParts[1].substring(0, 2));
+            
+            if (timeParts[1].toLowerCase().includes('pm') && hour !== 12) {
+                hour += 12;
+            }
+            if (timeParts[1].toLowerCase().includes('am') && hour === 12) {
+                hour = 0;
+            }
+    
+            return new Date(year, month, day, hour, minute);
+        } else {
+            // Parse ISO 8601 format (e.g., "2023-10-11T14:30:00Z")
+            return new Date(dateString);
         }
-        if (timeParts[1].toLowerCase().includes('am') && hour === 12) {
-            hour = 0;
-        }
-
-        return new Date(year, month, day, hour, minute);
     }
 
     // SVG icon generation
@@ -274,7 +329,7 @@ sip.utilities = (function($) {
         showToast: showToast,
         showSpinner: showSpinner,
         hideSpinner: hideSpinner,
-        initSortHandlers: initSortHandlers,
+        initImageSorting: initImageSorting,
         getSortIcon: getSortIcon,
         comparePixels: comparePixels,
         compareFileSize: compareFileSize,

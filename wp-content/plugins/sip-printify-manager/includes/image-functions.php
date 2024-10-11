@@ -271,6 +271,9 @@ function fetch_images($token) {
 
         foreach ($images['data'] as &$image) {
             $image['location'] = isset($image['is_archived']) && $image['is_archived'] ? 'Printify Shop (Archived)' : 'Printify Shop';
+            if (!isset($image['upload_time']) && isset($image['created_at'])) {
+                $image['upload_time'] = $image['created_at'];
+            }
         }
 
         $all_images = array_merge($all_images, $images['data']);
@@ -350,7 +353,10 @@ function sip_display_image_list($images) {
         $size = isset($image['size']) ? esc_html(format_file_size($image['size'])) : '';
         $filename = esc_html($image['file_name']);
 
-        $html .= '<tr title="' . esc_attr($filename) . '">
+        $is_printify_image = (strpos($location, 'Printify Shop') !== false);
+        $row_style = $is_printify_image ? 'font-weight: bold;' : '';
+
+        $html .= '<tr title="' . esc_attr($filename) . '" style="' . $row_style . '">
             <td><input type="checkbox" name="selected_images[]" value="' . esc_attr($image['id']) . '" /></td>
             <td>
                 <a href="' . esc_url($image['preview_url']) . '" target="_blank">
@@ -392,6 +398,8 @@ function format_file_size($bytes) {
  *
  * This function processes image uploads sent via AJAX from the admin interface.
  * It saves the uploaded images to a local directory and updates the images list.
+ *
+ * @return array Response containing updated images, message, and image list HTML
  */
 function sip_handle_image_upload() {
     $images = $_FILES['images'];
@@ -443,6 +451,7 @@ function sip_handle_image_upload() {
                     'height' => $height,
                     'preview_url' => $sip_upload_url . $file_name,
                     'location' => 'Local File',
+                    'upload_time' => current_time('mysql'), // Add upload timestamp
                 );
 
                 // Add image to existing images
@@ -468,9 +477,13 @@ function sip_handle_image_upload() {
         $message .= 'Errors: ' . implode(' ', $errors);
     }
 
+    // Generate the updated image list HTML
+    $image_list_html = sip_display_image_list($existing_images);
+
     return array(
         'images' => $existing_images,
-        'message' => $message
+        'message' => $message,
+        'image_list_html' => $image_list_html
     );
 }
 

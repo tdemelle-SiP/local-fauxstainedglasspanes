@@ -4,14 +4,15 @@ var sip = sip || {};
 
 sip.init = (function($, ajax, utilities) {
     function initializeAllModules() {
-        // Initialize ajax module
-        if (sip.ajax && typeof sip.ajax.init === 'function') {
-            sip.ajax.init();
-        }
 
         // Initialize utilities module
         if (sip.utilities && typeof sip.utilities.init === 'function') {
             sip.utilities.init();
+        }
+
+        // Initialize ajax module
+        if (sip.ajax && typeof sip.ajax.init === 'function') {
+            sip.ajax.init();
         }
 
         // Initialize product actions module
@@ -42,7 +43,17 @@ sip.init = (function($, ajax, utilities) {
             sip.creationActions.init();
         }
 
+        registerAllSuccessHandlers();
+
         // Add any other module initializations here
+    }
+
+    function registerAllSuccessHandlers() {
+        if (sip.imageActions && typeof sip.imageActions.handleSuccessResponse === 'function') {
+            sip.ajax.registerSuccessHandler('image_action', sip.imageActions.handleSuccessResponse);
+            sip.ajax.registerSuccessHandler('upload_images', sip.imageActions.handleSuccessResponse);
+        }
+        // Add other success handler registrations here if needed
     }
 
     function initializeGlobalEventListeners() {
@@ -58,6 +69,8 @@ sip.init = (function($, ajax, utilities) {
             utilities.showToast('An error occurred. Please try again.', 5000);
         });
     }
+
+
 
     return {
         initializeAllModules: initializeAllModules,
