@@ -42,9 +42,7 @@ sip.ajax = (function($) {
         if (buttonSelector) {
             $(buttonSelector).attr('disabled', true);
         }
-        if (spinnerSelector) {
-            $(spinnerSelector).show();
-        }
+
         sip.utilities.showSpinner();
 
         $.ajax({
@@ -57,9 +55,6 @@ sip.ajax = (function($) {
                 // Re-enable button and hide spinner
                 if (buttonSelector) {
                     $(buttonSelector).attr('disabled', false);
-                }
-                if (spinnerSelector) {
-                    $(spinnerSelector).hide();
                 }
 
                 if (response.success) {
@@ -87,6 +82,9 @@ sip.ajax = (function($) {
      * @param {Object} response - Response data from the server
      */
     function handleSuccessResponse(actionType, response) {
+        console.log('Handling success response for action type:', actionType);
+        console.log('Registered handlers:', successHandlers);
+        
         switch (actionType) {
             case 'save_token':
             case 'new_token':
@@ -121,9 +119,6 @@ sip.ajax = (function($) {
         if (buttonSelector) {
             $(buttonSelector).attr('disabled', false);
         }
-        if (spinnerSelector) {
-            $(spinnerSelector).hide();
-        }
 
         console.error('AJAX Error:', textStatus, errorThrown, jqXHR.responseText);
         sip.utilities.showToast('AJAX Error occurred: ' + textStatus + ' - ' + errorThrown, 5000);
@@ -136,8 +131,3 @@ sip.ajax = (function($) {
         registerSuccessHandler: registerSuccessHandler
     };
 })(jQuery);
-
-// Initialize ajax module when the document is ready
-jQuery(document).ready(function() {
-    sip.ajax.init();
-});

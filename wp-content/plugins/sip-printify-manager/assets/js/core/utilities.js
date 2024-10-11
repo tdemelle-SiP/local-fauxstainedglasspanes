@@ -22,6 +22,15 @@ sip.utilities = (function($) {
         initSpinner();
     }
 
+    function createFormData(actionType, action) {
+        var formData = new FormData();
+        formData.append('action', 'sip_handle_ajax_request');
+        formData.append('action_type', actionType);
+        formData.append(actionType, action);
+        formData.append('nonce', sipAjax.nonce);
+        return formData;
+    }
+
     // Spinner functionality
     function initSpinner() {
         $(document).ready(function() {
@@ -270,11 +279,7 @@ sip.utilities = (function($) {
         comparePixels: comparePixels,
         compareFileSize: compareFileSize,
         compareDates: compareDates,
-        parseCustomDate: parseCustomDate
+        parseCustomDate: parseCustomDate,
+        createFormData: createFormData
     };
 })(jQuery);
-
-// Initialize utilities when the document is ready
-jQuery(document).ready(function() {
-    sip.utilities.init();
-});

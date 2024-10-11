@@ -4,42 +4,46 @@ var sip = sip || {};
 
 sip.imageActions = (function($, ajax, utilities) {
     function init() {
-        attachDragAndDropEvents();
-        attachFileInputEvents();
-        attachReloadImagesEvent();
-        attachImageActionFormSubmit();
+        attachEventListeners();
     }
 
-    function attachDragAndDropEvents() {
-        $('#image-upload-area').on({
-            dragover: function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                $(this).addClass('dragging');
-            },
-            dragleave: function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                $(this).removeClass('dragging');
-            },
-            drop: function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                $(this).removeClass('dragging');
-                handleImageUpload(e.originalEvent.dataTransfer.files);
-            }
-        });
+    function attachEventListeners() {
+        // Use event delegation for dynamically added elements
+        $(document).on('dragover', '#image-upload-area', handleDragOver);
+        $(document).on('dragleave', '#image-upload-area', handleDragLeave);
+        $(document).on('drop', '#image-upload-area', handleDrop);
+        $(document).on('click', '#select-images-button', triggerFileInput);
+        $(document).on('change', '#image-file-input', handleFileInputChange);
+        $(document).on('click', '#reload-images-button', reloadShopImages);
+        $(document).on('submit', '.image-action-form', handleImageActionFormSubmit);
     }
 
-    function attachFileInputEvents() {
-        $('#select-images-button').on('click', function(e) {
-            e.preventDefault();
-            $('#image-file-input').trigger('click');
-        });
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).addClass('dragging');
+    }
 
-        $('#image-file-input').on('change', function(e) {
-            handleImageUpload(e.target.files);
-        });
+    function handleDragLeave(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).removeClass('dragging');
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).removeClass('dragging');
+        handleImageUpload(e.originalEvent.dataTransfer.files);
+    }
+
+    function triggerFileInput(e) {
+        e.preventDefault();
+        $('#image-file-input').trigger('click');
+    }
+
+    function handleFileInputChange(e) {
+        handleImageUpload(e.target.files);
     }
 
     function handleImageUpload(files) {
@@ -57,20 +61,15 @@ sip.imageActions = (function($, ajax, utilities) {
         });
 
         formData.append('action', 'sip_handle_ajax_request');
-        formData.append('action_type', 'upload_images');
+        formData.append('action_type', 'image_action');
+        formData.append('image_action', 'upload_images');
         formData.append('nonce', sipAjax.nonce);
 
         sip.ajax.handleAjaxAction('upload_images', formData);
     }
 
-    function attachReloadImagesEvent() {
-        $(document).on('click', '#reload-images-button', function(e) {
-            e.preventDefault();
-            reloadShopImages();
-        });
-    }
-
-    function reloadShopImages() {
+    function reloadShopImages(e) {
+        if (e) e.preventDefault();
         var formData = new FormData($('#reload-shop-images-form')[0] || new FormData());
         formData.append('action', 'sip_handle_ajax_request');
         formData.append('action_type', 'image_action');
@@ -80,22 +79,20 @@ sip.imageActions = (function($, ajax, utilities) {
         sip.ajax.handleAjaxAction('image_action', formData);
     }
 
-    function attachImageActionFormSubmit() {
-        $('.image-action-form').on('submit', function(e) {
-            e.preventDefault();
-            var formData = new FormData(this);
-            var action = $('#image_action').val();
+    function handleImageActionFormSubmit(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        var action = $('#image_action').val();
 
-            $('input[name="selected_images[]"]:checked').each(function() {
-                formData.append('selected_images[]', $(this).val());
-            });
-            formData.append('action', 'sip_handle_ajax_request');
-            formData.append('action_type', 'image_action');
-            formData.append('image_action', action);
-            formData.append('nonce', sipAjax.nonce);
-
-            sip.ajax.handleAjaxAction('image_action', formData);
+        $('input[name="selected_images[]"]:checked').each(function() {
+            formData.append('selected_images[]', $(this).val());
         });
+        formData.append('action', 'sip_handle_ajax_request');
+        formData.append('action_type', 'image_action');
+        formData.append('image_action', action);
+        formData.append('nonce', sipAjax.nonce);
+
+        sip.ajax.handleAjaxAction('image_action', formData);
     }
 
     function handleSuccessResponse(response) {
@@ -107,12 +104,7 @@ sip.imageActions = (function($, ajax, utilities) {
         }
 
         $('input[name="selected_images[]"], #select-all-images').prop('checked', false);
-        
-        if (response.data.action === 'upload_images') {
-            $('#image-file-input').val('');
-        }
-        
-        attachReloadImagesEvent();
+        $('#image-file-input').val('');
     }
 
     return {
@@ -122,5 +114,3 @@ sip.imageActions = (function($, ajax, utilities) {
 })(jQuery, sip.ajax, sip.utilities);
 
 sip.ajax.registerSuccessHandler('image_action', sip.imageActions.handleSuccessResponse);
-
-jQuery(document).ready(sip.imageActions.init);

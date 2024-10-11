@@ -29,9 +29,12 @@ sip.init = (function($, ajax, utilities) {
             sip.templateActions.init();
         }
 
-        // Initialize template editor module
-        if (sip.templateEditor && typeof sip.templateEditor.init === 'function') {
-            sip.templateEditor.init();
+        // Initialize template actions module
+        if (sip.templateActions && typeof sip.templateActions.init === 'function') {
+            console.log('Initializing template actions module');
+            sip.templateActions.init();
+        } else {
+            console.warn('Template actions module not found or init function not defined');
         }
 
         // Initialize creation actions module

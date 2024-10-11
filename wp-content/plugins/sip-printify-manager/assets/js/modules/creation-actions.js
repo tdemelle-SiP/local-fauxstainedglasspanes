@@ -26,7 +26,6 @@ sip.creationActions = (function($, ajax, utilities) {
      * Attach all event listeners
      */
     function attachEventListeners() {
-        $('#template-action-form').on('submit', handleTemplateActionFormSubmit);
         $('#create-product-button').on('click', handleCreateProduct);
         $('#product-creation-container').on('click', '#edit-json', handleEditJson);
         $('#product-creation-container').on('click', '#save-template', handleSaveTemplate);
@@ -34,32 +33,25 @@ sip.creationActions = (function($, ajax, utilities) {
         $('#creation-table').on('change', 'input, textarea, select', function() {
             isDirty = true;
         });
+        $('#template-action-form').on('submit', function(e) {
+            e.preventDefault();
+            var templateAction = $('#template_action').val();
+            if (templateAction === 'create_new_products') {
+                var selectedTemplate = $('input[name="selected_templates[]"]:checked').first().val();
+                handleCreateNewProducts(selectedTemplate);
+            }
+        });
     }
 
-    /**
-     * Handle template action form submission
-     */
-    function handleTemplateActionFormSubmit(e) {
-        e.preventDefault();
-        console.log('Form submission detected for template-action-form...');
-
-        const action = $('#template_action').val();
-        console.log('Selected action:', action);
-
-        if (action === 'create_new_products') {
-            console.log('create_new_products action detected...');
-
-            const selectedTemplates = $('input[name="selected_templates[]"]:checked');
-            if (selectedTemplates.length === 0) {
-                return;
-            }
-
-            selectedTemplateId = selectedTemplates.first().val();
-            console.log('Selected template ID:', selectedTemplateId);
-
-            localStorage.setItem('sip_selected_template', selectedTemplateId);
-            loadProductCreationTable(selectedTemplateId);
+    function handleCreateNewProducts(selectedTemplateId) {
+        console.log('create_new_products action detected...');
+        if (!selectedTemplateId) {
+            console.error('No template selected');
+            return;
         }
+        console.log('Selected template ID:', selectedTemplateId);
+        localStorage.setItem('sip_selected_template', selectedTemplateId);
+        loadProductCreationTable(selectedTemplateId);
     }
 
     /**
@@ -67,37 +59,35 @@ sip.creationActions = (function($, ajax, utilities) {
      */
     function loadProductCreationTable(templateName) {
         console.log('Loading Product Creation Table for template:', templateName);
-
+    
         $('#product-creation-container').show();
         $('#selected-template-name').text(templateName);
-
+    
         utilities.showSpinner();
-
+    
         const formData = new FormData();
         formData.append('action', 'sip_handle_ajax_request');
-        formData.append('action_type', 'template_action');
-        formData.append('template_action', 'create_new_products');
+        formData.append('action_type', 'creation_action');
+        formData.append('creation_action', 'create_new_products');
         formData.append('template_name', templateName);
         formData.append('nonce', sipAjax.nonce);
-
-        sip.ajax.handleAjaxAction('template_action', formData, 
-            function(response) {
-                console.log('AJAX response received:', response);
-                utilities.hideSpinner();
-
-                if (response.success) {
-                    console.log('Calling buildCreationTable with data:', response.data);
-                    buildCreationTable(response.data);
-                } else {
-                    console.error('Error in AJAX response:', response.data);
-                }
-            },
-            function(error) {
-                console.error('AJAX call failed:', error);
-                utilities.hideSpinner();
-            }
-        );
+    
+        sip.ajax.handleAjaxAction('creation_action', formData);
     }
+    
+    // Add this function to handle the AJAX response
+    function handleCreationActionResponse(response) {
+        console.log('AJAX response received:', response);
+        utilities.hideSpinner();
+    
+        if (response.success) {
+            console.log('Calling buildCreationTable with data:', response.data);
+            buildCreationTable(response.data);
+        } else {
+            console.error('Error in AJAX response:', response.data);
+        }
+    }
+    
 
     /**
      * Handle Create Product button click
@@ -585,13 +575,20 @@ sip.creationActions = (function($, ajax, utilities) {
         return productData;
     }
 
+    function handleSuccessResponse(response) {
+        if (response.data.template_data) {
+            $('#sip-section').html(response.data.template_data).show();
+        }
+        $('input[name="selected_templates[]"], #select-all-templates').prop('checked', false);
+    }
+
     // Expose public methods
     return {
         init: init,
-        buildCreationTable: buildCreationTable
+        buildCreationTable: buildCreationTable,
+        handleSuccessResponse: handleSuccessResponse,
+        attachEventListeners: attachEventListeners
     };
 })(jQuery, sip.ajax, sip.utilities);
 
 sip.ajax.registerSuccessHandler('creation_action', sip.creationActions.handleSuccessResponse);
-// Initialize creation actions when the document is ready
-jQuery(document).ready(sip.creationActions.init);

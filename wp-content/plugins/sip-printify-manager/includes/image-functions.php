@@ -17,26 +17,43 @@ if (!defined('ABSPATH')) exit;
  */
 function sip_handle_image_action() {
     error_log('sip_handle_image_action() called');
-    $image_action = sanitize_text_field($_POST['image_action']);
+    $image_action = isset($_POST['image_action']) ? sanitize_text_field($_POST['image_action']) : '';
     $selected_images = isset($_POST['selected_images']) ? $_POST['selected_images'] : array();
 
     // Log the received data for debugging
     error_log('Action: ' . $image_action);
     error_log('Selected images: ' . print_r($selected_images, true));
 
-    // Execute action based on user selection
-    $result = sip_execute_image_action($image_action, $selected_images);
-    $images = $result['images'];
+    $result = array();
+
+    switch ($image_action) {
+        case 'reload_shop_images':
+        case 'remove_from_manager':
+            $result = sip_remove_images_from_manager($selected_images);
+            break;
+        case 'upload_to_shop':
+        case 'archive_shop_image':
+            $result = sip_execute_image_action($image_action, $selected_images);
+            break;
+        case 'upload_images':
+            if (empty($_FILES['images'])) {
+                wp_send_json_error('No images uploaded.');
+            }
+            $result = sip_handle_image_upload();
+            break;
+        default:
+            wp_send_json_error('Invalid image action.');
+            return;
+    }
+
+    $images = isset($result['images']) ? $result['images'] : array();
     $message = isset($result['message']) ? $result['message'] : '';
 
     // Generate the updated image list HTML
     $image_list_html = sip_display_image_list($images);
 
     // Send the response back to the AJAX call
-    wp_send_json_success(array(
-        'image_list_html' => $image_list_html,
-        'message' => $message
-    ));
+    wp_send_json_success($result);
 }
 
 /**
@@ -57,148 +74,157 @@ function sip_execute_image_action($action, $selected_images = array()) {
     // Retrieve current images
     $images = get_option('sip_printify_images', array());
 
-    if ($action === 'reload_shop_images') {
-        // Fetch images from Printify API
-        $remote_images = fetch_images($token);
+    switch ($action) {
+        case 'reload_shop_images':
+            // Fetch images from Printify API
+            $remote_images = fetch_images($token);
 
-        if ($remote_images !== null) {
-            // Get existing images from options
-            $existing_images = get_option('sip_printify_images', array());
+            if ($remote_images !== null) {
+                // Get existing images from options
+                $existing_images = get_option('sip_printify_images', array());
 
-            // Separate local images from existing images
-            $local_images = array_filter($existing_images, function($image) {
-                return isset($image['location']) && $image['location'] === 'Local File';
+                // Separate local images from existing images
+                $local_images = array_filter($existing_images, function($image) {
+                    return isset($image['location']) && $image['location'] === 'Local File';
+                });
+
+                // Merge local images with newly fetched remote images
+                $images = array_merge($local_images, $remote_images);
+
+                // Update the images option with the merged array
+                update_option('sip_printify_images', $images);
+
+                return array(
+                    'images' => $images, 
+                    'message' => 'Shop images reloaded successfully.'
+                );
+            } else {
+                return array('images' => $images, 'message' => 'Failed to reload shop images.');
+            }
+        case 'remove_from_manager':
+            if (empty($selected_images)) {
+                return array(
+                    'images' => $images,
+                    'message' => 'No images selected for removal.'
+                );
+            }
+
+            // Remove selected images from the manager (local database)
+            $images = array_filter($images, function ($image) use ($selected_images) {
+                return !in_array($image['id'], $selected_images);
             });
-
-            // Merge local images with newly fetched remote images
-            $images = array_merge($local_images, $remote_images);
-
-            // Update the images option with the merged array
             update_option('sip_printify_images', $images);
-
+            
             return array(
                 'images' => $images, 
-                'message' => 'Shop images reloaded successfully.'
+                'message' => 'Selected images removed from manager.'
             );
-        } else {
-            return array('images' => $images, 'message' => 'Failed to reload shop images.');
-        }
-    }
 
-    if ($action === 'remove_from_manager') {
-
-        if (empty($selected_images)) {
+        case 'upload_to_shop':
+            $uploaded_images = array();
+            $already_in_shop = array();
+            $errors = array();
+        
+            foreach ($selected_images as $image_id) {
+                // Find the image in the images array
+                foreach ($images as &$image) {
+                    if ($image['id'] === $image_id) {
+                        if ($image['location'] === 'Local File') {
+                            // Upload image to shop
+                            $upload_result = upload_image_to_shop($token, $image);
+                            if ($upload_result['success']) {
+                                // Update image data with new info from shop
+                                $image = array_merge($image, $upload_result['image_data']);
+                                $image['location'] = 'Printify Shop'; // Update location
+                                $uploaded_images[] = $image['file_name'];
+                            } else {
+                                $errors[] = $upload_result['message'];
+                            }
+                        } else {
+                            $already_in_shop[] = $image['file_name'];
+                        }
+                        break;
+                    }
+                }
+            }
+        
+            // Update images option with the modified images array
+            update_option('sip_printify_images', $images);
+        
+            // Prepare the response message
+            $message = '';
+            if (!empty($uploaded_images)) {
+                $message .= 'Uploaded images: ' . implode(', ', $uploaded_images) . '. ';
+            }
+            if (!empty($already_in_shop)) {
+                $message .= 'Files already in the shop: ' . implode(', ', $already_in_shop) . '. ';
+            }
+            if (!empty($errors)) {
+                $message .= 'Errors: ' . implode(' ', $errors);
+            }
+        
             return array(
                 'images' => $images,
-                'message' => 'No images selected for removal.'
+                'message' => $message
             );
-        }
 
-        // Remove selected images from the manager (local database)
-        $images = array_filter($images, function($image) use ($selected_images) {
-            return !in_array($image['id'], $selected_images);
-        });
-        update_option('sip_printify_images', $images);
-        
-        return array(
-            'images' => $images, 
-            'message' => 'Selected images removed from manager.'
-        );
-    }
+        case 'archive_shop_image':
+            $archived_images = array();
+            $errors = array();
 
-    if ($action === 'upload_to_shop') {
-        $uploaded_images = array();
-        $already_in_shop = array();
-        $errors = array();
-    
-        foreach ($selected_images as $image_id) {
-            // Find the image in the images array
-            foreach ($images as &$image) {
-                if ($image['id'] === $image_id) {
-                    if ($image['location'] === 'Local File') {
-                        // Upload image to shop
-                        $upload_result = upload_image_to_shop($token, $image);
-                        if ($upload_result['success']) {
-                            // Update image data with new info from shop
-                            $image = array_merge($image, $upload_result['image_data']);
-                            $image['location'] = 'Printify Shop'; // Update location
-                            $uploaded_images[] = $image['file_name'];
+            foreach ($selected_images as $image_id) {
+                // Find the image in the images array
+                foreach ($images as &$image) {
+                    if ($image['id'] === $image_id) {
+                        if ($image['location'] === 'Printify Shop') {
+                            // Archive image on Printify
+                            $archive_result = archive_image_on_shop($token, $image['id']);
+                            if ($archive_result['success']) {
+                                $image['location'] = 'Printify Shop (Archived)';
+                                $archived_images[] = $image['file_name'];
+                            } else {
+                                $errors[] = $archive_result['message'];
+                            }
                         } else {
-                            $errors[] = $upload_result['message'];
+                            $errors[] = "Image '{$image['file_name']}' is not in the shop.";
                         }
-                    } else {
-                        $already_in_shop[] = $image['file_name'];
+                        break;
                     }
-                    break;
                 }
             }
-        }
-    
-        // Update images option with the modified images array
-        update_option('sip_printify_images', $images);
-    
-        // Prepare the response message
-        $message = '';
-        if (!empty($uploaded_images)) {
-            $message .= 'Uploaded images: ' . implode(', ', $uploaded_images) . '. ';
-        }
-        if (!empty($already_in_shop)) {
-            $message .= 'Files already in the shop: ' . implode(', ', $already_in_shop) . '. ';
-        }
-        if (!empty($errors)) {
-            $message .= 'Errors: ' . implode(' ', $errors);
-        }
-    
-        return array(
-            'images' => $images,
-            'message' => 'No action performed.'
-        );
-    }
 
-    if ($action === 'archive_shop_image') {
-        $archived_images = array();
-        $errors = array();
+            // Update images option
+            update_option('sip_printify_images', $images);
 
-        foreach ($selected_images as $image_id) {
-            // Find the image in the images array
-            foreach ($images as &$image) {
-                if ($image['id'] === $image_id) {
-                    if ($image['location'] === 'Printify Shop') {
-                        // Archive image on Printify
-                        $archive_result = archive_image_on_shop($token, $image['id']);
-                        if ($archive_result['success']) {
-                            $image['location'] = 'Printify Shop (Archived)';
-                            $archived_images[] = $image['file_name'];
-                        } else {
-                            $errors[] = $archive_result['message'];
-                        }
-                    } else {
-                        $errors[] = "Image '{$image['file_name']}' is not in the shop.";
-                    }
-                    break;
-                }
+            // Prepare message
+            $message = '';
+            if (!empty($archived_images)) {
+                $message .= 'Archived images: ' . implode(', ', $archived_images) . '. ';
             }
-        }
+            if (!empty($errors)) {
+                $message .= 'Errors: ' . implode(' ', $errors);
+            }
 
-        // Update images option
-        update_option('sip_printify_images', $images);
+            return array('images' => $images, 'message' => $message);
 
-        // Prepare message
-        $message = '';
-        if (!empty($archived_images)) {
-            $message .= 'Archived images: ' . implode(', ', $archived_images) . '. ';
-        }
-        if (!empty($errors)) {
-            $message .= 'Errors: ' . implode(' ', $errors);
-        }
-
-        return array('images' => $images, 'message' => $message);
+        default:
+            return array('images' => $images, 'message' => 'No action performed.');
     }
-
-    // Handle other actions as needed...
-
-    return array('images' => $images, 'message' => 'No action performed.');
 }
+
+function sip_remove_images_from_manager($selected_images) {
+    $images = get_option('sip_printify_images', array());
+    $images = array_filter($images, function($image) use ($selected_images) {
+        return !in_array($image['id'], $selected_images);
+    });
+    update_option('sip_printify_images', $images);
+
+    return array(
+        'image_list_html' => sip_display_image_list($images),
+        'message' => 'Images removed successfully.'
+    );
+}
+
 
 /**
  * Fetch Images from the Printify API with Pagination
@@ -209,8 +235,6 @@ function sip_execute_image_action($action, $selected_images = array()) {
  * @param string $token The decrypted API token.
  * @return array|null An array of images or null on failure.
  */
-// includes/image-functions.php
-
 function fetch_images($token) {
     $all_images = array();
     $page = 1;
@@ -370,11 +394,6 @@ function format_file_size($bytes) {
  * It saves the uploaded images to a local directory and updates the images list.
  */
 function sip_handle_image_upload() {
-    // Check if images are uploaded
-    if (empty($_FILES['images'])) {
-        wp_send_json_error('No images uploaded.');
-    }
-
     $images = $_FILES['images'];
     $uploaded_images = array();
     $errors = array();
@@ -449,10 +468,10 @@ function sip_handle_image_upload() {
         $message .= 'Errors: ' . implode(' ', $errors);
     }
 
-    // Re-display the image list
-    $image_list_html = sip_display_image_list($existing_images);
-
-    wp_send_json_success(array('message' => $message, 'image_list_html' => $image_list_html));
+    return array(
+        'images' => $existing_images,
+        'message' => $message
+    );
 }
 
 /**

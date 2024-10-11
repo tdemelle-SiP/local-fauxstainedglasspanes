@@ -9,9 +9,10 @@ function sip_handle_creation_action() {
         case 'update_new_product':
             sip_update_new_product_data();
             break;
-
+        case 'create_new_products':
+            sip_create_new_product_from_template();
+            break;
         // Add other creation actions as needed
-
         default:
             wp_send_json_error('Unknown creation action.');
             break;
@@ -24,12 +25,25 @@ function sip_create_new_product_from_template() {
 
     $template_name = isset($_POST['template_name']) ? sanitize_text_field($_POST['template_name']) : '';
 
-    $product_data = sip_get_template_json_from_file($template_name);
-    if (!$product_data) wp_send_json_error('Template not found.');
+    if (empty($template_name)) {
+        wp_send_json_error('No template name provided.');
+    }
 
-    wp_send_json_success($product_data);
+    $product_data = sip_get_template_json_from_file($template_name);
+    if (!$product_data) {
+        wp_send_json_error('Template not found or failed to load.');
+    }
+
+    // Store the template data in a transient for later use
+    $user_id = get_current_user_id();
+    $transient_key = 'sip_new_product_data_' . $user_id . '_' . $template_name;
+    set_transient($transient_key, $product_data, HOUR_IN_SECONDS);
+
+    wp_send_json_success(array(
+        'template_data' => $product_data,
+        'message' => 'Template loaded successfully for new product creation.'
+    ));
 }
-add_action('wp_ajax_sip_create_new_product_from_template', 'sip_create_new_product_from_template');
 
 function sip_get_template_json_from_file($template_name) {
     $template_dir = sip_get_template_dir();
@@ -77,7 +91,6 @@ function sip_update_new_product_data() {
 
     wp_send_json_success('Product data updated successfully.');
 }
-add_action('wp_ajax_sip_update_new_product_data', 'sip_update_new_product_data');
 
 // Create product on Printify
 function sip_create_product() {
@@ -99,7 +112,6 @@ function sip_create_product() {
         wp_send_json_error('Error creating product: ' . $api_response['message']);
     }
 }
-add_action('wp_ajax_sip_create_product', 'sip_create_product');
 
 // Placeholder for Printify API call
 function sip_send_product_to_printify($product_data) {

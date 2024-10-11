@@ -190,13 +190,20 @@ function sip_delete_template($template_name) {
  * This function handles actions like deleting, editing, renaming templates, and creating new products from templates based on AJAX requests.
  */
 function sip_handle_template_action() {
+    if (!check_ajax_referer('sip_printify_manager_nonce', 'nonce', false)) {
+        wp_send_json_error('Security check failed');
+    }
+
     $template_action = isset($_POST['template_action']) ? sanitize_text_field($_POST['template_action']) : '';
 
     switch ($template_action) {
         case 'delete_template':
             $selected_templates = isset($_POST['selected_templates']) ? $_POST['selected_templates'] : array();
+            $deleted_count = 0;
             foreach ($selected_templates as $templateId) {
-                sip_delete_template(sanitize_text_field($templateId));
+                if (sip_delete_template(sanitize_text_field($templateId))) {
+                    $deleted_count++;
+                }
             }
         
             // Load the updated list of templates
@@ -205,7 +212,10 @@ function sip_handle_template_action() {
             $template_list_html = sip_display_template_list($templates);
         
             // Send a JSON response back to the AJAX call with the updated HTML content
-            wp_send_json_success(array('template_list_html' => $template_list_html));
+            wp_send_json_success(array(
+                'template_list_html' => $template_list_html,
+                'message' => "$deleted_count template(s) deleted successfully."
+            ));
             break;
 
         case 'rename_template':
@@ -259,12 +269,7 @@ function sip_handle_template_action() {
                 wp_send_json_error('No template name provided.');
             }
             break;
-
-        case 'create_new_products':
-            // Handle creating new products from template
-            sip_create_new_product_from_template();
-            break;
-
+            
         default:
             wp_send_json_error('Unknown template action.');
             break;

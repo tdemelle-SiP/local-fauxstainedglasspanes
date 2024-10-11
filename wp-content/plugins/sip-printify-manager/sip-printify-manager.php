@@ -81,9 +81,6 @@ class SiP_Printify_Manager {
         // The actual AJAX handler functions are offloaded to specialized files
         add_action('wp_ajax_sip_handle_ajax_request', 'sip_handle_ajax_request');
 
-        // Handle AJAX requests for image uploads
-        add_action('wp_ajax_sip_upload_images', 'sip_handle_image_upload');
-
         // Hook for saving template content
         add_action('wp_ajax_sip_save_template_content', 'sip_save_template_content');
 
@@ -93,9 +90,6 @@ class SiP_Printify_Manager {
 
         // Add CSS to hide admin notices on the custom admin page
         add_action('admin_head', array($this, 'hide_admin_notices_with_css'));
-
-        // Register AJAX handler for image actions
-        add_action('wp_ajax_sip_handle_image_action', 'sip_handle_image_action');
     }
 
     /**
