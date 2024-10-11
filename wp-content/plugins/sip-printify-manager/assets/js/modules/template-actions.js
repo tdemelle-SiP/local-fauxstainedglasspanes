@@ -27,7 +27,7 @@ sip.templateActions = (function($, ajax, utilities) {
                     formData.append('old_template_name', oldName);
                     formData.append('new_template_name', newName);
 
-                    ajax.handleAjaxAction('template_action', formData, 
+                    sip.ajax.handleAjaxAction('template_action', formData, 
                         function(response) {
                             if (response.success) {
                                 $cell.text(newName).data('template-name', newName);
@@ -50,22 +50,20 @@ sip.templateActions = (function($, ajax, utilities) {
         e.preventDefault();
         e.stopPropagation(); // Prevent event bubbling
         var $form = $(this);
-        var formData = new FormData($form[0]);
-        var templateAction = $form.find('#template_action').val();
-        
-        console.log('Template action triggered:', templateAction);
+        var formData = new FormData(this);
+        var action = $('#template_action').val();
+        console.log('Template action triggered:', action);
     
         // For other actions (like delete_template)
-        formData.delete('selected_templates[]');
-        $form.find('input[name="selected_templates[]"]:checked').each(function () {
+        $('input[name="selected_templates[]"]:checked').each(function() {
             formData.append('selected_templates[]', $(this).val());
         });
-    
         formData.append('action', 'sip_handle_ajax_request');
         formData.append('action_type', 'template_action');
+        formData.append('template_action', action);
         formData.append('nonce', sipAjax.nonce);
     
-        ajax.handleAjaxAction('template_action', formData);
+        sip.ajax.handleAjaxAction('template_action', formData);
     }
 
     function handleSuccessResponse(response) {

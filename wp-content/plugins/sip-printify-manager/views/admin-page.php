@@ -91,7 +91,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                             <select name="product_action" id="product_action">
                                 <option value="create_template"><?php esc_html_e('Create Template', 'sip-printify-manager'); ?></option>
                                 <option value="remove_from_manager"><?php esc_html_e('Remove from Manager', 'sip-printify-manager'); ?></option>                                    
-                                <option value="reload"><?php esc_html_e('Reload', 'sip-printify-manager'); ?></option>
+                                <option value="reload"><?php esc_html_e('Reload Shop Products', 'sip-printify-manager'); ?></option>
                             </select>
                             <input type="submit" name="execute_product_action" value="<?php esc_attr_e('Execute', 'sip-printify-manager'); ?>" class="button button-secondary" />
                         </form>

@@ -13,7 +13,7 @@ sip.productActions = (function($, ajax, utilities) {
     function reloadShopProducts(e) {
         e.preventDefault();
         var formData = utilities.createFormData('product_action', 'reload');
-        ajax.handleAjaxAction('product_action', formData);
+        sip.ajax.handleAjaxAction('product_action', formData);
     }
 
     function handleProductActionFormSubmit(e) {

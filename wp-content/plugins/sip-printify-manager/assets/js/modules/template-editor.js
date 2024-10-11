@@ -335,14 +335,20 @@ sip.templateEditor = (function($, ajax, utilities) {
         }
     }
 
+    //////////////////////////////////PRETTY SURE THIS AINT RIGHT BUT PUTTING IT IN HERE TO FIX A CONSOLE ERROR AS A TEST////////////
+    function handleSuccessResponse(response) {
+        if (response.data.template_list_html) {
+            $('#template-table-list').html(response.data.template_list_html).show();
+        }
+        $('input[name="selected_templates[]"], #select-all-templates').prop('checked', false);
+    }
+
     // Expose the init function
     return {
-        init: init
+        init: init,
+        handleSuccessResponse: handleSuccessResponse
     };
 })(jQuery, sip.ajax, sip.utilities);
 
 
 sip.ajax.registerSuccessHandler('template_action', sip.templateEditor.handleSuccessResponse);
-
-// Initialize the template editor when the document is ready
-jQuery(document).ready(sip.templateEditor.init);
