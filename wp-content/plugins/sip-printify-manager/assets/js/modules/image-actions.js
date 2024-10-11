@@ -69,13 +69,8 @@ sip.imageActions = (function($, ajax, utilities) {
     }
 
     function reloadShopImages(e) {
-        if (e) e.preventDefault();
-        var formData = new FormData($('#reload-shop-images-form')[0] || new FormData());
-        formData.append('action', 'sip_handle_ajax_request');
-        formData.append('action_type', 'image_action');
-        formData.append('image_action', 'reload_shop_images');
-        formData.append('nonce', sipAjax.nonce);
-
+        e.preventDefault();
+        var formData = utilities.createFormData('image_action', 'reload_shop_images');
         sip.ajax.handleAjaxAction('image_action', formData);
     }
 
