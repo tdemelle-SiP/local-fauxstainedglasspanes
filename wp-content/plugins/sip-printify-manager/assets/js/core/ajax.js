@@ -65,9 +65,6 @@ sip.ajax = (function($) {
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 handleAjaxError(jqXHR, textStatus, errorThrown, buttonSelector, spinnerSelector);
-            },
-            complete: function() {
-                sip.utilities.hideSpinner();
             }
         });
     }
@@ -96,6 +93,7 @@ sip.ajax = (function($) {
                 } else {
                     console.warn('No success handler found for action type:', actionType);
                 }
+            sip.utilities.hideSpinner();
         }
     }
 
