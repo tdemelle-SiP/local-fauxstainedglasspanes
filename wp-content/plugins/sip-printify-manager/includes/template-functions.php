@@ -242,6 +242,3 @@ function sip_get_template_json_from_file($template_name) {
     $template_content = file_get_contents($file_path);
     return json_decode($template_content, true);
 }
-
-// Hook the template action handler to the WordPress AJAX action
-add_action('wp_ajax_sip_handle_ajax_request', 'sip_handle_template_action');
