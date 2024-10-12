@@ -101,6 +101,9 @@ sip.templateActions = (function($, ajax, utilities) {
         thead.empty();
         tbody.empty();
 
+        // Set the selected template name
+        $('#selected-template-name').text(templateData.title);
+
         // Build table headers
         const headers = ['#', 'Design - Front', 'Title', 'Description', 'Tags', 'Colors', 'Sizes', 'Price'];
         let headerRow = '<tr>';
