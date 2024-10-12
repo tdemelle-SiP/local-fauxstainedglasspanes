@@ -2,65 +2,29 @@
 // Exit if accessed directly
 if (!defined('ABSPATH')) exit;
 
+/**
+ * Handle creation actions triggered via AJAX.
+ */
 function sip_handle_creation_action() {
+
     $creation_action = isset($_POST['creation_action']) ? sanitize_text_field($_POST['creation_action']) : '';
 
     switch ($creation_action) {
         case 'update_new_product':
             sip_update_new_product_data();
             break;
-        case 'create_new_products':
-            sip_create_new_product_from_template();
+        case 'create_product':
+            sip_create_product();
             break;
-        // Add other creation actions as needed
         default:
             wp_send_json_error('Unknown creation action.');
             break;
     }
 }
 
-// Fetch and return product data from a template
-function sip_create_new_product_from_template() {
-    check_ajax_referer('sip_printify_manager_nonce', 'nonce');
-
-    $template_name = isset($_POST['template_name']) ? sanitize_text_field($_POST['template_name']) : '';
-
-    if (empty($template_name)) {
-        wp_send_json_error('No template name provided.');
-    }
-
-    $product_data = sip_get_template_json_from_file($template_name);
-    if (!$product_data) {
-        wp_send_json_error('Template not found or failed to load.');
-    }
-
-    // Store the template data in a transient for later use
-    $user_id = get_current_user_id();
-    $transient_key = 'sip_new_product_data_' . $user_id . '_' . $template_name;
-    set_transient($transient_key, $product_data, HOUR_IN_SECONDS);
-
-    wp_send_json_success(array(
-        'template_data' => $product_data,
-        'message' => 'Template loaded successfully for new product creation.'
-    ));
-}
-
-function sip_get_template_json_from_file($template_name) {
-    $template_dir = sip_get_template_dir();
-    error_log('Template Directory: ' . $template_dir);
-    $file_path = $template_dir . $template_name . '.json';
-    error_log('Template File Path: ' . $file_path);
-
-    if (!file_exists($file_path)) {
-        error_log('Template file does not exist at: ' . $file_path);
-        return false;
-    }
-
-    $template_content = file_get_contents($file_path);
-    return json_decode($template_content, true);
-}
-
-// Update product data based on user input
+/**
+ * Update product data based on user input.
+ */
 function sip_update_new_product_data() {
     check_ajax_referer('sip_printify_manager_nonce', 'nonce');
 
@@ -92,7 +56,9 @@ function sip_update_new_product_data() {
     wp_send_json_success('Product data updated successfully.');
 }
 
-// Create product on Printify
+/**
+ * Create a new product on Printify.
+ */
 function sip_create_product() {
     check_ajax_referer('sip_printify_manager_nonce', 'nonce');
 
@@ -113,10 +79,39 @@ function sip_create_product() {
     }
 }
 
-// Placeholder for Printify API call
+/**
+ * Send product data to Printify API.
+ *
+ * @param array $product_data The product data to send to Printify.
+ * @return array The API response.
+ */
 function sip_send_product_to_printify($product_data) {
-    // Implement API call here
+    // TODO: Implement actual API call to Printify
+    // This is a placeholder implementation
     return array(
         'success' => true,
+        'message' => 'Product sent to Printify successfully'
     );
 }
+
+/**
+ * Save the edited template content from the template editor.
+ */
+function sip_save_template_content() {
+    check_ajax_referer('sip_printify_manager_nonce', '_ajax_nonce');
+
+    $template_name    = sanitize_text_field($_POST['template_name']);
+    $template_content = wp_unslash($_POST['template_content']);
+    $file_path        = sip_get_template_dir() . $template_name . '.json';
+
+    if (file_exists($file_path)) {
+        if (file_put_contents($file_path, $template_content)) {
+            wp_send_json_success('Template saved successfully.');
+        } else {
+            wp_send_json_error('Failed to save template.');
+        }
+    } else {
+        wp_send_json_error('Template file not found.');
+    }
+}
+

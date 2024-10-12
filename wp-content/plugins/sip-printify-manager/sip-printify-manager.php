@@ -81,9 +81,6 @@ class SiP_Printify_Manager {
         // The actual AJAX handler functions are offloaded to specialized files
         add_action('wp_ajax_sip_handle_ajax_request', 'sip_handle_ajax_request');
 
-        // Hook for saving template content
-        add_action('wp_ajax_sip_save_template_content', 'sip_save_template_content');
-
         // Register the shortcode for displaying products (if needed)
         // The rendering function can be offloaded if it grows in complexity
         add_shortcode('sip_printify_products', 'render_products_shortcode');

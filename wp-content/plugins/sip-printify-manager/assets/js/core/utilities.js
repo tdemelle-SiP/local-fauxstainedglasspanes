@@ -127,9 +127,7 @@ sip.utilities = (function($) {
     var sortDirections = { 'upload_time': 'desc' };
 
     function initImageSorting() {
-        console.log('Initializing image sorting');
         $('#image-table-header').off('click', '.sortable').on('click', '.sortable', function(e) {
-            console.log('Sort header clicked:', $(this).data('sort'));
             handleSort.call(this);
         });
         updateSortIcons();
@@ -143,15 +141,10 @@ sip.utilities = (function($) {
     }
 
     function handleSort() {
-        console.log('Handling sort');
         var $this = $(this);
         var column = $this.data('sort');
         var currentDirection = $this.hasClass('asc') ? 'asc' : 'desc';
         var newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
-    
-        console.log('Sorting column:', column);
-        console.log('Current direction:', currentDirection);
-        console.log('New direction:', newDirection);
     
         // Remove sorting classes from all headers
         $('#image-table-header th').removeClass('asc desc');
@@ -166,11 +159,9 @@ sip.utilities = (function($) {
         $('#image-table-header').data('sort-column', column);
         $('#image-table-header').data('sort-direction', newDirection);
     
-        console.log('Sort complete');
     }
 
     function updateSortIcons() {
-        console.log('Updating sort icons');
         $('.sortable').each(function() {
             var column = $(this).data('sort');
             var icon;
@@ -181,23 +172,17 @@ sip.utilities = (function($) {
             } else {
                 icon = 'outline-down';
             }
-            console.log('Column:', column, 'Icon:', icon);
             $(this).find('svg').replaceWith($(getSortIcon(icon)));
         });
-        console.log('Sort icons updated');
     }
 
     function sortRows(column, direction) {
-        console.log('Sorting rows by', column, 'in', direction, 'direction');
         var $tbody = $('#image-table-content tbody');
         var rows = $tbody.find('tr').get();
-    
-        console.log('Number of rows to sort:', rows.length);
     
         rows.sort(function(a, b) {
             var aValue = $(a).find('td').eq(getColumnIndex(column)).text().trim();
             var bValue = $(b).find('td').eq(getColumnIndex(column)).text().trim();
-            console.log('Comparing:', aValue, 'and', bValue);
             
             var result = compareValues(aValue, bValue, column);
             
@@ -214,14 +199,9 @@ sip.utilities = (function($) {
         $.each(rows, function(index, row) {
             $tbody.append(row);
         });
-    
-        console.log('Rows reordered');
     }
 
     function compareValues(a, b, column) {
-        console.log('Comparing values for column:', column);
-        console.log('Value A:', a);
-        console.log('Value B:', b);
     
         var result;
         if (column === 'upload_time') {
@@ -233,8 +213,6 @@ sip.utilities = (function($) {
         } else {
             result = a.localeCompare(b);
         }
-    
-        console.log('Comparison result:', result);
         return result;
     }
 

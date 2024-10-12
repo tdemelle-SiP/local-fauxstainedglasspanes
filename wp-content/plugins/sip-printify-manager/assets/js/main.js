@@ -2,10 +2,26 @@
 
 var sip = sip || {};
 
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error('Global error:', message, 'at', source, 'line', lineno, ':', error);
+    return false;
+};
+
 (function($) {
     $(document).ready(function() {
         // Initialize all modules
-        sip.init.initializeAllModules();
+        if (sip.init && typeof sip.init.initializeAllModules === 'function') {
+            sip.init.initializeAllModules();
+        } else {
+            console.error('sip.init.initializeAllModules is not a function');
+        }
+
+        // Check if template actions module is properly loaded
+        if (sip.templateActions && typeof sip.templateActions.handleSuccessResponse === 'function') {
+            console.log('Template actions module successfully loaded');
+        } else {
+            console.error('Template actions module not properly loaded');
+        }
 
         // Any global event listeners or functionality can be added here
 

@@ -70,6 +70,7 @@ sip.ajax = (function($) {
     }
 
     function registerSuccessHandler(actionType, handler) {
+        console.log('Registering success handler for', actionType);
         successHandlers[actionType] = handler;
     }
 
@@ -81,19 +82,28 @@ sip.ajax = (function($) {
     function handleSuccessResponse(actionType, response) {
         console.log('Handling success response for action type:', actionType);
         console.log('Registered handlers:', successHandlers);
-        
+        console.log('Response:', response);
+
         switch (actionType) {
             case 'save_token':
             case 'new_token':
                 location.reload();
                 break;
-            default:
-                if (successHandlers[actionType]) {
+        default:
+            if (successHandlers[actionType]) {
+                console.log('Calling success handler for', actionType);
+                try {
                     successHandlers[actionType](response);
-                } else {
-                    console.warn('No success handler found for action type:', actionType);
+                } catch (error) {
+                    console.error('Error in success handler for', actionType, ':', error);
                 }
+            } else {
+                console.warn('No success handler found for action type:', actionType);
+            }
+            
             sip.utilities.hideSpinner();
+            
+            console.log('Exiting handleSuccessResponse in ajax.js');
         }
     }
 
