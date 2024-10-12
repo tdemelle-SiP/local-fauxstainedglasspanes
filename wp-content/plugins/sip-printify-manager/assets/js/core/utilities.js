@@ -36,10 +36,6 @@ sip.utilities = (function($) {
         $(document).ready(function() {
             $('#spinner-overlay').show();
         });
-
-        $(window).on('load', function() {
-            $('#spinner-overlay').hide();
-        });
     }
 
     function showSpinner() {

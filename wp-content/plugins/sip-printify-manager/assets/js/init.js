@@ -4,6 +4,7 @@ var sip = sip || {};
 
 sip.init = (function($, ajax, utilities) {
     function initializeAllModules() {
+        utilities.showSpinner(); // Show spinner at the start of initialization
 
         // Initialize utilities module
         if (sip.utilities && typeof sip.utilities.init === 'function') {
@@ -67,6 +68,7 @@ sip.init = (function($, ajax, utilities) {
         $(document).ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
             console.error('AJAX error:', thrownError);
             utilities.showToast('An error occurred. Please try again.', 5000);
+            utilities.hideSpinner(); // 
         });
     }
 

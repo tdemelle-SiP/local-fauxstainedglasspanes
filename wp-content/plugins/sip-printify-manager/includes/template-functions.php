@@ -53,6 +53,29 @@ function sip_handle_template_action() {
             ));
             break;
 
+        case 'get_loaded_template':
+            $loaded_template = get_option('sip_loaded_template', '');
+            if (!empty($loaded_template)) {
+                wp_send_json_success(array('template_data' => json_decode($loaded_template, true)));
+            } else {
+                wp_send_json_success(array('template_data' => null));
+            }
+            break;
+
+        case 'set_loaded_template':
+            if (!isset($_POST['template_data'])) {
+                wp_send_json_error('No template data provided');
+            }
+            $template_data = wp_unslash($_POST['template_data']);
+            update_option('sip_loaded_template', $template_data);
+            wp_send_json_success(array('message' => 'Template data saved successfully'));
+            break;
+
+        case 'clear_loaded_template':
+            delete_option('sip_loaded_template');
+            wp_send_json_success();
+            break;
+
         default:
             wp_send_json_error('Unknown template action.');
             break;

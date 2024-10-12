@@ -52,7 +52,7 @@ sip.ajax = (function($) {
             processData: false,
             contentType: false,
             success: function (response) {
-                // Re-enable button and hide spinner
+                // Re-enable button
                 if (buttonSelector) {
                     $(buttonSelector).attr('disabled', false);
                 }
@@ -101,7 +101,7 @@ sip.ajax = (function($) {
                 console.warn('No success handler found for action type:', actionType);
             }
             
-            sip.utilities.hideSpinner();
+
             
             console.log('Exiting handleSuccessResponse in ajax.js');
         }

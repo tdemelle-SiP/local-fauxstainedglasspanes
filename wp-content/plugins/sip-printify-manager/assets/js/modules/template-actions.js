@@ -1,15 +1,49 @@
 var sip = sip || {};
 
 sip.templateActions = (function($, ajax, utilities) {
+    var isDirty = false;
+
     function init() {
         attachEventListeners();
-        // Register the success handler here
         ajax.registerSuccessHandler('template_action', handleSuccessResponse);
+        checkForLoadedTemplate();
     }
 
     function attachEventListeners() {
         $(document).on('click', '.rename-template', handleInlineRenaming);
         $('#template-action-form').off('submit').on('submit', handleTemplateActionFormSubmit);
+        $('#close-template').on('click', handleCloseTemplate);
+        $('#creation-table').on('input', 'input, textarea', function() {
+            isDirty = true;
+        });
+    }
+
+    function checkForLoadedTemplate() {
+        console.log('Checking for loaded template');
+        var formData = utilities.createFormData('template_action', 'get_loaded_template');
+        ajax.handleAjaxAction('template_action', formData);
+    }
+
+    function handleCloseTemplate() {
+        if (isDirty) {
+            if (confirm('You have unsaved changes. Do you want to save before closing?')) {
+                saveTemplate();
+            }
+        }
+        closeTemplate();
+    }
+
+    function closeTemplate() {
+        $('#product-creation-container').hide();
+        $('#selected-template-name').text('');
+        var formData = utilities.createFormData('template_action', 'clear_loaded_template');
+        ajax.handleAjaxAction('template_action', formData);
+        isDirty = false;
+    }
+
+    function saveTemplate() {
+        // Implement save functionality
+        // This should gather all the data from the creation table and save it
     }
 
     function handleInlineRenaming() {
@@ -50,12 +84,26 @@ sip.templateActions = (function($, ajax, utilities) {
 
     function handleTemplateActionFormSubmit(e) {
         e.preventDefault();
-        e.stopPropagation(); // Prevent event bubbling
-        var $form = $(this);
+        e.stopPropagation();
         var formData = new FormData(this);
         var action = $('#template_action').val();
         console.log('Template action triggered:', action);
     
+        if (action === 'create_new_products') {
+            var selectedTemplates = $('input[name="selected_templates[]"]:checked');
+            if (selectedTemplates.length === 0) {
+                utilities.showToast('Please select a template before executing an action', 3000);
+                return;
+            }
+        }
+    
+        if (action === 'create_new_products' && isDirty) {
+            if (!confirm('Loading a new template will discard unsaved changes. Continue?')) {
+                return;
+            }
+        }
+    
+        utilities.showSpinner(); // Show spinner after validation
         handleTemplateAction(formData, action);
     }
 
@@ -74,23 +122,31 @@ sip.templateActions = (function($, ajax, utilities) {
     function handleSuccessResponse(response) {
         console.log('Entering handleSuccessResponse in template-actions.js');
         console.log('Response:', response);
-
-        if (response.data.template_list_html) {
+    
+        if (response.data && response.data.template_list_html) {
             console.log('Updating template list');
             $('#template-table-list').html(response.data.template_list_html).show();
         }
-        if (response.data.template_data && response.data.template_action === 'create_new_products') {
-            console.log('Calling initializeCreationTable');
+        if (response.data && response.data.template_data) {
+            console.log('Template data received:', response.data.template_data);
+            if (response.data.template_action === 'create_new_products') {
+                closeTemplate(); // Close any existing template
+            }
             initializeCreationTable(response.data.template_data);
         } else {
-            console.log('Not calling initializeCreationTable. template_action:', response.data.template_action);
+            console.log('No template data in response');
         }
         $('input[name="selected_templates[]"], #select-all-templates').prop('checked', false);
-
+    
         console.log('Exiting handleSuccessResponse in template-actions.js');
     }
 
     function initializeCreationTable(templateData) {
+        if (!templateData) {
+            console.log('No template data to initialize');
+            utilities.hideSpinner();
+            return;
+        }
         console.log('Initializing creation table with data:', templateData);
         
         const table = $('#creation-table');
@@ -103,6 +159,33 @@ sip.templateActions = (function($, ajax, utilities) {
 
         // Set the selected template name
         $('#selected-template-name').text(templateData.title);
+
+        // Build and append table content
+        buildTableContent(table, templateData);
+
+        // Show the creation table container
+        $('#product-creation-container').show();
+
+        // Save the loaded template state
+        var formData = utilities.createFormData('template_action', 'set_loaded_template');
+        formData.append('template_data', JSON.stringify(templateData));
+        ajax.handleAjaxAction('template_action', formData);
+        console.log('Sent request to save template data');
+
+        isDirty = false;
+        console.log('Creation actions initialized');
+
+        // Wait for the table to be fully populated before hiding the spinner
+        waitForTableToPopulate(table).then(() => {
+            console.log('Table fully populated, about to hide spinner');
+            utilities.hideSpinner();
+            console.log('Spinner hidden after table fully populated');
+        });
+    }
+
+    function buildTableContent(table, templateData) {
+        const thead = table.find('thead');
+        const tbody = table.find('tbody');
 
         // Build table headers
         const headers = ['#', 'Design - Front', 'Title', 'Description', 'Tags', 'Colors', 'Sizes', 'Price'];
@@ -129,11 +212,6 @@ sip.templateActions = (function($, ajax, utilities) {
         tbody.append(mainRow);
 
         console.log('Main row appended');
-
-        // Show the creation table container
-        $('#product-creation-container').show();
-
-        console.log('Creation actions initialized');
     }
 
     function buildDesignCell(templateData) {
@@ -175,6 +253,31 @@ sip.templateActions = (function($, ajax, utilities) {
     function truncateText(text, maxLength) {
         const strippedText = text.replace(/<[^>]+>/g, '');
         return strippedText.length > maxLength ? strippedText.substring(0, maxLength) + '...' : strippedText;
+    }
+
+    function waitForTableToPopulate(table) {
+        return new Promise((resolve) => {
+            console.log('Starting to observe table population');
+            const observer = new MutationObserver((mutations) => {
+                if (table.find('tbody tr').length > 0) {
+                    console.log('Table population observed');
+                    observer.disconnect();
+                    resolve();
+                }
+            });
+    
+            observer.observe(table[0], {
+                childList: true,
+                subtree: true
+            });
+    
+            // Failsafe: resolve after 5 seconds if table doesn't populate
+            setTimeout(() => {
+                console.log('Failsafe timeout reached for table population');
+                observer.disconnect();
+                resolve();
+            }, 5000);
+        });
     }
 
     return {
