@@ -706,6 +706,7 @@ body.resizing * {
     color: #0273AB; /* Sets the color of the shop name */
     text-transform: uppercase; /* Transforms the shop name to uppercase */
     margin: 0px; /* Adds space below the shop name */
+    line-height: 32px;
 }
 
 #selected-template-name {
@@ -741,6 +742,11 @@ body.resizing * {
 #creation-table p {
     margin: 0px;
     font-size: 11px;
+}
+
+#creation-table td {
+    text-align: center;
+    vertical-align: middle;
 }
 
 #creation-table .image-thumbnail {
