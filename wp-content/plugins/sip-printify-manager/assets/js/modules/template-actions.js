@@ -256,5 +256,3 @@ sip.templateActions = (function($, ajax, utilities) {
         handleSuccessResponse: handleSuccessResponse
     };
 })(jQuery, sip.ajax, sip.utilities);
-
-console.log('Template actions module loaded, success handler registered');

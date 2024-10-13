@@ -5,9 +5,6 @@ sip.imageActions = (function($, ajax, utilities) {
     function init() {
         attachEventListeners();
         
-        // Register success handlers
-        ajax.registerSuccessHandler('image_action', handleSuccessResponse);
-        ajax.registerSuccessHandler('upload_images', handleSuccessResponse);
     }
 
     function attachEventListeners() {
@@ -155,5 +152,5 @@ sip.imageActions = (function($, ajax, utilities) {
     };
 })(jQuery, sip.ajax, sip.utilities);
 
-// Initialize the module when the document is ready
-jQuery(document).ready(sip.imageActions.init);
+
+sip.ajax.registerSuccessHandler('image_action', sip.imageActions.handleSuccessResponse);

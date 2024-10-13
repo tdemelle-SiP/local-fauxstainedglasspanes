@@ -104,6 +104,8 @@ sip.ajax = (function($) {
 
             
             console.log('Exiting handleSuccessResponse in ajax.js');
+            console.log('calling hideSpinner');
+            sip.utilities.hideSpinner();
         }
     }
 

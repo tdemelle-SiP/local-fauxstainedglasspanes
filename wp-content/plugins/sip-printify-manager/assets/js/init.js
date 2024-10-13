@@ -47,22 +47,12 @@ sip.init = (function($, ajax, utilities) {
             sip.creationActions.init();
         }
 
-        registerAllSuccessHandlers();
-
         setTimeout(function() {
             if (utilities.isSpinnerVisible()) {
                 console.log('Failsafe: Hiding spinner after timeout');
                 utilities.hideSpinner();
             }
         }, 10000);
-    }
-
-    function registerAllSuccessHandlers() {
-        if (sip.imageActions && typeof sip.imageActions.handleSuccessResponse === 'function') {
-            sip.ajax.registerSuccessHandler('image_action', sip.imageActions.handleSuccessResponse);
-            sip.ajax.registerSuccessHandler('upload_images', sip.imageActions.handleSuccessResponse);
-        }
-        // Add other success handler registrations here if needed
     }
 
     function initializeGlobalEventListeners() {
