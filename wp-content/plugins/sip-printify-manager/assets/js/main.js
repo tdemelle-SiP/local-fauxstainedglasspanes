@@ -9,9 +9,11 @@ window.onerror = function(message, source, lineno, colno, error) {
 
 (function($) {
     $(document).ready(function() {
-        // Initialize all modules
-        if (sip.init && typeof sip.init.initializeAllModules === 'function') {
+        // Initialize all modules only if not already initialized
+        if (sip.init && typeof sip.init.initializeAllModules === 'function' && !sip.init.isInitialized) {
             sip.init.initializeAllModules();
+        } else if (sip.init.isInitialized) {
+            console.log('Modules already initialized');
         } else {
             console.error('sip.init.initializeAllModules is not a function');
         }

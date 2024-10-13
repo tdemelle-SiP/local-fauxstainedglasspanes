@@ -2,15 +2,17 @@ var sip = sip || {};
 
 sip.templateActions = (function($, ajax, utilities) {
     var isDirty = false;
+    var isTemplateLoaded = false;
 
     function init() {
-        attachEventListeners();
-        ajax.registerSuccessHandler('template_action', handleSuccessResponse);
-        checkForLoadedTemplate();
+            attachEventListeners();
+            ajax.registerSuccessHandler('template_action', handleSuccessResponse);
+            if (!isTemplateLoaded) {
+                checkForLoadedTemplate();
+            }
     }
 
     function attachEventListeners() {
-        $(document).on('click', '.rename-template', handleInlineRenaming);
         $('#template-action-form').off('submit').on('submit', handleTemplateActionFormSubmit);
         $('#close-template').on('click', handleCloseTemplate);
         $('#creation-table').on('input', 'input, textarea', function() {
@@ -21,7 +23,7 @@ sip.templateActions = (function($, ajax, utilities) {
     function checkForLoadedTemplate() {
         console.log('Checking for loaded template');
         var formData = utilities.createFormData('template_action', 'get_loaded_template');
-        ajax.handleAjaxAction('template_action', formData);
+        sip.ajax.handleAjaxAction('template_action', formData);
     }
 
     function handleCloseTemplate() {
@@ -44,42 +46,6 @@ sip.templateActions = (function($, ajax, utilities) {
     function saveTemplate() {
         // Implement save functionality
         // This should gather all the data from the creation table and save it
-    }
-
-    function handleInlineRenaming() {
-        var $cell = $(this).closest('tr').find('.template-name-cell');
-        var oldName = $cell.data('template-name');
-        var $input = $('<input type="text" class="rename-input" />').val(oldName);
-
-        $cell.empty().append($input);
-        $input.focus();
-
-        $input.on('blur keyup', function(e) {
-            if (e.type === 'blur' || e.keyCode === 13) {
-                var newName = $input.val();
-
-                if (newName && newName !== oldName) {
-                    var formData = utilities.createFormData('template_action', 'rename_template');
-                    formData.append('old_template_name', oldName);
-                    formData.append('new_template_name', newName);
-
-                    sip.ajax.handleAjaxAction('template_action', formData, 
-                        function(response) {
-                            if (response.success) {
-                                $cell.text(newName).data('template-name', newName);
-                            } else {
-                                $cell.text(oldName);
-                            }
-                        },
-                        function(error) {
-                            $cell.text(oldName);
-                        }
-                    );
-                } else {
-                    $cell.text(oldName);
-                }
-            }
-        });
     }
 
     function handleTemplateActionFormSubmit(e) {
@@ -136,42 +102,47 @@ sip.templateActions = (function($, ajax, utilities) {
         } else {
             console.log('No template data in response');
         }
+    
         $('input[name="selected_templates[]"], #select-all-templates').prop('checked', false);
     
         console.log('Exiting handleSuccessResponse in template-actions.js');
+        utilities.hideSpinner();
     }
 
     function initializeCreationTable(templateData) {
+        console.log('Initializing creation table');   
         if (!templateData) {
             console.log('No template data to initialize');
-            utilities.hideSpinner();
+
             return;
         }
-        console.log('Initializing creation table with data:', templateData);
         
+        console.log('Initializing creation table with data:', templateData);
+
         const table = $('#creation-table');
         const thead = table.find('thead');
         const tbody = table.find('tbody');
-
+    
         // Clear existing content
         thead.empty();
         tbody.empty();
-
+    
         // Set the selected template name
         $('#selected-template-name').text(templateData.title);
-
+    
         // Build and append table content
         buildTableContent(table, templateData);
-
+    
         // Show the creation table container
         $('#product-creation-container').show();
-
+        $('#no-template-message').hide();
+        $('#creation-table').show();
+    
         // Save the loaded template state
         var formData = utilities.createFormData('template_action', 'set_loaded_template');
         formData.append('template_data', JSON.stringify(templateData));
-        ajax.handleAjaxAction('template_action', formData);
-        console.log('Sent request to save template data');
-
+        sip.ajax.handleAjaxAction('template_action', formData);
+    
         isDirty = false;
         console.log('Creation actions initialized');
 

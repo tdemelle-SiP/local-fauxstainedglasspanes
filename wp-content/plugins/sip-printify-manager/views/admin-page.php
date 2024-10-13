@@ -258,14 +258,28 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         </div>
         <hr class="divider">
         <!-- Dynamic Product Table -->
-        <table id="creation-table" class="wp-list-table widefat fixed striped">
-            <!-- Table headers and rows will be populated dynamically -->
-            <thead>
-            <!-- Headers will be inserted here by JavaScript -->
-            </thead>
-            <tbody>
-            <!-- Rows will be inserted here by JavaScript -->
-            </tbody>
-        </table>
+        <div id="creation-table-container">
+            <?php if (!isset($_GET['template_loaded'])): ?>
+                <?php echo sip_get_initial_creation_table_html(); ?>
+            <?php else: ?>
+                <table id="creation-table" class="wp-list-table widefat fixed striped">
+                    <thead>
+                    <!-- Headers will be inserted here by JavaScript -->
+                    </thead>
+                    <tbody>
+                    <!-- Rows will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
     </section>
 </div>
+
+<script>
+jQuery(document).ready(function($) {
+    // If no template is initially loaded, make sure the container is visible
+    if (!$('#creation-table tbody tr').length) {
+        $('#product-creation-container').show();
+    }
+});
+</script>

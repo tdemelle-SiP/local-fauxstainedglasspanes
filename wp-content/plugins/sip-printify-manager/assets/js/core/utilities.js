@@ -40,12 +40,18 @@ sip.utilities = (function($) {
 
     function showSpinner() {
         $('#spinner-overlay').show();
+        $('#spinner').show();
         spinnerVisible = true;
     }
 
     function hideSpinner() {
         $('#spinner-overlay').hide();
+        $('#spinner').hide();
         spinnerVisible = false;
+    }
+
+    function isSpinnerVisible() {
+        return $('#spinner-overlay').is(':visible');
     }
 
     // Toast functions
@@ -297,12 +303,14 @@ sip.utilities = (function($) {
         }
     }
 
+
     // Expose public methods
     return {
         init: init,
         showToast: showToast,
         showSpinner: showSpinner,
         hideSpinner: hideSpinner,
+        isSpinnerVisible: isSpinnerVisible,
         initImageSorting: initImageSorting,
         getSortIcon: getSortIcon,
         comparePixels: comparePixels,

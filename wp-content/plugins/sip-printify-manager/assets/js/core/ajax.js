@@ -130,6 +130,8 @@ sip.ajax = (function($) {
 
         console.error('AJAX Error:', textStatus, errorThrown, jqXHR.responseText);
         sip.utilities.showToast('AJAX Error occurred: ' + textStatus + ' - ' + errorThrown, 5000);
+        utilities.hideSpinner();  // Ensure spinner is hidden on error
+
     }
 
     // Expose public methods

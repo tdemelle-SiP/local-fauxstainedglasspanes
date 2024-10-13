@@ -3,7 +3,15 @@
 var sip = sip || {};
 
 sip.init = (function($, ajax, utilities) {
+    var isInitialized = false;
+
     function initializeAllModules() {
+        if (isInitialized) {
+            console.log('Modules already initialized');
+            return;
+        }
+        isInitialized = true;
+        
         utilities.showSpinner(); // Show spinner at the start of initialization
 
         // Initialize utilities module
@@ -28,11 +36,6 @@ sip.init = (function($, ajax, utilities) {
 
         // Initialize template actions module
         if (sip.templateActions && typeof sip.templateActions.init === 'function') {
-            sip.templateActions.init();
-        }
-
-        // Initialize template actions module
-        if (sip.templateActions && typeof sip.templateActions.init === 'function') {
             console.log('Initializing template actions module');
             sip.templateActions.init();
         } else {
@@ -46,7 +49,12 @@ sip.init = (function($, ajax, utilities) {
 
         registerAllSuccessHandlers();
 
-        // Add any other module initializations here
+        setTimeout(function() {
+            if (utilities.isSpinnerVisible()) {
+                console.log('Failsafe: Hiding spinner after timeout');
+                utilities.hideSpinner();
+            }
+        }, 10000);
     }
 
     function registerAllSuccessHandlers() {

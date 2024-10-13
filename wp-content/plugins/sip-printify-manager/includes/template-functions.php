@@ -5,6 +5,25 @@ if (!defined('ABSPATH')) exit;
 // Include the creation functions file
 require_once plugin_dir_path(__FILE__) . 'creation-functions.php';
 
+function sip_get_initial_creation_table_html() {
+    ob_start();
+    ?>
+    <div id="no-template-message">
+        <p><?php esc_html_e('No template currently loaded.', 'sip-printify-manager'); ?></p>
+        <p><?php esc_html_e('Select a template and click "Create New Products" to start.', 'sip-printify-manager'); ?></p>
+    </div>
+    <table id="creation-table" class="wp-list-table widefat fixed striped" style="display: none;">
+        <thead>
+        <!-- Headers will be inserted here by JavaScript -->
+        </thead>
+        <tbody>
+        <!-- Rows will be inserted here by JavaScript -->
+        </tbody>
+    </table>
+    <?php
+    return ob_get_clean();
+}
+
 /**
  * Handle template actions triggered via AJAX.
  */
@@ -58,7 +77,7 @@ function sip_handle_template_action() {
             if (!empty($loaded_template)) {
                 wp_send_json_success(array('template_data' => json_decode($loaded_template, true)));
             } else {
-                wp_send_json_success(array('template_data' => null));
+                wp_send_json_success(array('initial_html' => sip_get_initial_creation_table_html()));
             }
             break;
 
@@ -73,8 +92,16 @@ function sip_handle_template_action() {
 
         case 'clear_loaded_template':
             delete_option('sip_loaded_template');
-            wp_send_json_success();
+            wp_send_json_success(array(
+                'message' => 'Template cleared successfully',
+                'initial_html' => sip_get_initial_creation_table_html()
+            ));
             break;
+
+        case 'get_initial_table_html':
+            wp_send_json_success(array('initial_html' => sip_get_initial_creation_table_html()));
+            break;       
+    
 
         default:
             wp_send_json_error('Unknown template action.');
