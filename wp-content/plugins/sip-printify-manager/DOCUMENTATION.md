@@ -12,14 +12,14 @@
 
 ## 1. Interface Overview
 
-The SiP Printify Manager interface is divided into several main sections:
+After you follow the steps on the initial token entry page, the SiP Printify Manager main dashboard will appear. The SiP Printify Manager dashboard interface is divided into several main sections:
 
 - Products section (top-left)
 - Images section (top-right)
 - Templates section (middle-left)
 - Product Creation Table (bottom)
 
-At the very top, you'll see your shop name and a "New Shop Token" button for authentication.
+At the very top, you'll see your shop name and a "New Shop Token" button for re-authentication or to load a new store into the manager.
 
 ---
 
@@ -27,7 +27,7 @@ At the very top, you'll see your shop name and a "New Shop Token" button for aut
 
 ### 2.1 Viewing Products
 
-- Products are listed in a table in the top-left section of the interface.
+- Products are automatically retrieved from your shop and listed in a table in the top-left section of the interface.
 - The table shows Thumb (thumbnail) and Product Name for each item.
 
 ### 2.2 Searching Products
@@ -46,7 +46,7 @@ At the very top, you'll see your shop name and a "New Shop Token" button for aut
 
 ### 3.1 Viewing Images
 
-- Images are displayed in a table in the top-right section of the interface.
+- Images are also automatically retrieved from your shop and displayed in a table in the top-right section of the interface.
 - The table shows Thumb, Filename, Location, Uploaded date, Dimensions, and Size for each image.
 
 ### 3.2 Searching Images
@@ -55,14 +55,15 @@ At the very top, you'll see your shop name and a "New Shop Token" button for aut
 
 ### 3.3 Uploading Images
 
-- Drag and drop images into the designated area at the top of the Images section.
+- To add new images to use to create new products, drag and drop images into the designated area at the top of the Images section.
 - Alternatively, click the "Select Images" button to choose files from your computer.
 
 ### 3.4 Adding Images to New Products
 
-1. Select one or more images from the list.
+1. Once you have a template loaded into the Product Creation Table, choose a column corresponding to an image in a print area, select one or more images from the list.
 2. Choose "Add to New Product" from the dropdown menu above the image list.
 3. Click "Execute" to use these images in the Product Creation Table.
+   You can also select individual cells in the table to add a single image to multiple cells at once.
 
 ---
 
@@ -70,7 +71,7 @@ At the very top, you'll see your shop name and a "New Shop Token" button for aut
 
 ### 4.1 Viewing Templates
 
-- Templates are listed in a table in the middle-left section of the interface.
+- Once you've created a template or templates from an existing product in your shop, they are listed in a table in the middle-left section of the interface.
 - The table shows Template Name for each template.
 
 ### 4.2 Searching Templates
@@ -82,6 +83,7 @@ At the very top, you'll see your shop name and a "New Shop Token" button for aut
 1. Select a template from the list by checking the box next to it.
 2. Choose "Create New Products" from the dropdown menu above the template list.
 3. Click "Execute" to load the template into the Product Creation Table.
+   The structure of the template product will appear in the first row of the Product Creation Table and the source content from the template will populate the second row.
 
 ---
 
