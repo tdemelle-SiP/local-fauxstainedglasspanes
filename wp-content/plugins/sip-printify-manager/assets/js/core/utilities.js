@@ -345,7 +345,7 @@ sip.utilities = (function($) {
         hideSpinner: hideSpinner,
         isSpinnerVisible: isSpinnerVisible,
         initImageSorting: initImageSorting,
-        converToBytes: convertToBytes,
+        convertToBytes: convertToBytes,
         getSortIcon: getSortIcon,
         comparePixels: comparePixels,
         compareFileSize: compareFileSize,
