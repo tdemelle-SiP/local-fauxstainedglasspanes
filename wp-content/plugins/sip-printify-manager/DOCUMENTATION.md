@@ -12,7 +12,7 @@
 
 ## 1. Interface Overview
 
-After you follow the steps on the initial token entry page, the SiP Printify Manager main dashboard will appear. The SiP Printify Manager dashboard interface is divided into several main sections:
+After you follow the steps to register your shop on the initial token entry page, the SiP Printify Manager main dashboard will appear. The SiP Printify Manager dashboard interface is divided into several main sections:
 
 - Products section (top-left)
 - Images section (top-right)
