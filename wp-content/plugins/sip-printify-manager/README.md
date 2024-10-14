@@ -40,7 +40,7 @@ For detailed usage instructions, please see our [Detailed Usage Guide](DETAILED_
 ---
 
 ## Plugin Structure
-'''
+```
 sip-printify-manager/
 ├── assets/
 │   ├── css/
@@ -69,7 +69,7 @@ sip-printify-manager/
 ├── DOCUMENTATION.md
 ├── CODE-GUIDELINES.php
 └── README.md
-'''
+```
 ---
 
 ## Development
