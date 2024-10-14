@@ -69,7 +69,6 @@ sip.creationActions = (function($, ajax, utilities) {
                     if (response.data.initial_html) {
                         $('#creation-table').html(response.data.initial_html);
                     }
-                    utilities.showToast('Template cleared successfully', 3000);
                     break;
 
                 default:
@@ -79,31 +78,6 @@ sip.creationActions = (function($, ajax, utilities) {
             console.error('Error in AJAX response:', response.data);
             utilities.showToast('Error: ' + response.data, 5000);
         }
-    }
-
-    function waitForTableToPopulate(table) {
-        return new Promise((resolve) => {
-            console.log('Starting to observe table population');
-            const observer = new MutationObserver((mutations) => {
-                if (table.find('tbody tr').length > 0) {
-                    console.log('Table population observed');
-                    observer.disconnect();
-                    resolve();
-                }
-            });
-    
-            observer.observe(table[0], {
-                childList: true,
-                subtree: true
-            });
-    
-            // Failsafe: resolve after 5 seconds if table doesn't populate
-            setTimeout(() => {
-                console.log('Failsafe timeout reached for table population');
-                observer.disconnect();
-                resolve();
-            }, 5000);
-        });
     }
 
     function handleGetLoadedTemplateSuccess(data) {
