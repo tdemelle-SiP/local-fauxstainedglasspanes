@@ -294,6 +294,10 @@ function transform_product_data($product) {
         $product['source product'] = $product['title'];
     }
 
+    if (isset($product['id'])) {
+	$product['source product id'] = $product['id'];
+    }
+
     // Process the 'options' array to create mappings for colors and sizes
     $colors_map = array();
     $sizes_map = array();
@@ -415,11 +419,11 @@ function transform_product_data($product) {
             unset($product[$key]);
         }
     }
-
+/////////////////////////////////////////////////////////////////////////////////////////
     // Process the 'print_areas' array
-    if (isset($product['print_areas']) && is_array($product['print_areas'])) {
+    if (isset($product['placeholders']) && is_array($product['placeholders'])) {
         $new_print_areas = array();
-        foreach ($product['print_areas'] as $print_area) {
+        foreach ($product['placeholders'] as $print_area) {
             // Ensure 'position' exists in each print area
             if (!isset($print_area['position']) || empty($print_area['position'])) {
                 // Log the missing 'position' for debugging purposes
