@@ -1,5 +1,4 @@
 // init.js
-
 var sip = sip || {};
 
 sip.init = (function($, ajax, utilities) {
@@ -24,6 +23,11 @@ sip.init = (function($, ajax, utilities) {
             sip.ajax.init();
         }
 
+        // Initialize shop actions module
+        if (sip.shopActions && typeof sip.shopActions.init === 'function') {
+            sip.shopActions.init();
+        }
+
         // Initialize product actions module
         if (sip.productActions && typeof sip.productActions.init === 'function') {
             sip.productActions.init();
@@ -36,10 +40,7 @@ sip.init = (function($, ajax, utilities) {
 
         // Initialize template actions module
         if (sip.templateActions && typeof sip.templateActions.init === 'function') {
-            console.log('Initializing template actions module');
             sip.templateActions.init();
-        } else {
-            console.warn('Template actions module not found or init function not defined');
         }
 
         // Initialize creation actions module
@@ -69,8 +70,6 @@ sip.init = (function($, ajax, utilities) {
             utilities.hideSpinner(); // 
         });
     }
-
-
 
     return {
         initializeAllModules: initializeAllModules,

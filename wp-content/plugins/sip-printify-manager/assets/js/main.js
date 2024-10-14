@@ -9,28 +9,10 @@ window.onerror = function(message, source, lineno, colno, error) {
 
 (function($) {
     $(document).ready(function() {
-        // Initialize all modules only if not already initialized
-        if (sip.init && typeof sip.init.initializeAllModules === 'function' && !sip.init.isInitialized) {
+        if (sip.init && typeof sip.init.initializeAllModules === 'function') {
             sip.init.initializeAllModules();
-        } else if (sip.init.isInitialized) {
-            console.log('Modules already initialized');
         } else {
-            console.error('sip.init.initializeAllModules is not a function');
+            console.error('sip.init.initializeAllModules is not available or not a function');
         }
-
-        // Check if template actions module is properly loaded
-        if (sip.templateActions && typeof sip.templateActions.handleSuccessResponse === 'function') {
-            console.log('Template actions module successfully loaded');
-        } else {
-            console.error('Template actions module not properly loaded');
-        }
-
-        // Any global event listeners or functionality can be added here
-
-        // Example of a global event listener
-        $(document).on('click', '.sip-global-action', function(e) {
-            e.preventDefault();
-            // Handle global action
-        });
     });
 })(jQuery);

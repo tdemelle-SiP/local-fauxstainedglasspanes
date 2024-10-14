@@ -5,25 +5,6 @@ if (!defined('ABSPATH')) exit;
 // Include the creation functions file
 require_once plugin_dir_path(__FILE__) . 'creation-functions.php';
 
-function sip_get_initial_creation_table_html() {
-    ob_start();
-    ?>
-    <div id="no-template-message">
-        <p><?php esc_html_e('No template currently loaded.', 'sip-printify-manager'); ?></p>
-        <p><?php esc_html_e('Select a template and click "Create New Products" to start.', 'sip-printify-manager'); ?></p>
-    </div>
-    <table id="creation-table" class="wp-list-table widefat fixed striped" style="display: none;">
-        <thead>
-        <!-- Headers will be inserted here by JavaScript -->
-        </thead>
-        <tbody>
-        <!-- Rows will be inserted here by JavaScript -->
-        </tbody>
-    </table>
-    <?php
-    return ob_get_clean();
-}
-
 /**
  * Handle template actions triggered via AJAX.
  */
@@ -65,86 +46,52 @@ function sip_handle_template_action() {
             if (!$template_data) {
                 wp_send_json_error('Failed to load template data.');
             }
+            update_option('sip_loaded_template', json_encode($template_data));
             wp_send_json_success(array(
                 'template_data' => $template_data,
                 'template_action' => 'create_new_products',
                 'message' => 'Template loaded successfully for new product creation.'
             ));
             break;
-
-        case 'get_loaded_template':
-            $loaded_template = get_option('sip_loaded_template', '');
-            if (!empty($loaded_template)) {
-                wp_send_json_success(array('template_data' => json_decode($loaded_template, true)));
-            } else {
-                wp_send_json_success(array('initial_html' => sip_get_initial_creation_table_html()));
-            }
-            break;
-
-        case 'set_loaded_template':
-            if (!isset($_POST['template_data'])) {
-                wp_send_json_error('No template data provided');
-            }
-            $template_data = wp_unslash($_POST['template_data']);
-            update_option('sip_loaded_template', $template_data);
-            wp_send_json_success(array('message' => 'Template data saved successfully'));
-            break;
-
-        case 'clear_loaded_template':
-            delete_option('sip_loaded_template');
-            wp_send_json_success(array(
-                'message' => 'Template cleared successfully',
-                'initial_html' => sip_get_initial_creation_table_html()
-            ));
-            break;
-
+            
         case 'get_initial_table_html':
             wp_send_json_success(array('initial_html' => sip_get_initial_creation_table_html()));
             break;       
     
-
         default:
             wp_send_json_error('Unknown template action.');
             break;
     }
 }
 
+function sip_get_initial_creation_table_html() {
+    ob_start();
+    ?>
+    <div id="no-template-message">
+        <p><?php esc_html_e('No template currently loaded.', 'sip-printify-manager'); ?></p>
+        <p><?php esc_html_e('Select a template and click "Create New Products" to start.', 'sip-printify-manager'); ?></p>
+    </div>
+    <table id="creation-table" class="wp-list-table widefat fixed striped" style="display: none;">
+        <thead>
+        <!-- Headers will be inserted here by JavaScript -->
+        </thead>
+        <tbody>
+        <!-- Rows will be inserted here by JavaScript -->
+        </tbody>
+    </table>
+    <?php
+    return ob_get_clean();
+}
+
 /**
- * Save a product template to the custom directory.
+ * Get the template directory path.
  *
- * @param array $product The product data to save as a template.
- * @param string $template_name The name of the template.
+ * @return string The path to the template directory.
  */
-function sip_save_template($product, $template_name) {
-    // Get the WordPress upload directory
+function sip_get_template_dir() {
     $upload_dir = wp_upload_dir();
     $template_dir = $upload_dir['basedir'] . '/sip-printify-manager/templates/';
-
-    // Create directory if it doesn't exist
-    if (!file_exists($template_dir)) {
-        if (!wp_mkdir_p($template_dir)) {
-            error_log('Failed to create template directory at: ' . $template_dir);
-            return;
-        }
-        error_log('Created template directory at: ' . $template_dir);
-    }
-
-    // Format template name and handle duplicates
-    $base_name = sanitize_file_name(strtolower(str_replace(' ', '_', $template_name))) . '_template';
-    $file_path = $template_dir . $base_name . '.json';
-
-    $counter = 1;
-    while (file_exists($file_path)) {
-        $file_path = $template_dir . $base_name . '_' . str_pad($counter, 2, '0', STR_PAD_LEFT) . '.json';
-        $counter++;
-    }
-
-    // Save template as JSON
-    if (file_put_contents($file_path, json_encode($product, JSON_PRETTY_PRINT))) {
-        error_log("Template saved successfully at: $file_path");
-    } else {
-        error_log("Failed to save template at: $file_path");
-    }
+    return $template_dir;
 }
 
 /**
@@ -166,17 +113,6 @@ function sip_load_templates() {
 
     error_log('Loaded templates: ' . print_r($templates, true));
     return $templates;
-}
-
-/**
- * Get the template directory path.
- *
- * @return string The path to the template directory.
- */
-function sip_get_template_dir() {
-    $upload_dir = wp_upload_dir();
-    $template_dir = $upload_dir['basedir'] . '/sip-printify-manager/templates/';
-    return $template_dir;
 }
 
 /**
@@ -227,6 +163,44 @@ function sip_display_template_list($templates) {
     $html .= '</div>';
 
     return $html;
+}
+
+/**
+ * Save a product template to the custom directory.
+ *
+ * @param array $product The product data to save as a template.
+ * @param string $template_name The name of the template.
+ */
+function sip_save_template($product, $template_name) {
+    // Get the WordPress upload directory
+    $upload_dir = wp_upload_dir();
+    $template_dir = $upload_dir['basedir'] . '/sip-printify-manager/templates/';
+
+    // Create directory if it doesn't exist
+    if (!file_exists($template_dir)) {
+        if (!wp_mkdir_p($template_dir)) {
+            error_log('Failed to create template directory at: ' . $template_dir);
+            return;
+        }
+        error_log('Created template directory at: ' . $template_dir);
+    }
+
+    // Format template name and handle duplicates
+    $base_name = sanitize_file_name(strtolower(str_replace(' ', '_', $template_name))) . '_template';
+    $file_path = $template_dir . $base_name . '.json';
+
+    $counter = 1;
+    while (file_exists($file_path)) {
+        $file_path = $template_dir . $base_name . '_' . str_pad($counter, 2, '0', STR_PAD_LEFT) . '.json';
+        $counter++;
+    }
+
+    // Save template as JSON
+    if (file_put_contents($file_path, json_encode($product, JSON_PRETTY_PRINT))) {
+        error_log("Template saved successfully at: $file_path");
+    } else {
+        error_log("Failed to save template at: $file_path");
+    }
 }
 
 /**

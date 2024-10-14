@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 /**
  * Main Plugin File: sip-printify-manager.php
  *
- * This file initializes the SiP Printify Manager plugin, sets up necessary actions, filters, and shortcodes,
+ * This file initializes the SiP Printify Manager plugin, sets up necessary actions, filters,
  * and integrates other specialized components of the plugin.
  *
  * The core functionality is offloaded to specialized PHP files located in the 'includes' and 'views' directories:
@@ -22,6 +22,7 @@ if (!defined('ABSPATH')) {
  * - 'includes/product-functions.php' manages product-related actions.
  * - 'includes/image-functions.php' manages image-related actions.
  * - 'includes/template-functions.php' deals with template management.
+ * - 'includes/creation-functions.php' deals with managing editing of templates in the Product Creation Table.
  * - 'views/admin-page.php' contains the HTML and PHP code for rendering the plugin's admin page.
  *
  * By offloading these functionalities to specialized files, we ensure better code organization, maintainability,
@@ -48,6 +49,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/image-functions.php';     // 
 require_once plugin_dir_path(__FILE__) . 'includes/template-functions.php';  // Template-related functions
 require_once plugin_dir_path(__FILE__) . 'includes/creation-functions.php';
 require_once plugin_dir_path(__FILE__) . 'includes/icon-functions.php';
+require_once plugin_dir_path(__FILE__) . 'includes/utilities.php';
 
 /**
  * Class SiP_Printify_Manager
@@ -55,9 +57,6 @@ require_once plugin_dir_path(__FILE__) . 'includes/icon-functions.php';
  * Main class for the SiP Printify Manager plugin. It initializes the plugin, sets up actions and filters,
  * and handles the overall integration of the plugin components.
  *
- * Note: Most of the functionality has been offloaded to specialized PHP files in the 'includes' directory.
- * This helps in keeping the core plugin file organized and ensures that related functionalities are grouped
- * together, making future maintenance and updates more manageable.
  */
 class SiP_Printify_Manager {
     /**
@@ -71,7 +70,6 @@ class SiP_Printify_Manager {
      * Constructor
      *
      * Initializes the plugin by setting up actions, filters, and including necessary scripts.
-     * Note: Most of the functionality has been offloaded to specialized files in the 'includes' directory.
      */
     private function __construct() {
         // Enqueue admin scripts and styles
@@ -81,12 +79,8 @@ class SiP_Printify_Manager {
         // The actual AJAX handler functions are offloaded to specialized files
         add_action('wp_ajax_sip_handle_ajax_request', 'sip_handle_ajax_request');
 
-        // Register the shortcode for displaying products (if needed)
-        // The rendering function can be offloaded if it grows in complexity
-        add_shortcode('sip_printify_products', 'render_products_shortcode');
-
         // Add CSS to hide admin notices on the custom admin page
-        add_action('admin_head', array($this, 'hide_admin_notices_with_css'));
+        add_action('admin_head', 'sip_hide_admin_notices');
     }
 
     /**
@@ -133,8 +127,7 @@ class SiP_Printify_Manager {
         );
     
         // Enqueue your custom JS files in the correct order
-    
-        // Enqueue sip-utilities (replacing sip-spinner)
+        // Enqueue sip-utilities
         wp_enqueue_script(
             'sip-utilities',
             plugin_dir_url(__FILE__) . 'assets/js/core/utilities.js',
@@ -152,7 +145,7 @@ class SiP_Printify_Manager {
             true
         );
     
-        // Enqueue sip-product-actions (replacing sip-product-handlers)
+        // Enqueue sip-product-actions
         wp_enqueue_script(
             'sip-product-actions',
             plugin_dir_url(__FILE__) . 'assets/js/modules/product-actions.js',
@@ -161,7 +154,7 @@ class SiP_Printify_Manager {
             true
         );
     
-        // Enqueue sip-image-actions (replacing sip-image-upload)
+        // Enqueue sip-image-actions
         wp_enqueue_script(
             'sip-image-actions',
             plugin_dir_url(__FILE__) . 'assets/js/modules/image-actions.js',
@@ -179,6 +172,15 @@ class SiP_Printify_Manager {
             true
         );
     
+        // Enqueue sip-creation-actions
+        wp_enqueue_script(
+            'sip-creation-actions',
+            plugin_dir_url(__FILE__) . 'assets/js/modules/creation-actions.js',
+            array('jquery', 'sip-ajax', 'sip-utilities'),
+            '1.0.0',
+            true
+        );
+
         // Enqueue sip-template-editor
         wp_enqueue_script(
             'sip-template-editor',
@@ -187,16 +189,7 @@ class SiP_Printify_Manager {
             '1.0.0',
             true
         );
-    
-        // Enqueue sip-creation-actions (replacing sip-product-creation)
-        wp_enqueue_script(
-            'sip-creation-actions',
-            plugin_dir_url(__FILE__) . 'assets/js/modules/creation-actions.js',
-            array('jquery', 'sip-ajax', 'sip-utilities'),
-            '1.0.0',
-            true
-        );
-    
+        
         // Enqueue sip-init
         wp_enqueue_script(
             'sip-init',
@@ -225,24 +218,16 @@ class SiP_Printify_Manager {
         );
     
         // Get the PHP setting for max_file_uploads
-        $max_file_uploads = ini_get('max_file_uploads');
-        $max_filesize = sip_convert_to_bytes(ini_get('upload_max_filesize'));
-        $post_max_size = sip_convert_to_bytes(ini_get('post_max_size'));
-        $memory_limit = sip_convert_to_bytes(ini_get('memory_limit'));
+        $php_limits = sip_get_php_limits();
     
         // Localize script to pass PHP variables to JavaScript
         wp_localize_script('sip-ajax', 'sipAjax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce'    => wp_create_nonce('sip_printify_manager_nonce'),
-            'max_file_uploads' => $max_file_uploads,
-            'max_filesize' => $max_filesize,
-            'post_max_size' => $post_max_size,
-            'memory_limit' => $memory_limit
+            'php_limits' => $php_limits
         ));
     }
-
-
-
+    
     /**
      * Hide Admin Notices with CSS
      *
@@ -289,28 +274,6 @@ class SiP_Printify_Manager {
     }
 }
 
-/**
- * Convert shorthand notation in php.ini to bytes.
- *
- * @param string $value Value from php.ini settings.
- * @return int Converted value in bytes.
- */
-function sip_convert_to_bytes($value) {
-    $value = trim($value);
-    $last = strtolower($value[strlen($value) - 1]);
-    $num = (int) $value;
-
-    switch ($last) {
-        case 'g':
-            $num *= 1024;
-        case 'm':
-            $num *= 1024;
-        case 'k':
-            $num *= 1024;
-    }
-
-    return $num;
-}
 
 // Initialize the plugin instance
 SiP_Printify_Manager::get_instance();
@@ -357,58 +320,26 @@ function sip_handle_ajax_request() {
 
     // Switch based on the action type to delegate to the appropriate function
     switch ($action_type) {
-        case 'save_token':
-            /**
-             * Token management functions are handled in 'includes/shop-functions.php'.
-             * This includes saving the token and storing shop details.
-             */
-            sip_save_token();
+        case 'shop_action':
+            sip_handle_shop_action();
             break;
-        case 'new_token':
-            /**
-             * Token reset functionality is in 'includes/shop-functions.php'.
-             * It clears the stored token and associated shop data.
-             */
-            sip_new_token();
-            break;
+
         case 'product_action':
-            /**
-             * Product-related actions are handled in 'includes/product-functions.php'.
-             * This includes reloading products, creating templates, and removing products from the manager.
-             */
             sip_handle_product_action();
             break;
+
         case 'image_action':
-            /**
-             * Image-related actions are handled in 'includes/image-functions.php'.
-             * This includes reloading images, uploading images, and removing images from the manager.
-             */
             sip_handle_image_action();
             break;
-        case 'upload_images':
-            /**
-             * Handling image uploads is in 'includes/image-functions.php'.
-             * This function processes images uploaded via drag-and-drop or file selection.
-             */
-            sip_handle_image_upload();
-            break;
+
         case 'template_action':
-            /**
-             * Template-related actions are handled in 'includes/template-functions.php'.
-             * This includes deleting, renaming, and editing templates.
-             */
             sip_handle_template_action();
             break;
-        case 'save_template':
-            /**
-             * Saving template content is handled in 'includes/template-functions.php'.
-             * This function saves the edited content of a template file.
-             */
-            sip_save_template_content();
-            break;
+
         case 'creation_action':
             sip_handle_creation_action();
             break;
+
         default:
             // Invalid action type
             wp_send_json_error('Invalid action.');

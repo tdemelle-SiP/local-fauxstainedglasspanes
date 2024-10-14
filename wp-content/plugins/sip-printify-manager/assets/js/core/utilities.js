@@ -124,6 +124,23 @@ sip.utilities = (function($) {
         });
     }
 
+    function convertToBytes(value) {
+        if (typeof value === 'number') return value;
+        var matches = String(value).match(/^(\d+(?:\.\d+)?)\s*([kmgt]?)b?$/i);
+        if (!matches) return null;
+        
+        var num = parseFloat(matches[1]);
+        var unit = matches[2].toLowerCase();
+        
+        switch (unit) {
+            case 'g': num *= 1024;
+            case 'm': num *= 1024;
+            case 'k': num *= 1024;
+        }
+        
+        return Math.floor(num);
+    }
+
     // Sorting functionality
     var sortOrder = ['upload_time'];
     var sortDirections = { 'upload_time': 'desc' };
@@ -312,6 +329,7 @@ sip.utilities = (function($) {
         hideSpinner: hideSpinner,
         isSpinnerVisible: isSpinnerVisible,
         initImageSorting: initImageSorting,
+        converToBytes: convertToBytes,
         getSortIcon: getSortIcon,
         comparePixels: comparePixels,
         compareFileSize: compareFileSize,

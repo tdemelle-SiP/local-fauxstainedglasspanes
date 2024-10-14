@@ -6,7 +6,6 @@ if (!defined('ABSPATH')) exit;
  * Handle creation actions triggered via AJAX.
  */
 function sip_handle_creation_action() {
-
     $creation_action = isset($_POST['creation_action']) ? sanitize_text_field($_POST['creation_action']) : '';
 
     switch ($creation_action) {
@@ -16,10 +15,60 @@ function sip_handle_creation_action() {
         case 'create_product':
             sip_create_product();
             break;
+        case 'get_loaded_template':
+            sip_get_loaded_template();
+            break;
+        case 'set_loaded_template':
+            sip_set_loaded_template();
+            break;
+        case 'save_template':
+            sip_save_template_content();
+            break;
+        case 'clear_loaded_template':
+            delete_option('sip_loaded_template');
+            wp_send_json_success(array(
+                'action' => 'clear_loaded_template',
+                'message' => 'Template cleared successfully',
+                'initial_html' => sip_get_initial_creation_table_html()
+            ));
+            break;
         default:
             wp_send_json_error('Unknown creation action.');
             break;
     }
+}
+
+/**
+ * Get the loaded template data.
+ */
+function sip_get_loaded_template() {
+    $loaded_template = get_option('sip_loaded_template', '');
+    if (!empty($loaded_template)) {
+        wp_send_json_success(array(
+            'action' => 'get_loaded_template',
+            'template_data' => json_decode($loaded_template, true)
+        ));
+    } else {
+        wp_send_json_success(array(
+            'action' => 'get_loaded_template',
+            'initial_html' => sip_get_initial_creation_table_html()
+        ));
+    }
+}
+
+/**
+ * Set the loaded template data.
+ */
+function sip_set_loaded_template() {
+    if (!isset($_POST['template_data'])) {
+        wp_send_json_error('No template data provided');
+    }
+    $template_data = wp_unslash($_POST['template_data']);
+    update_option('sip_loaded_template', $template_data);
+    wp_send_json_success(array(
+        'action' => 'set_loaded_template',
+        'message' => 'Template data saved successfully'
+    ));
 }
 
 /**
@@ -53,7 +102,10 @@ function sip_update_new_product_data() {
 
     set_transient($transient_key, $product_data, HOUR_IN_SECONDS);
 
-    wp_send_json_success('Product data updated successfully.');
+    wp_send_json_success(array(
+        'action' => 'update_new_product',
+        'message' => 'Product data updated successfully.'
+    ));
 }
 
 /**
@@ -73,9 +125,15 @@ function sip_create_product() {
 
     if ($api_response['success']) {
         delete_transient($transient_key);
-        wp_send_json_success('Product created successfully.');
+        wp_send_json_success(array(
+            'action' => 'create_product',
+            'message' => 'Product created successfully.'
+        ));
     } else {
-        wp_send_json_error('Error creating product: ' . $api_response['message']);
+        wp_send_json_error(array(
+            'action' => 'create_product',
+            'message' => 'Error creating product: ' . $api_response['message']
+        ));
     }
 }
 
@@ -106,12 +164,20 @@ function sip_save_template_content() {
 
     if (file_exists($file_path)) {
         if (file_put_contents($file_path, $template_content)) {
-            wp_send_json_success('Template saved successfully.');
+            wp_send_json_success(array(
+                'action' => 'save_template',
+                'message' => 'Template saved successfully.'
+            ));
         } else {
-            wp_send_json_error('Failed to save template.');
+            wp_send_json_error(array(
+                'action' => 'save_template',
+                'message' => 'Failed to save template.'
+            ));
         }
     } else {
-        wp_send_json_error('Template file not found.');
+        wp_send_json_error(array(
+            'action' => 'save_template',
+            'message' => 'Template file not found.'
+        ));
     }
 }
-

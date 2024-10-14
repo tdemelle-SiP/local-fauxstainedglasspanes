@@ -5,47 +5,15 @@ sip.templateActions = (function($, ajax, utilities) {
     var isTemplateLoaded = false;
 
     function init() {
-            attachEventListeners();
-            ajax.registerSuccessHandler('template_action', handleSuccessResponse);
-            if (!isTemplateLoaded) {
-                checkForLoadedTemplate();
-            }
+        attachEventListeners();
+        ajax.registerSuccessHandler('template_action', handleSuccessResponse);
+        if (!isTemplateLoaded && sip.creationActions && typeof sip.creationActions.checkForLoadedTemplate === 'function') {
+            sip.creationActions.checkForLoadedTemplate();
+        }
     }
 
     function attachEventListeners() {
         $('#template-action-form').off('submit').on('submit', handleTemplateActionFormSubmit);
-        $('#close-template').on('click', handleCloseTemplate);
-        $('#creation-table').on('input', 'input, textarea', function() {
-            isDirty = true;
-        });
-    }
-
-    function checkForLoadedTemplate() {
-        console.log('Checking for loaded template');
-        var formData = utilities.createFormData('template_action', 'get_loaded_template');
-        sip.ajax.handleAjaxAction('template_action', formData);
-    }
-
-    function handleCloseTemplate() {
-        if (isDirty) {
-            if (confirm('You have unsaved changes. Do you want to save before closing?')) {
-                saveTemplate();
-            }
-        }
-        closeTemplate();
-    }
-
-    function closeTemplate() {
-        $('#product-creation-container').hide();
-        $('#selected-template-name').text('');
-        var formData = utilities.createFormData('template_action', 'clear_loaded_template');
-        ajax.handleAjaxAction('template_action', formData);
-        isDirty = false;
-    }
-
-    function saveTemplate() {
-        // Implement save functionality
-        // This should gather all the data from the creation table and save it
     }
 
     function handleTemplateActionFormSubmit(e) {
@@ -96,7 +64,7 @@ sip.templateActions = (function($, ajax, utilities) {
         if (response.data && response.data.template_data) {
             console.log('Template data received:', response.data.template_data);
             if (response.data.template_action === 'create_new_products') {
-                closeTemplate(); // Close any existing template
+                sip.creationActions.closeTemplate();// Close any existing template
             }
             initializeCreationTable(response.data.template_data);
         } else {
@@ -107,6 +75,11 @@ sip.templateActions = (function($, ajax, utilities) {
     
         console.log('Exiting handleSuccessResponse in template-actions.js');
         utilities.hideSpinner();
+    }
+
+    function populateCreationTable(templateData) {
+        console.log('Populating creation table with data:', templateData);
+        initializeCreationTable(templateData);
     }
 
     function initializeCreationTable(templateData) {
@@ -137,14 +110,6 @@ sip.templateActions = (function($, ajax, utilities) {
         $('#product-creation-container').show();
         $('#no-template-message').hide();
         $('#creation-table').show();
-    
-        // Save the loaded template state
-        var formData = utilities.createFormData('template_action', 'set_loaded_template');
-        formData.append('template_data', JSON.stringify(templateData));
-        sip.ajax.handleAjaxAction('template_action', formData);
-    
-        isDirty = false;
-        console.log('Creation actions initialized');
 
         // Wait for the table to be fully populated before hiding the spinner
         waitForTableToPopulate(table).then(() => {
@@ -226,33 +191,9 @@ sip.templateActions = (function($, ajax, utilities) {
         return strippedText.length > maxLength ? strippedText.substring(0, maxLength) + '...' : strippedText;
     }
 
-    function waitForTableToPopulate(table) {
-        return new Promise((resolve) => {
-            console.log('Starting to observe table population');
-            const observer = new MutationObserver((mutations) => {
-                if (table.find('tbody tr').length > 0) {
-                    console.log('Table population observed');
-                    observer.disconnect();
-                    resolve();
-                }
-            });
-    
-            observer.observe(table[0], {
-                childList: true,
-                subtree: true
-            });
-    
-            // Failsafe: resolve after 5 seconds if table doesn't populate
-            setTimeout(() => {
-                console.log('Failsafe timeout reached for table population');
-                observer.disconnect();
-                resolve();
-            }, 5000);
-        });
-    }
-
     return {
         init: init,
-        handleSuccessResponse: handleSuccessResponse
+        handleSuccessResponse: handleSuccessResponse,
+        populateCreationTable: populateCreationTable
     };
 })(jQuery, sip.ajax, sip.utilities);

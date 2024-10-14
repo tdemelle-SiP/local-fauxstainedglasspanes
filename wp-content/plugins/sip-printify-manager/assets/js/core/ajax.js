@@ -4,30 +4,14 @@ var sip = sip || {};
 
 sip.ajax = (function($) {
     var successHandlers = {};
+
     /**
      * Initialize the AJAX module
      * Sets up event listeners for global AJAX-related actions
      */
     function init() {
-        // Handle New Store Token button click
-        $('#new-token-button').on('click', function (e) {
-            e.preventDefault();
-            var formData = new FormData();
-            formData.append('action', 'sip_handle_ajax_request');
-            formData.append('action_type', 'new_token');
-            formData.append('nonce', sipAjax.nonce);
-            handleAjaxAction('new_token', formData, '#new-token-button', '#loading-spinner');
-        });
-
-        // Handle Save Token form submission
-        $('#save-token-form').on('submit', function (e) {
-            e.preventDefault();
-            var formData = new FormData(this);
-            formData.append('action', 'sip_handle_ajax_request');
-            formData.append('action_type', 'save_token');
-            formData.append('nonce', sipAjax.nonce);
-            handleAjaxAction('save_token', formData, null, '#loading-spinner');
-        });
+        // Any initialization code can go here
+        console.log('AJAX module initialized');
     }
 
     /**
@@ -65,47 +49,26 @@ sip.ajax = (function($) {
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 handleAjaxError(jqXHR, textStatus, errorThrown, buttonSelector, spinnerSelector);
+            },
+            complete: function() {
+                sip.utilities.hideSpinner();
             }
         });
     }
 
-    function registerSuccessHandler(actionType, handler) {
-        console.log('Registering success handler for', actionType);
-        successHandlers[actionType] = handler;
-    }
-
-    /**
-     * Handle successful AJAX responses
-     * @param {string} actionType - Type of action that was performed
-     * @param {Object} response - Response data from the server
-     */
     function handleSuccessResponse(actionType, response) {
         console.log('Handling success response for action type:', actionType);
-        console.log('Registered handlers:', successHandlers);
         console.log('Response:', response);
 
-        switch (actionType) {
-            case 'save_token':
-            case 'new_token':
-                location.reload();
-                break;
-        default:
-            if (successHandlers[actionType]) {
-                console.log('Calling success handler for', actionType);
-                try {
-                    successHandlers[actionType](response);
-                } catch (error) {
-                    console.error('Error in success handler for', actionType, ':', error);
-                }
-            } else {
-                console.warn('No success handler found for action type:', actionType);
+        if (successHandlers[actionType]) {
+            console.log('Calling success handler for', actionType);
+            try {
+                successHandlers[actionType](response);
+            } catch (error) {
+                console.error('Error in success handler for', actionType, ':', error);
             }
-            
-
-            
-            console.log('Exiting handleSuccessResponse in ajax.js');
-            console.log('calling hideSpinner');
-            sip.utilities.hideSpinner();
+        } else {
+            console.warn('No success handler found for action type:', actionType);
         }
     }
 
@@ -132,8 +95,11 @@ sip.ajax = (function($) {
 
         console.error('AJAX Error:', textStatus, errorThrown, jqXHR.responseText);
         sip.utilities.showToast('AJAX Error occurred: ' + textStatus + ' - ' + errorThrown, 5000);
-        utilities.hideSpinner();  // Ensure spinner is hidden on error
+    }
 
+    function registerSuccessHandler(actionType, handler) {
+        console.log('Registering success handler for', actionType);
+        successHandlers[actionType] = handler;
     }
 
     // Expose public methods

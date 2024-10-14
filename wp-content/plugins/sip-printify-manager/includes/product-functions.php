@@ -8,6 +8,124 @@
 // Prevent direct access to this file for security reasons
 if (!defined('ABSPATH')) exit;
 
+// Handle product actions triggered via AJAX
+function sip_handle_product_action() {
+    // if (!check_ajax_referer('sip_printify_manager_nonce', 'nonce', false)) {
+    //     wp_send_json_error('Security check failed');
+    // }
+
+    // Retrieve the action requested by the user from the AJAX POST data
+    $product_action = isset($_POST['product_action']) ? sanitize_text_field($_POST['product_action']) : '';
+    // Get the list of selected product IDs from the AJAX POST data
+    $selected_products = isset($_POST['selected_products']) ? $_POST['selected_products'] : array();
+
+    // Get the encrypted token and decrypt it
+    $encrypted_token = get_option('printify_bearer_token');
+    $token = sip_decrypt_token($encrypted_token);
+    $shop_id = get_option('sip_printify_shop_id');
+
+    // Fetch and display products
+    $result = sip_execute_product_action($product_action, $selected_products);
+
+    // Generate the product list HTML
+    $product_list_html = sip_display_product_list($result['products']);
+
+    // Load templates
+    $templates = sip_load_templates();
+    
+    // Generate the template list HTML
+    $template_list_html = sip_display_template_list($templates);
+
+    // Send a JSON response back to the AJAX call with the updated HTML content
+    wp_send_json_success(array(
+        'product_list_html' => $product_list_html, 
+        'template_list_html' => $template_list_html,
+        'message' => $result['message']
+    ));
+}
+
+// Execute product actions based on the user's selection
+function sip_execute_product_action($action, $selected_products = array()) {
+    error_log("sip_execute_product_action called with action: $action");
+
+    $encrypted_token = get_option('printify_bearer_token');
+    $token = sip_decrypt_token($encrypted_token);
+    $shop_id = get_option('sip_printify_shop_id');
+
+    error_log('Using API Token: ' . substr($token, 0, 5) . '***');
+    error_log('Using Shop ID: ' . $shop_id);
+
+    $products = get_option('sip_printify_products', array());
+
+    switch ($action) {
+        case 'reload':
+            error_log('Reloading products from Printify API.');
+            $fetched_products = fetch_products($encrypted_token, $shop_id);
+            if ($fetched_products) {
+                update_option('sip_printify_products', $fetched_products);
+                error_log('Products reloaded and updated in options.');
+                return array(
+                    'products' => $fetched_products,
+                    'message' => 'Shop products reloaded successfully.'
+                );
+            } else {
+                error_log('Failed to fetch products during reload action.');
+                return array(
+                    'products' => $products,
+                    'message' => 'Failed to reload shop products.'
+                );
+            }
+
+        case 'remove_from_manager':
+            if (empty($selected_products)) {
+                error_log('No products selected for action: remove_from_manager');
+                return array('products' => $products, 'message' => 'No products selected for removal.');
+            }
+
+            error_log('Removing selected products from manager.');
+            $initial_count = count($products);
+
+            $products = array_filter($products, function ($product) use ($selected_products) {
+                $product_removed = !in_array($product['id'], $selected_products);
+                if (!$product_removed) {
+                    delete_product_json($product);
+                }
+                return $product_removed;
+            });
+            $filtered_count = count($products);
+
+            error_log("Products before removal: $initial_count, after removal: $filtered_count");
+            update_option('sip_printify_products', $products);
+            error_log('Updated sip_printify_products option after removal.');
+
+            return array('products' => $products, 'message' => 'Selected products removed successfully.');
+
+        case 'create_template':
+            error_log('Creating templates for selected products.');
+            foreach ($selected_products as $product_id) {
+                $product_data = array_filter($products, function ($product) use ($product_id) {
+                    return $product['id'] === $product_id;
+                });
+
+                if (!empty($product_data)) {
+                    $product = array_shift($product_data);
+                    $transformed_product = transform_product_data($product);
+                    $template_title = $transformed_product['title'];
+                    sip_save_template($transformed_product, $template_title);
+                    error_log('Template created for product ID: ' . $product_id);
+                } else {
+                    error_log('Product ID not found in products data: ' . $product_id);
+                }
+            }
+            return array('products' => $products, 'message' => 'Templates created successfully.');
+
+        default:
+            error_log('Unknown action requested: ' . $action);
+            return array('products' => $products, 'message' => 'Unknown action requested.');
+    }
+}
+
+
 // Fetch products directly from Printify API using the Bearer token
 function fetch_products($encrypted_token, $shop_id) {
     // Decrypt the token before using it
@@ -145,122 +263,6 @@ function sip_display_product_list($products) {
     return $html;
 }
 
-// Handle product actions triggered via AJAX
-function sip_handle_product_action() {
-    // if (!check_ajax_referer('sip_printify_manager_nonce', 'nonce', false)) {
-    //     wp_send_json_error('Security check failed');
-    // }
-
-    // Retrieve the action requested by the user from the AJAX POST data
-    $product_action = isset($_POST['product_action']) ? sanitize_text_field($_POST['product_action']) : '';
-    // Get the list of selected product IDs from the AJAX POST data
-    $selected_products = isset($_POST['selected_products']) ? $_POST['selected_products'] : array();
-
-    // Get the encrypted token and decrypt it
-    $encrypted_token = get_option('printify_bearer_token');
-    $token = sip_decrypt_token($encrypted_token);
-    $shop_id = get_option('sip_printify_shop_id');
-
-    // Fetch and display products
-    $result = sip_execute_product_action($product_action, $selected_products);
-
-    // Generate the product list HTML
-    $product_list_html = sip_display_product_list($result['products']);
-
-    // Load templates
-    $templates = sip_load_templates();
-    
-    // Generate the template list HTML
-    $template_list_html = sip_display_template_list($templates);
-
-    // Send a JSON response back to the AJAX call with the updated HTML content
-    wp_send_json_success(array(
-        'product_list_html' => $product_list_html, 
-        'template_list_html' => $template_list_html,
-        'message' => $result['message']
-    ));
-}
-
-// Execute product actions based on the user's selection
-function sip_execute_product_action($action, $selected_products = array()) {
-    error_log("sip_execute_product_action called with action: $action");
-
-    $encrypted_token = get_option('printify_bearer_token');
-    $token = sip_decrypt_token($encrypted_token);
-    $shop_id = get_option('sip_printify_shop_id');
-
-    error_log('Using API Token: ' . substr($token, 0, 5) . '***');
-    error_log('Using Shop ID: ' . $shop_id);
-
-    $products = get_option('sip_printify_products', array());
-
-    switch ($action) {
-        case 'reload':
-            error_log('Reloading products from Printify API.');
-            $fetched_products = fetch_products($encrypted_token, $shop_id);
-            if ($fetched_products) {
-                update_option('sip_printify_products', $fetched_products);
-                error_log('Products reloaded and updated in options.');
-                return array(
-                    'products' => $fetched_products,
-                    'message' => 'Shop products reloaded successfully.'
-                );
-            } else {
-                error_log('Failed to fetch products during reload action.');
-                return array(
-                    'products' => $products,
-                    'message' => 'Failed to reload shop products.'
-                );
-            }
-
-        case 'remove_from_manager':
-            if (empty($selected_products)) {
-                error_log('No products selected for action: remove_from_manager');
-                return array('products' => $products, 'message' => 'No products selected for removal.');
-            }
-
-            error_log('Removing selected products from manager.');
-            $initial_count = count($products);
-
-            $products = array_filter($products, function ($product) use ($selected_products) {
-                $product_removed = !in_array($product['id'], $selected_products);
-                if (!$product_removed) {
-                    delete_product_json($product);
-                }
-                return $product_removed;
-            });
-            $filtered_count = count($products);
-
-            error_log("Products before removal: $initial_count, after removal: $filtered_count");
-            update_option('sip_printify_products', $products);
-            error_log('Updated sip_printify_products option after removal.');
-
-            return array('products' => $products, 'message' => 'Selected products removed successfully.');
-
-        case 'create_template':
-            error_log('Creating templates for selected products.');
-            foreach ($selected_products as $product_id) {
-                $product_data = array_filter($products, function ($product) use ($product_id) {
-                    return $product['id'] === $product_id;
-                });
-
-                if (!empty($product_data)) {
-                    $product = array_shift($product_data);
-                    $transformed_product = transform_product_data($product);
-                    $template_title = $transformed_product['title'];
-                    sip_save_template($transformed_product, $template_title);
-                    error_log('Template created for product ID: ' . $product_id);
-                } else {
-                    error_log('Product ID not found in products data: ' . $product_id);
-                }
-            }
-            return array('products' => $products, 'message' => 'Templates created successfully.');
-
-        default:
-            error_log('Unknown action requested: ' . $action);
-            return array('products' => $products, 'message' => 'Unknown action requested.');
-    }
-}
 
 /**
  * Delete the JSON file associated with a product

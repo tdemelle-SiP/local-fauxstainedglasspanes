@@ -76,17 +76,23 @@ sip.imageActions = (function($, ajax, utilities) {
         }
         isUploading = true;
 
-        var maxUploads = parseInt(sipAjax.max_file_uploads);
+        var phpLimits = sipAjax.php_limits;
+        var maxUploads = parseInt(phpLimits.max_file_uploads);
+        var maxFilesize = sip.utilities.convertToBytes(phpLimits.upload_max_filesize);
         var originalFileCount = files.length;
-
+    
         if (files.length > maxUploads) {
             files = Array.from(files).slice(0, maxUploads);
-            utilities.showToast(`Uploading ${maxUploads} images, the maximum simultaneous uploads allowed by your server settings. This limit can be changed in your php.ini file.`, 7000, true);
+            sip.utilities.showToast(`Uploading ${maxUploads} images, the maximum simultaneous uploads allowed by your server settings. This limit can be changed in your php.ini file.`, 7000, true);
         }
-
+    
         var formData = new FormData();
         $.each(files, function(i, file) {
-            formData.append('images[]', file);
+            if (file.size > maxFilesize) {
+                sip.utilities.showToast(`File "${file.name}" exceeds the maximum upload size of ${phpLimits.upload_max_filesize}. Skipping this file. This limit can be changed in your php.ini file.`, 5000, true);
+            } else {
+                formData.append('images[]', file);
+            }
         });
 
         formData.append('action', 'sip_handle_ajax_request');
@@ -94,7 +100,7 @@ sip.imageActions = (function($, ajax, utilities) {
         formData.append('image_action', 'upload_images');
         formData.append('nonce', sipAjax.nonce);
 
-        sip.ajax.handleAjaxAction('upload_images', formData, function() {
+        sip.ajax.handleAjaxAction('image_action', formData, function() {
             isUploading = false;
         });            
     }
