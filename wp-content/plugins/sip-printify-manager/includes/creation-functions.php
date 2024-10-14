@@ -24,19 +24,24 @@ function sip_handle_creation_action() {
         case 'save_template':
             sip_save_template_content();
             break;
-        case 'clear_loaded_template':
+        case 'close_template':
             delete_option('sip_loaded_template');
             wp_send_json_success(array(
-                'action' => 'clear_loaded_template',
-                'message' => 'Template cleared successfully',
-                'initial_html' => sip_get_initial_creation_table_html()
+                'action' => 'close_template',
+                'message' => 'Template closed successfully'
+                // 'initial_html' => sip_get_initial_creation_table_html()
             ));
-            break;
+            break;           
+        // case 'get_initial_table_html':
+        //     wp_send_json_success(array('initial_html' => '{{INITIAL_TABLE_HTML_PLACEHOLDER}}'));
+        //     break; 
+
         default:
             wp_send_json_error('Unknown creation action.');
             break;
     }
 }
+
 
 /**
  * Get the loaded template data.
@@ -51,7 +56,7 @@ function sip_get_loaded_template() {
     } else {
         wp_send_json_success(array(
             'action' => 'get_loaded_template',
-            'initial_html' => sip_get_initial_creation_table_html()
+            'template_data' => null
         ));
     }
 }

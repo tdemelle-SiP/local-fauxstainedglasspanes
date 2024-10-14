@@ -43,13 +43,19 @@ require_once WP_PLUGIN_DIR . '/sip-plugins-core/sip-plugin-framework.php';
  * We include the specialized PHP files that contain functions for handling specific parts of the plugin.
  * This modular approach keeps the main plugin file clean and focused on initialization.
  */
-require_once plugin_dir_path(__FILE__) . 'includes/shop-functions.php';      // Shop-related functions
-require_once plugin_dir_path(__FILE__) . 'includes/product-functions.php';   // Product-related functions
-require_once plugin_dir_path(__FILE__) . 'includes/image-functions.php';     // Image-related functions
-require_once plugin_dir_path(__FILE__) . 'includes/template-functions.php';  // Template-related functions
-require_once plugin_dir_path(__FILE__) . 'includes/creation-functions.php';
-require_once plugin_dir_path(__FILE__) . 'includes/icon-functions.php';
-require_once plugin_dir_path(__FILE__) . 'includes/utilities.php';
+$includes = [
+    'shop-functions.php',
+    'product-functions.php',
+    'image-functions.php',
+    'template-functions.php',
+    'creation-functions.php',
+    'icon-functions.php',
+    'utilities.php'
+];
+
+foreach ($includes as $file) {
+    require_once plugin_dir_path(__FILE__) . 'includes/' . $file;
+}
 
 /**
  * Class SiP_Printify_Manager
@@ -81,6 +87,8 @@ class SiP_Printify_Manager {
 
         // Add CSS to hide admin notices on the custom admin page
         add_action('admin_head', 'sip_hide_admin_notices');
+
+        add_action('admin_footer', 'sip_check_loaded_template');
     }
 
     /**
@@ -221,34 +229,13 @@ class SiP_Printify_Manager {
         $php_limits = sip_get_php_limits();
     
         // Localize script to pass PHP variables to JavaScript
-        wp_localize_script('sip-ajax', 'sipAjax', array(
+        wp_localize_script('sip-ajax', 'sipAjax', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce'    => wp_create_nonce('sip_printify_manager_nonce'),
             'php_limits' => $php_limits
-        ));
+        ]);
     }
     
-    /**
-     * Hide Admin Notices with CSS
-     *
-     * Adds inline CSS to hide admin notices on the plugin's admin page.
-     * This helps in providing a cleaner interface to the user by removing unnecessary alerts or messages.
-     */
-    public function hide_admin_notices_with_css() {
-        // Get the current admin screen
-        $current_screen = get_current_screen();
-
-        // Check if we are on the plugin's admin page
-        if ($current_screen && $current_screen->id === 'sip-plugins_page_sip-printify-manager') {
-            echo '<style>
-                /* Hide all admin notices */
-                .notice, .updated, .error, .success {
-                    display: none !important;
-                }
-            </style>';
-        }
-    }
-
     /**
      * Render Admin Page
      *
@@ -297,6 +284,22 @@ SiP_Plugin_Framework::init_plugin(
     __FILE__,                      // Plugin File
     'SiP_Printify_Manager'        // Main Class Name
 );
+
+
+
+function sip_check_loaded_template() {
+    $loaded_template = get_option('sip_loaded_template', '');
+    if (!empty($loaded_template)) {
+        ?>
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            var templateData = <?php echo $loaded_template; ?>;
+            sip.templateActions.populateCreationTable(templateData);
+        });
+        </script>
+        <?php
+    }
+}
 
 /**
  * Handle AJAX Requests

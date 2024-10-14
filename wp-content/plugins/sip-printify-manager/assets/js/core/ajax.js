@@ -2,7 +2,7 @@
 
 var sip = sip || {};
 
-sip.ajax = (function($) {
+sip.ajax = (function($, utilities) {
     var successHandlers = {};
 
     /**

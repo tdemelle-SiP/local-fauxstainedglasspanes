@@ -320,6 +320,22 @@ sip.utilities = (function($) {
         }
     }
 
+    function getInitialTableHtml() {
+        return `
+        <div id="no-template-message">
+            <p>No template currently loaded.</p>
+            <p>Select a template and click "Create New Products" to start.</p>
+        </div>
+        <table id="creation-table" class="wp-list-table widefat fixed striped" style="display: none;">
+            <thead>
+            <!-- Headers will be inserted here by JavaScript -->
+            </thead>
+            <tbody>
+            <!-- Rows will be inserted here by JavaScript -->
+            </tbody>
+        </table>
+        `;
+    }
 
     // Expose public methods
     return {
@@ -335,6 +351,7 @@ sip.utilities = (function($) {
         compareFileSize: compareFileSize,
         compareDates: compareDates,
         parseCustomDate: parseCustomDate,
-        createFormData: createFormData
+        createFormData: createFormData,
+        getInitialTableHtml: getInitialTableHtml
     };
 })(jQuery);

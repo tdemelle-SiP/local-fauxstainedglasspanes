@@ -58,22 +58,16 @@ sip.templateActions = (function($, ajax, utilities) {
         console.log('Response:', response);
     
         if (response.data && response.data.template_list_html) {
-            console.log('Updating template list');
             $('#template-table-list').html(response.data.template_list_html).show();
         }
         if (response.data && response.data.template_data) {
             console.log('Template data received:', response.data.template_data);
-            if (response.data.template_action === 'create_new_products') {
-                sip.creationActions.closeTemplate();// Close any existing template
-            }
             initializeCreationTable(response.data.template_data);
         } else {
             console.log('No template data in response');
         }
     
         $('input[name="selected_templates[]"], #select-all-templates').prop('checked', false);
-    
-        console.log('Exiting handleSuccessResponse in template-actions.js');
         utilities.hideSpinner();
     }
 
@@ -82,33 +76,32 @@ sip.templateActions = (function($, ajax, utilities) {
         initializeCreationTable(templateData);
     }
 
-    function waitForTableToPopulate(table) {
-        return new Promise((resolve) => {
-            console.log('Starting to observe table population');
-            const observer = new MutationObserver((mutations) => {
-                if (table.find('tbody tr').length > 0) {
-                    console.log('Table population observed');
-                    observer.disconnect();
-                    resolve();
-                }
-            });
+    // function waitForTableToPopulate(table) {
+    //     return new Promise((resolve) => {
+    //         console.log('Starting to observe table population');
+    //         const observer = new MutationObserver((mutations) => {
+    //             if (table.find('tbody tr').length > 0) {
+    //                 console.log('Table population observed');
+    //                 observer.disconnect();
+    //                 resolve();
+    //             }
+    //         });
     
-            observer.observe(table[0], {
-                childList: true,
-                subtree: true
-            });
+    //         observer.observe(table[0], {
+    //             childList: true,
+    //             subtree: true
+    //         });
     
-            // Failsafe: resolve after 5 seconds if table doesn't populate
-            setTimeout(() => {
-                console.log('Failsafe timeout reached for table population');
-                observer.disconnect();
-                resolve();
-            }, 5000);
-        });
-    }
+    //         // Failsafe: resolve after 5 seconds if table doesn't populate
+    //         setTimeout(() => {
+    //             console.log('Failsafe timeout reached for table population');
+    //             observer.disconnect();
+    //             resolve();
+    //         }, 5000);
+    //     });
+    // }
 
     function initializeCreationTable(templateData) {
-        console.log('Initializing creation table');   
         if (!templateData) {
             console.log('No template data to initialize');
 
@@ -136,12 +129,24 @@ sip.templateActions = (function($, ajax, utilities) {
         $('#no-template-message').hide();
         $('#creation-table').show();
 
-        // Wait for the table to be fully populated before hiding the spinner
-        waitForTableToPopulate(table).then(() => {
-            console.log('Table fully populated, about to hide spinner');
-            utilities.hideSpinner();
-            console.log('Spinner hidden after table fully populated');
-        });
+        // // Wait for the table to be fully populated before hiding the spinner
+        // waitForTableToPopulate(table).then(() => {
+        //     console.log('Table fully populated, about to hide spinner');
+        //     utilities.hideSpinner();
+        //     console.log('Spinner hidden after table fully populated');
+        // });
+        saveLoadedTemplate(templateData);
+    }
+
+    function saveLoadedTemplate(templateData) {
+        console.log('Saving loaded template:', templateData);
+        var formData = new FormData();
+        formData.append('action', 'sip_handle_ajax_request');
+        formData.append('action_type', 'creation_action');
+        formData.append('creation_action', 'set_loaded_template');
+        formData.append('template_data', JSON.stringify(templateData));
+        formData.append('nonce', sipAjax.nonce);
+        sip.ajax.handleAjaxAction('creation_action', formData);
     }
 
     function buildTableContent(table, templateData) {
