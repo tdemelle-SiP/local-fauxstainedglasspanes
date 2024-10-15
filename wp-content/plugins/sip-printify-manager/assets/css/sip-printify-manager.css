@@ -675,9 +675,161 @@ body.resizing * {
 }
 
 /*//////////////////////////////////////////////////////////////////////////////////////*/
+/*///////////                                                                ///////////*/
+/*//////////                   Product Creation Table Styles                 ///////////*/
+/*///////////                                                              /////////////*/
 /*//////////////////////////////////////////////////////////////////////////////////////*/
-/* Product Creation Table Styles */
 
+/* Container for the entire creation section */
+#product-creation-container {
+    position: relative;
+/*    overflow: hidden; */
+    height: calc(100vh - 32px); /* Adjust based on your WordPress admin bar height */
+}
+
+/* Main table styles */
+#product-creation-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#creation-table .reset-button,
+#creation-table .edit-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    margin-left: 5px;
+}
+
+/*//////////////////////////////////Title Header///////////////////////////////////*/
+
+/* Sticky header */
+#creation-title-header {
+    position: sticky;
+    background: #fff;
+    z-index: 1000;
+    padding: 10px 0;
+    display: flex;
+    align-items: center; 
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 0px 30px 0px 30px;
+}
+
+#creation-title-header > div.creation-header-titles {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 6px 0px 0px 0px;
+}
+
+.creation-table-main-title {
+    font-size: 36px; /* Sets the font size for the creation table title */
+    font-weight: bold; /* Makes the creation table title bold */
+    text-align: center; /* Centers the shop name text */
+    color: #0273AB; /* Sets the color of the shop name */
+    text-transform: uppercase; /* Transforms the shop name to uppercase */
+    margin: 0px; /* Adds space below the shop name */
+    line-height: 32px;
+}
+
+#selected-template-subtitle {
+    text-align: center;
+    flex: 1;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 6px 0 0 0;
+}
+
+/*//////////////////////////////////Table Header Row///////////////////////////////////*/
+
+/* Table container with horizontal scroll */
+.creation-table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    height: calc(100% - 100px); /* Adjust based on your creation header height */
+}
+
+/* Sticky table header row */
+#creation-table thead {
+    position: sticky;
+    top: 55px;
+    background: #f1f1f1;
+    z-index: 100;
+}
+
+/* Control column widths */
+#creation-table th,
+#creation-table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+}
+
+/* Example column width controls */
+#creation-table th:nth-child(1),
+#creation-table td:nth-child(1) { width: 30px; } /* Checkbox column */
+
+#creation-table th:nth-child(2),
+#creation-table td:nth-child(2) { width: 50px; } /* # column */
+
+#creation-table th:nth-child(3),
+#creation-table td:nth-child(3) { width: 200px; } /* Title column */
+
+/* Add more width controls for other columns as needed */
+
+/* Image columns */
+#creation-table th[data-image-index],
+#creation-table td.image-cell {
+    width: 100px;
+}
+
+/* Ensure the last column doesn't have a fixed width to allow for table expansion */
+#creation-table th:last-child,
+#creation-table td:last-child {
+    width: auto;
+}
+
+#product-creation-table > hr {
+    margin-top: 10px;
+}
+
+
+
+#creation-table {
+    width: 100%;   
+    margin: 0px;
+    overflow-x: auto;
+}
+
+#creation-table th {
+    font-size: 20px;
+    text-align: center;
+    background-color: #0273AB;
+    color: white;
+    padding: 0px 5px 0px 5px;
+}
+
+#creation-table, #creation-table tr, #creation-table td {
+	border: 1px solid;
+    border-color: #ccc;
+	border-collapse: collapse;
+    font-size: 11px;
+    padding: 4px;
+}
+
+#creation-table p {
+    margin: 0px;
+    font-size: 11px;
+}
+
+#creation-table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/*//////////////////////////image cell styles//////////////////////////////*/
 .image-cell {
     position: relative;
     width: 100px; /* Adjust as needed */
@@ -723,77 +875,6 @@ body.resizing * {
     text-align: center;
 }
 
-#product-creation-table > hr {
-    margin-top: 10px;
-}
-
-#creation-header {
-    display: flex;
-    align-items: center; 
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin: 0px 30px -15px 30px;
-}
-
-#creation-header > div.creation-header-titles {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin: 6px 0px 0px 0px;
-}
-
-.creation-table-title {
-    font-size: 36px; /* Sets the font size for the creation table title */
-    font-weight: bold; /* Makes the creation table title bold */
-    text-align: center; /* Centers the shop name text */
-    color: #0273AB; /* Sets the color of the shop name */
-    text-transform: uppercase; /* Transforms the shop name to uppercase */
-    margin: 0px; /* Adds space below the shop name */
-    line-height: 32px;
-}
-
-#selected-template-name {
-    text-align: center;
-    flex: 1;
-    font-size: 24px;
-    font-weight: 600;
-    margin: 6px 0 0 0;
-}
-
-#creation-table {
-    width: 100%;   
-    margin: 0px;
-    overflow-x: auto;
-}
-
-#creation-table th {
-    font-size: 20px;
-    text-align: center;
-    background-color: #0273AB;
-    color: white;
-    padding: 0px 5px 0px 5px;
-}
-
-#creation-table, #creation-table tr, #creation-table td {
-	border: 1px solid;
-    border-color: #ccc;
-	border-collapse: collapse;
-    font-size: 11px;
-    padding: 4px;
-}
-
-#creation-table p {
-    margin: 0px;
-    font-size: 11px;
-}
-
-#creation-table td {
-    text-align: center;
-    vertical-align: middle;
-}
-
 #creation-table .image-thumbnail {
     width: 16px;
     height: 16px;
@@ -822,6 +903,7 @@ body.resizing * {
     font-size: 11px;
 }
 
+/*//////////////////////////editable cell styles//////////////////////////////*/
 #creation-table .editable {
     cursor: pointer;
 }
@@ -829,15 +911,6 @@ body.resizing * {
 #creation-table .editable-input {
     width: auto;
     box-sizing: border-box;
-}
-
-#creation-table .reset-button,
-#creation-table .edit-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 11px;
-    margin-left: 5px;
 }
 
 .color-swatch {
@@ -852,6 +925,8 @@ body.resizing * {
 .color-swatch:hover {
     border: 1px solid #000;
 }
+
+/*//////////////////////////footer styles//////////////////////////////*/
 
 #product-creation-table .footer-controls {
     display: flex;

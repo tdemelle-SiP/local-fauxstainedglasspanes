@@ -2,6 +2,7 @@
 
 var sip = sip || {};
 
+
 sip.utilities = (function($) {
     // Toast notification system
     var toastQueue = [];
@@ -21,6 +22,42 @@ sip.utilities = (function($) {
         // Initialize spinner
         initSpinner();
     }
+
+    function initStickyHeader(headerSelector, stickyOffset) {
+        const header = document.querySelector(headerSelector);
+        
+        if (!header) {
+            console.error(`Header element with selector "${headerSelector}" not found.`);
+            return;
+        }
+    
+        let isSticky = false; // Variable to lock/unlock state changes
+    
+        // Function to handle scroll event
+        function handleScroll() {
+            const headerTop = header.getBoundingClientRect().top;
+    
+            // When the header hits the top of the viewport
+            if (headerTop <= stickyOffset && !isSticky) {
+                header.style.top = `${stickyOffset}px`;  // Apply sticky offset
+                header.classList.add("is-sticky");
+                isSticky = true; // Lock the state
+            } 
+            // When the header is scrolled back up
+            else if (headerTop > stickyOffset && isSticky) {
+                header.style.top = "";  // Remove sticky offset
+                header.classList.remove("is-sticky");
+                isSticky = false; // Unlock the state
+            }
+        }
+    
+        // Attach the scroll event listener to the window
+        window.addEventListener('scroll', handleScroll);
+    }
+    
+    
+    
+    
 
     function createFormData(actionType, action) {
         var formData = new FormData();
@@ -352,6 +389,7 @@ sip.utilities = (function($) {
         compareDates: compareDates,
         parseCustomDate: parseCustomDate,
         createFormData: createFormData,
-        getInitialTableHtml: getInitialTableHtml
+        getInitialTableHtml: getInitialTableHtml,
+        initStickyHeader: initStickyHeader
     };
 })(jQuery);

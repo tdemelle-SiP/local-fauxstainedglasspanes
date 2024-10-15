@@ -237,9 +237,9 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 
     <!-- Product Creation Header and Main Controls -->
     <section id="product-creation-table" class="sip-section">
-    <hr class="divider">
+       <hr class="divider">
         <!-- Product Table Header -->
-        <div id="creation-header" class="creation-header">
+        <div id="creation-title-header" class="creation-title-header">
             <div class="header-buttons">
                 <button id="close-template" class="button"><?php esc_html_e('Close', 'sip-printify-manager'); ?></button>
                 <button id="save-template" class="button"><?php esc_html_e('Save', 'sip-printify-manager'); ?></button>
@@ -247,8 +247,8 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 
             </div>
             <div class="creation-header-titles">
-                <h2 class="creation-table-title"><?php esc_html_e('Product Creation Table', 'sip-printify-manager'); ?></h2>
-                <h3><span id="selected-template-name"></span></h3>
+                <h2 class="creation-table-main-title"><?php esc_html_e('Product Creation Table', 'sip-printify-manager'); ?></h2>
+                <h3><span id="selected-template-subtitle"></span></h3>
             </div>
             <div class="import-export">
                 <button id="import-csv" class="button">Import CSV</button>
@@ -256,7 +256,6 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
                 <button id="create-product-button" class="button button-primary">Create Product</button>
             </div>
         </div>
-        <hr class="divider">
         <!-- Dynamic Product Table -->
         <div id="creation-table-container">
             <!-- The content will be populated by JavaScript -->

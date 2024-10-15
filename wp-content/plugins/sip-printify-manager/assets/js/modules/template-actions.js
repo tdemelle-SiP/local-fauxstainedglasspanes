@@ -76,35 +76,12 @@ sip.templateActions = (function($, ajax, utilities) {
         initializeCreationTable(templateData);
     }
 
-    // function waitForTableToPopulate(table) {
-    //     return new Promise((resolve) => {
-    //         console.log('Starting to observe table population');
-    //         const observer = new MutationObserver((mutations) => {
-    //             if (table.find('tbody tr').length > 0) {
-    //                 console.log('Table population observed');
-    //                 observer.disconnect();
-    //                 resolve();
-    //             }
-    //         });
-    
-    //         observer.observe(table[0], {
-    //             childList: true,
-    //             subtree: true
-    //         });
-    
-    //         // Failsafe: resolve after 5 seconds if table doesn't populate
-    //         setTimeout(() => {
-    //             console.log('Failsafe timeout reached for table population');
-    //             observer.disconnect();
-    //             resolve();
-    //         }, 5000);
-    //     });
-    // }
-
     function initializeCreationTable(templateData) {
+        console.log('initializeCreationTable triggered');
+        console.log('Is initStickyHeader available?', typeof sip.utilities.initStickyHeader);
+    
         if (!templateData) {
             console.log('No template data to initialize');
-
             return;
         }
         
@@ -124,17 +101,15 @@ sip.templateActions = (function($, ajax, utilities) {
         // Build and append table content
         buildTableContent(table, templateData);
     
+        // Call the sticky header initialization
+        sip.utilities.initStickyHeader("#creation-title-header", 32); // Adjust the offset as needed
+        sip.utilities.initStickyHeader("#creation-table-container thead", 123); // Adjust the offset as needed
+
         // Show the creation table container
         $('#product-creation-container').show();
         $('#no-template-message').hide();
         $('#creation-table').show();
 
-        // // Wait for the table to be fully populated before hiding the spinner
-        // waitForTableToPopulate(table).then(() => {
-        //     console.log('Table fully populated, about to hide spinner');
-        //     utilities.hideSpinner();
-        //     console.log('Spinner hidden after table fully populated');
-        // });
         saveLoadedTemplate(templateData);
     }
 
