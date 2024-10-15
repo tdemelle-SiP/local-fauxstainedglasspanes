@@ -295,7 +295,7 @@ function transform_product_data($product) {
     }
 
     if (isset($product['id'])) {
-	$product['source product id'] = $product['id'];
+        $product['source product id'] = $product['id'];
     }
 
     // Process the 'options' array to create mappings for colors and sizes

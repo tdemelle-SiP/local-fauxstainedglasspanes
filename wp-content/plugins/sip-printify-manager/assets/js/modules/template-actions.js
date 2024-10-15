@@ -210,6 +210,8 @@ sip.templateActions = (function($, ajax, utilities) {
 
     function buildTableRows(uniqueVariants, templateData) {
         let rows = '';
+        const firstRowImages = uniqueVariants[0].images;  // Save the images of the first row
+    
         uniqueVariants.forEach((variant, index) => {
             const isMainRow = index === 0;
     
@@ -219,12 +221,13 @@ sip.templateActions = (function($, ajax, utilities) {
     
             if (isMainRow) {
                 rows += `<td class="editable" data-key="title">${escapeHtml(templateData.title)}</td>`;
+                // Use the original buildImageCells function for the main row
+                rows += buildImageCells(variant.images);
             } else {
                 rows += `<td>Variant ${index.toString().padStart(2, '0')}</td>`;
+                // Use the new buildVariantImageCells function for variant rows
+                rows += buildVariantImageCells(variant.images, firstRowImages);
             }
-    
-            // Add image cells
-            rows += buildImageCells(variant.images);
     
             // Add state
             rows += `<td class="non-editable">${isMainRow ? 'Template' : ''}</td>`;
@@ -234,7 +237,6 @@ sip.templateActions = (function($, ajax, utilities) {
     
             if (isMainRow) {
                 rows += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
-                // Truncate tags the same way as description
                 rows += `<td class="editable" data-key="tags">${escapeHtml(truncateText(templateData.tags.join(', '), 18))}</td>`;
                 rows += `<td class="editable" data-key="description">${escapeHtml(truncateText(templateData.description, 18))}</td>`;
                 rows += `<td>${getPriceRange(templateData.variants)}</td>`;
@@ -247,7 +249,7 @@ sip.templateActions = (function($, ajax, utilities) {
         });
     
         return rows;
-    }
+    }    
 
     function buildImageCells(images) {
         let cells = '';
@@ -276,6 +278,44 @@ sip.templateActions = (function($, ajax, utilities) {
                 cells += `<div class="image-placeholder"></div>`;
             }
             cells += '</td>';
+        }
+        return cells;
+    }
+
+    function buildVariantImageCells(variantImages, firstRowImages) {
+        let cells = '';
+        for (let i = 0; i < variantImages.length; i++) {
+            // Check if the image is the same as in the first row
+            if (variantImages[i] && firstRowImages[i] && variantImages[i].id === firstRowImages[i].id) {
+                // Leave the cell blank if the image matches
+                cells += '<td class="image-cell"></td>';
+            } else {
+                // Otherwise, build the image cell with the image content
+                cells += '<td class="image-cell">';
+                if (variantImages[i]) {
+                    cells += `<div class="image-container">`;
+                    cells += `<input type="checkbox" class="image-select" data-image-id="${escapeHtml(variantImages[i].id)}">`;
+                    cells += `<div class="image-content">`;
+    
+                    if (variantImages[i].src) {
+                        cells += `<img src="${escapeHtml(variantImages[i].src)}" alt="${escapeHtml(variantImages[i].name)}" width="30" height="30" data-full-src="${escapeHtml(variantImages[i].src)}" class="clickable-thumbnail">`;
+                    } else if (variantImages[i].type && variantImages[i].type.includes('svg')) {
+                        cells += `<div class="image-placeholder">.svg</div>`;
+                    } else {
+                        cells += `<div class="image-placeholder">${variantImages[i].type || 'No image'}</div>`;
+                    }
+    
+                    // Remove the file extension from the image name for display
+                    let imageNameWithoutExtension = variantImages[i].name.replace(/\.[^/.]+$/, '');
+    
+                    // Add a title attribute with the full image name for the tooltip
+                    cells += `<span class="image-name" data-tooltip="${escapeHtml(variantImages[i].name)}">${escapeHtml(imageNameWithoutExtension)}</span>`;
+                    cells += `</div></div>`;
+                } else {
+                    cells += `<div class="image-placeholder"></div>`;
+                }
+                cells += '</td>';
+            }
         }
         return cells;
     }
