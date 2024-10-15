@@ -264,7 +264,10 @@ sip.templateActions = (function($, ajax, utilities) {
                     cells += `<div class="image-placeholder">${images[i].type || 'No image'}</div>`;
                 }
                 
-                cells += `<span class="image-name">${escapeHtml(images[i].name)}</span>`;
+                // Remove the file extension from the image name
+                let imageNameWithoutExtension = images[i].name.replace(/\.[^/.]+$/, '');
+
+                cells += `<span class="image-name">${escapeHtml(imageNameWithoutExtension)}</span>`;
                 cells += `</div></div>`;
             } else {
                 cells += `<div class="image-placeholder"></div>`;
@@ -272,18 +275,6 @@ sip.templateActions = (function($, ajax, utilities) {
             cells += '</td>';
         }
         return cells;
-    }
-
-    function buildImageContent(image) {
-        return `
-            <div class="image-container">
-                <input type="checkbox" class="image-select" data-image-id="${escapeHtml(image.id)}">
-                <div class="image-content">
-                    <img src="${escapeHtml(image.src)}" alt="${escapeHtml(image.name)}" width="30" height="30" data-full-src="${escapeHtml(image.src)}" class="clickable-thumbnail">
-                    <span class="image-name">${escapeHtml(image.name)}</span>
-                </div>
-            </div>
-        `;
     }
 
     function buildColorSwatches(colors) {

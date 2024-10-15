@@ -772,18 +772,18 @@ body.resizing * {
 }
 
 #creation-table th {
-    font-size: 20px;
+    font-size: 13px;
+    font-weight: 700;
     text-align: center;
-    background-color: #0273AB;
+    background-color: #0e5274;
     color: white;
-    padding: 0px 5px 0px 5px;
+    padding: 1px 5px 1px 5px;
 }
 
 /* Control column widths */
 #creation-table th,
 #creation-table td {
-    padding: 8px;
-    border: 1px solid #ddd;
+    border: 0.5px solid #ddd;
 }
 
 #creation-table, #creation-table tr, #creation-table td {
@@ -791,7 +791,7 @@ body.resizing * {
     border-color: #ccc;
 	border-collapse: collapse;
     font-size: 11px;
-    padding: 4px;
+    padding: 0px;
 }
 
 #creation-table p {
@@ -835,9 +835,6 @@ body.resizing * {
 /*////////////////////////////////image cell styles/////////////////////////////////////*/
 .image-cell {
     position: relative;
-    width: 100px; /* Adjust as needed */
-    height: 100px; /* Adjust as needed */
-    padding: 5px;
 }
 
 .image-container {
@@ -862,17 +859,20 @@ body.resizing * {
     height: 100%;
 }
 
+
 .clickable-thumbnail {
     cursor: pointer;
     max-width: 100%;
+    min-height: 30px;
     height: auto;
+    object-fit: contain; /* Ensures the image scales down without stretching */
 }
 
 .image-name {
     font-size: 10px;
-    margin-top: 5px;
     max-width: 100%;
-    white-space: nowrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: center;
@@ -888,12 +888,6 @@ body.resizing * {
 #creation-table .image-cell {
     text-align: center;
     position: relative;
-}
-
-#creation-table .image-cell span {
-    display: block;
-    margin-top: 5px;
-    font-size: 10px;
 }
 
 #creation-table .image-cell .reset-image-button {
@@ -918,10 +912,10 @@ body.resizing * {
 
 .color-swatch {
     display: inline-block;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    margin-right: 5px;
+    width: 16px;
+    height: 16px;
+    /* border-radius: 50%; */
+    /* margin-right: 1px; */
     border: 1px solid #ccc;
 }
 
