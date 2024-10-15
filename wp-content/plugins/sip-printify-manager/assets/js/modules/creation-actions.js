@@ -122,6 +122,8 @@ sip.creationActions = (function($, ajax, utilities) {
     function handleCloseTemplateResponse(data) {
         console.log('Template closed successfully');
         $('#creation-table-container').html(sip.utilities.getInitialTableHtml());
+        // Unset the template name
+        $('#selected-template-name').text('');
         $('#product-creation-container').show();
         $('#creation-table').hide();
         $('#no-template-message').show();
