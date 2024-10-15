@@ -103,7 +103,7 @@ sip.templateActions = (function($, ajax, utilities) {
     
         // Call the sticky header initialization
         sip.utilities.initStickyHeader("#creation-title-header", 32); // Adjust the offset as needed
-        sip.utilities.initStickyHeader("#creation-table-container thead", 123); // Adjust the offset as needed
+        sip.utilities.initStickyHeader("#creation-table-container thead", 93); // Adjust the offset as needed
 
         // Show the creation table container
         $('#product-creation-container').show();
