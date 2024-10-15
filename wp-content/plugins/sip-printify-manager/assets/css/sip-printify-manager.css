@@ -845,10 +845,37 @@ body.resizing * {
 }
 
 .image-select {
+    display: flex;
+    align-items: center;   /* Vertically center the checkmark */
+    justify-content: center;/* Horizontally center the checkmark */
     position: absolute;
-    top: 5px;
-    left: 5px;
+    top: 0px;
+    left: 0px;
     z-index: 10;
+    margin: 0px !important;
+    border-radius: 0px !important;
+    height: 12px !important;
+    width: 12px !important;
+    min-width: 12px !important;
+    border-color: #ababab;
+}
+
+/* Remove the default focus outline */
+.image-container input[type=checkbox]:active,
+.image-container input[type=checkbox]:focus {
+    outline: none;
+    box-shadow: none; /* Optional: Removes any default shadow */
+}
+
+/* Creating the custom checkmark when checked */
+.image-container input[type=checkbox]:checked::before {
+    content: '\25A0';    /* Unicode for the checkmark */
+    font-size: 16px;     /* Adjust font size to fit within the checkbox */
+    font-weight: 500;
+    color: #007bff !important;
+    position: absolute;
+    top: 7px;
+    left: -1px;
 }
 
 .image-content {
@@ -857,6 +884,7 @@ body.resizing * {
     align-items: center;
     justify-content: center;
     height: 100%;
+    margin-top: 1px;
 }
 
 
