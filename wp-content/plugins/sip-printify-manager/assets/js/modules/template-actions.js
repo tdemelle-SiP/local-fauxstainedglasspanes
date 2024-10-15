@@ -96,7 +96,7 @@ sip.templateActions = (function($, ajax, utilities) {
         tbody.empty();
     
         // Set the selected template name
-        $('#selected-template-name').text(templateData.title);
+        $('#selected-template-subtitle').text(templateData.title);
     
         // Build and append table content
         buildTableContent(table, templateData);

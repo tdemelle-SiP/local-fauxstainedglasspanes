@@ -237,7 +237,6 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 
     <!-- Product Creation Header and Main Controls -->
     <section id="product-creation-table" class="sip-section">
-       <hr class="divider">
         <!-- Product Table Header -->
         <div id="creation-title-header" class="creation-title-header">
             <div class="header-buttons">

@@ -702,7 +702,7 @@ body.resizing * {
     margin-left: 5px;
 }
 
-/*//////////////////////////////////Title Header///////////////////////////////////*/
+/*/////////////////////////////////////Title Header/////////////////////////////////////*/
 
 /* Sticky header */
 #creation-title-header {
@@ -714,7 +714,7 @@ body.resizing * {
     align-items: center; 
     flex-direction: row;
     justify-content: space-between;
-    margin: 0px 30px 0px 30px;
+    margin: 0px;
 }
 
 #creation-title-header > div.creation-header-titles {
@@ -743,13 +743,19 @@ body.resizing * {
     margin: 6px 0 0 0;
 }
 
-/*//////////////////////////////////Table Header Row///////////////////////////////////*/
+/*///////////////////////////////////Table Header Row///////////////////////////////////*/
 
 /* Table container with horizontal scroll */
 .creation-table-container {
     overflow-x: auto;
     overflow-y: auto;
     height: calc(100% - 100px); /* Adjust based on your creation header height */
+}
+
+#creation-table {
+    width: 100%;   
+    margin: 0px;
+    overflow-x: auto;
 }
 
 /* Sticky table header row */
@@ -760,11 +766,37 @@ body.resizing * {
     z-index: 100;
 }
 
+#creation-table th {
+    font-size: 20px;
+    text-align: center;
+    background-color: #0273AB;
+    color: white;
+    padding: 0px 5px 0px 5px;
+}
+
 /* Control column widths */
 #creation-table th,
 #creation-table td {
     padding: 8px;
     border: 1px solid #ddd;
+}
+
+#creation-table, #creation-table tr, #creation-table td {
+	border: 1px solid;
+    border-color: #ccc;
+	border-collapse: collapse;
+    font-size: 11px;
+    padding: 4px;
+}
+
+#creation-table p {
+    margin: 0px;
+    font-size: 11px;
+}
+
+#creation-table td {
+    text-align: center;
+    vertical-align: middle;
 }
 
 /* Example column width controls */
@@ -795,41 +827,7 @@ body.resizing * {
     margin-top: 10px;
 }
 
-
-
-#creation-table {
-    width: 100%;   
-    margin: 0px;
-    overflow-x: auto;
-}
-
-#creation-table th {
-    font-size: 20px;
-    text-align: center;
-    background-color: #0273AB;
-    color: white;
-    padding: 0px 5px 0px 5px;
-}
-
-#creation-table, #creation-table tr, #creation-table td {
-	border: 1px solid;
-    border-color: #ccc;
-	border-collapse: collapse;
-    font-size: 11px;
-    padding: 4px;
-}
-
-#creation-table p {
-    margin: 0px;
-    font-size: 11px;
-}
-
-#creation-table td {
-    text-align: center;
-    vertical-align: middle;
-}
-
-/*//////////////////////////image cell styles//////////////////////////////*/
+/*////////////////////////////////image cell styles/////////////////////////////////////*/
 .image-cell {
     position: relative;
     width: 100px; /* Adjust as needed */
@@ -903,7 +901,7 @@ body.resizing * {
     font-size: 11px;
 }
 
-/*//////////////////////////editable cell styles//////////////////////////////*/
+/*///////////////////////////////editable cell styles///////////////////////////////////*/
 #creation-table .editable {
     cursor: pointer;
 }
@@ -926,7 +924,7 @@ body.resizing * {
     border: 1px solid #000;
 }
 
-/*//////////////////////////footer styles//////////////////////////////*/
+/*///////////////////////////////////footer styles//////////////////////////////////////*/
 
 #product-creation-table .footer-controls {
     display: flex;
