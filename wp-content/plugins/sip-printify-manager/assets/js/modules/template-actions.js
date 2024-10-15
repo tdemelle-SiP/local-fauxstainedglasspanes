@@ -257,7 +257,8 @@ sip.templateActions = (function($, ajax, utilities) {
     
             if (isMainRow) {
                 rows += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
-                rows += `<td class="editable" data-key="tags">${escapeHtml(templateData.tags.join(', '))}</td>`;
+                // Truncate tags the same way as description
+                rows += `<td class="editable" data-key="tags">${escapeHtml(truncateText(templateData.tags.join(', '), 30))}</td>`;
                 rows += `<td class="editable" data-key="description">${escapeHtml(truncateText(templateData.description, 30))}<button class="edit-button" title="Edit">&#9998;</button></td>`;
                 rows += `<td>${getPriceRange(templateData.variants)}</td>`;
             } else {
@@ -273,10 +274,25 @@ sip.templateActions = (function($, ajax, utilities) {
 
     function buildImageCells(images) {
         let cells = '';
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < images.length; i++) {
             cells += '<td class="image-cell">';
             if (images[i]) {
-                cells += buildImageContent(images[i]);
+                cells += `<div class="image-container">`;
+                cells += `<input type="checkbox" class="image-select" data-image-id="${escapeHtml(images[i].id)}">`;
+                cells += `<div class="image-content">`;
+                
+                if (images[i].src) {
+                    cells += `<img src="${escapeHtml(images[i].src)}" alt="${escapeHtml(images[i].name)}" width="30" height="30" data-full-src="${escapeHtml(images[i].src)}" class="clickable-thumbnail">`;
+                } else if (images[i].type && images[i].type.includes('svg')) {
+                    cells += `<div class="image-placeholder">.svg</div>`;
+                } else {
+                    cells += `<div class="image-placeholder">${images[i].type || 'No image'}</div>`;
+                }
+                
+                cells += `<span class="image-name">${escapeHtml(images[i].name)}</span>`;
+                cells += `</div></div>`;
+            } else {
+                cells += `<div class="image-placeholder"></div>`;
             }
             cells += '</td>';
         }
@@ -310,8 +326,7 @@ sip.templateActions = (function($, ajax, utilities) {
     // Existing helper functions
     function getMaxImagesCount(templateData) {
         return Math.max(...templateData.print_areas.map(area => 
-            area.placeholders.reduce((max, placeholder) => 
-                Math.max(max, placeholder.images.length), 0)
+            area.placeholders[0].images.length
         ));
     }
 
@@ -329,14 +344,14 @@ sip.templateActions = (function($, ajax, utilities) {
         headerRow += '<th rowspan="2">Description</th>';
         headerRow += '<th rowspan="2">Price</th>';
         headerRow += '</tr>';
-
+    
         // Subheader for image numbers
         headerRow += '<tr>';
         for (let i = 1; i <= maxImages; i++) {
-            headerRow += `<th>image #${i}</th>`;
+            headerRow += `<th data-image-index="${i - 1}">image #${i}</th>`;
         }
         headerRow += '</tr>';
-
+    
         return headerRow;
     }
 
