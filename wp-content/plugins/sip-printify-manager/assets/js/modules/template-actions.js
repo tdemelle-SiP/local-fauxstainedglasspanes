@@ -146,6 +146,8 @@ sip.templateActions = (function($, ajax, utilities) {
         const rows = buildTableRows(uniqueVariants, templateData);
         tbody.append(rows);
 
+        hideVariantRowsInitially();
+        
         console.log('All rows appended');
     }
 
@@ -207,26 +209,25 @@ sip.templateActions = (function($, ajax, utilities) {
         return arr1.every((img, index) => img.id === arr2[index].id);
     }
 
-
     function buildTableRows(uniqueVariants, templateData) {
         let rows = '';
         const firstRowImages = uniqueVariants[0].images;  // Save the images of the first row
     
+        // Insert the main data row first
         uniqueVariants.forEach((variant, index) => {
             const isMainRow = index === 0;
-    
+            
+            // Build the main data row
             rows += `<tr class="${isMainRow ? 'main-template-row' : 'variant-row'}">`;
             rows += `<td><input type="checkbox"></td>`;
             rows += `<td>${index + 1}</td>`;
     
             if (isMainRow) {
                 rows += `<td class="editable" data-key="title">${escapeHtml(templateData.title)}</td>`;
-                // Use the original buildImageCells function for the main row
-                rows += buildImageCells(variant.images);
+                rows += buildImageCells(variant.images);  // Use the original buildImageCells function for the main row
             } else {
                 rows += `<td>Variant ${index.toString().padStart(2, '0')}</td>`;
-                // Use the new buildVariantImageCells function for variant rows
-                rows += buildVariantImageCells(variant.images, firstRowImages);
+                rows += buildVariantImageCells(variant.images, firstRowImages);  // Use the new buildVariantImageCells function for variant rows
             }
     
             // Add state
@@ -242,14 +243,31 @@ sip.templateActions = (function($, ajax, utilities) {
                 rows += `<td>${getPriceRange(templateData.variants)}</td>`;
             } else {
                 rows += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
-                rows += '<td colspan="3"></td>'; // Span the remaining columns
+                rows += '<td colspan="3"></td>';  // Span the remaining columns
             }
     
             rows += '</tr>';
+    
+            // Insert the variants header row after the main data row
+            if (isMainRow) {
+                rows += '<tr class="variants-header-row">';
+                rows += `<td><input type="checkbox"></td>`; // Checkbox cell
+                rows += `<td class="toggle-variant-rows">+</td>`; // Toggle button starts as "+"
+                rows += '<td colspan="5">Toggle Variants</td>';
+                rows += '</tr>';
+            }
         });
     
+        hideVariantRowsInitially();
+
         return rows;
-    }    
+    }
+    
+    // This function ensures that variant rows are collapsed on page load
+    function hideVariantRowsInitially() {
+        $('.variant-row').hide();  // Hide variant rows initially
+        $('.toggle-variant-rows').text('+');  // Set the initial state of the toggle to collapsed
+    }
 
     function buildImageCells(images) {
         let cells = '';

@@ -25,15 +25,18 @@ sip.creationActions = (function($, ajax, utilities) {
             e.preventDefault();
             e.stopPropagation();
         });
+    
         $('#creation-table').on('click', '.editable', handleCellEdit);
         $('#creation-table').on('click', '.edit-button', handleDescriptionEdit);
         $('#close-template').on('click', closeTemplate);
-
-
+    
         $('#creation-table').on('input', 'input, textarea', function() {
             isDirty = true;
         });
-
+    
+        // Bind the toggle function to the variant header row toggle button
+        $('#creation-table').on('click', '.toggle-variant-rows', toggleVariantRows);
+    
         // Add other event listeners here as needed
     }
 
@@ -206,6 +209,17 @@ sip.creationActions = (function($, ajax, utilities) {
         sip.ajax.handleAjaxAction('creation_action', formData);
     }
 
+    function toggleVariantRows() {
+        const toggleButton = $(this); // Get the clicked button
+        const isCollapsed = toggleButton.text() === '+'; // Check if currently collapsed
+    
+        // Toggle button text between "+" and "-"
+        toggleButton.text(isCollapsed ? '-' : '+');
+    
+        // Show or hide variant rows based on the current state
+        $('.variant-row').toggle(isCollapsed);
+    }
+    
     return {
         init: init,
         handleSuccessResponse: handleSuccessResponse,

@@ -945,6 +945,17 @@ body.resizing * {
     font-size: 11px;
 }
 
+/*//////////////////////////////variant header and rows///////////////////////////////////*/
+#creation-table > tbody > tr.variants-header-row > td.toggle-variant-rows {
+    cursor: pointer;
+    font-size: 20px;
+}
+
+#creation-table > tbody > tr.variants-header-row > td.toggle-variant-rows:hover {
+    font-weight: 700;
+    background-color: white;
+}
+
 /*///////////////////////////////editable cell styles///////////////////////////////////*/
 #creation-table .editable {
     cursor: pointer;
