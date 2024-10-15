@@ -149,46 +149,195 @@ sip.templateActions = (function($, ajax, utilities) {
         sip.ajax.handleAjaxAction('creation_action', formData);
     }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
     function buildTableContent(table, templateData) {
         const thead = table.find('thead');
         const tbody = table.find('tbody');
 
+        // Clear existing content
+        thead.empty();
+        tbody.empty();
+
         // Build table headers
-        const headers = ['#', 'Design - Front', 'Title', 'Description', 'Tags', 'Colors', 'Sizes', 'Price'];
-        let headerRow = '<tr>';
-        headers.forEach(function(header, index) {
-            headerRow += `<th>${escapeHtml(header)}${index === 0 ? '<input type="checkbox" id="select-all-rows">' : ''}</th>`;
+        const headers = buildHeaders(templateData);
+        thead.append(headers);
+
+        // Process template data to get unique variants
+        const uniqueVariants = processTemplateData(templateData);
+
+        // Build rows
+        const rows = buildTableRows(uniqueVariants, templateData);
+        tbody.append(rows);
+
+        console.log('All rows appended');
+    }
+
+    function processTemplateData(templateData) {
+        console.log('Processing template data:', templateData);
+        const uniqueVariants = [];
+        let colorOptions = templateData['options - colors'] || [];
+    
+        if (!templateData.print_areas || !Array.isArray(templateData.print_areas)) {
+            console.error('print_areas not found or not an array in template data');
+            return uniqueVariants;
+        }
+    
+        // Helper function to find existing variant with the same image array
+        const findExistingVariant = (images) => {
+            return uniqueVariants.find(v => areImageArraysEqual(v.images, images));
+        };
+    
+        // Process each print area
+        templateData.print_areas.forEach((printArea, index) => {
+            const images = printArea.placeholders[0].images;
+            let existingVariant = findExistingVariant(images);
+    
+            if (existingVariant) {
+                // Combine variant_ids if image array already exists
+                existingVariant.variantIds = [...new Set([...existingVariant.variantIds, ...printArea.variant_ids])];
+            } else {
+                // Create new variant if image array is unique
+                existingVariant = {
+                    id: uniqueVariants.length,
+                    variantIds: printArea.variant_ids,
+                    images: images,
+                    colors: []
+                };
+                uniqueVariants.push(existingVariant);
+            }
+    
+            // Process colors for the variant
+            printArea.variant_ids.forEach(variantId => {
+                if (templateData.variants && Array.isArray(templateData.variants)) {
+                    const variantData = templateData.variants.find(v => v.id === variantId);
+                    if (variantData && variantData.options && variantData.options.length > 0) {
+                        const colorId = variantData.options[0];
+                        const color = colorOptions.find(c => c.id === colorId);
+                        if (color && !existingVariant.colors.some(c => c.id === color.id)) {
+                            existingVariant.colors.push(color);
+                        }
+                    }
+                }
+            });
         });
+    
+        console.log('Processed unique variants:', uniqueVariants);
+        return uniqueVariants;
+    }
+
+    function areImageArraysEqual(arr1, arr2) {
+        if (arr1.length !== arr2.length) return false;
+        return arr1.every((img, index) => img.id === arr2[index].id);
+    }
+
+
+    function buildTableRows(uniqueVariants, templateData) {
+        let rows = '';
+        uniqueVariants.forEach((variant, index) => {
+            const isMainRow = index === 0;
+    
+            rows += `<tr class="${isMainRow ? 'main-template-row' : 'variant-row'}">`;
+            rows += `<td><input type="checkbox"></td>`;
+            rows += `<td>${index + 1}</td>`;
+    
+            if (isMainRow) {
+                rows += `<td class="editable" data-key="title">${escapeHtml(templateData.title)}</td>`;
+            } else {
+                rows += `<td>Variant ${index.toString().padStart(2, '0')}</td>`;
+            }
+    
+            // Add image cells
+            rows += buildImageCells(variant.images);
+    
+            // Add state
+            rows += `<td class="non-editable">${isMainRow ? 'Template' : ''}</td>`;
+    
+            // Add color swatches
+            rows += buildColorSwatches(variant.colors);
+    
+            if (isMainRow) {
+                rows += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
+                rows += `<td class="editable" data-key="tags">${escapeHtml(templateData.tags.join(', '))}</td>`;
+                rows += `<td class="editable" data-key="description">${escapeHtml(truncateText(templateData.description, 30))}<button class="edit-button" title="Edit">&#9998;</button></td>`;
+                rows += `<td>${getPriceRange(templateData.variants)}</td>`;
+            } else {
+                rows += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
+                rows += '<td colspan="3"></td>'; // Span the remaining columns
+            }
+    
+            rows += '</tr>';
+        });
+    
+        return rows;
+    }
+
+    function buildImageCells(images) {
+        let cells = '';
+        for (let i = 0; i < 4; i++) {
+            cells += '<td class="image-cell">';
+            if (images[i]) {
+                cells += buildImageContent(images[i]);
+            }
+            cells += '</td>';
+        }
+        return cells;
+    }
+
+    function buildImageContent(image) {
+        return `
+            <div class="image-container">
+                <input type="checkbox" class="image-select" data-image-id="${escapeHtml(image.id)}">
+                <div class="image-content">
+                    <img src="${escapeHtml(image.src)}" alt="${escapeHtml(image.name)}" width="30" height="30" data-full-src="${escapeHtml(image.src)}" class="clickable-thumbnail">
+                    <span class="image-name">${escapeHtml(image.name)}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    function buildColorSwatches(colors) {
+        let swatches = `<td class="color-swatches">`;
+        colors.forEach(color => {
+            swatches += `
+                <span class="color-swatch" title="${escapeHtml(color.title)}" 
+                      style="background-color: ${escapeHtml(color.colors[0])}"></span>
+            `;
+        });
+        swatches += '</td>';
+        return swatches;
+    }
+
+    // Existing helper functions
+    function getMaxImagesCount(templateData) {
+        return Math.max(...templateData.print_areas.map(area => 
+            area.placeholders.reduce((max, placeholder) => 
+                Math.max(max, placeholder.images.length), 0)
+        ));
+    }
+
+    function buildHeaders(templateData) {
+        const maxImages = getMaxImagesCount(templateData);
+        let headerRow = '<tr>';
+        headerRow += '<th rowspan="2"><input type="checkbox" id="select-all-rows"></th>';
+        headerRow += '<th rowspan="2">#</th>';
+        headerRow += '<th rowspan="2">Title</th>';
+        headerRow += `<th colspan="${maxImages}">Front - Design</th>`;
+        headerRow += '<th rowspan="2">State</th>';
+        headerRow += '<th rowspan="2">Colors</th>';
+        headerRow += '<th rowspan="2">Sizes</th>';
+        headerRow += '<th rowspan="2">Tags</th>';
+        headerRow += '<th rowspan="2">Description</th>';
+        headerRow += '<th rowspan="2">Price</th>';
         headerRow += '</tr>';
-        thead.append(headerRow);
 
-        console.log('Header row appended');
+        // Subheader for image numbers
+        headerRow += '<tr>';
+        for (let i = 1; i <= maxImages; i++) {
+            headerRow += `<th>image #${i}</th>`;
+        }
+        headerRow += '</tr>';
 
-        // Build main template row
-        let mainRow = '<tr class="main-template-row">';
-        mainRow += '<td><input type="checkbox" disabled></td>'; // Checkbox for #
-        mainRow += buildDesignCell(templateData);
-        mainRow += `<td class="editable" data-key="title">${escapeHtml(templateData.title)}</td>`;
-        mainRow += `<td class="editable" data-key="description">${escapeHtml(truncateText(templateData.description, 30))}<button class="edit-button" title="Edit">&#9998;</button></td>`;
-        mainRow += `<td class="editable" data-key="tags">${escapeHtml(templateData.tags.join(', '))}</td>`;
-        mainRow += `<td>${getColorsSwatches(templateData['options - colors'])}</td>`;
-        mainRow += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
-        mainRow += `<td>${getPriceRange(templateData.variants)}</td>`;
-        mainRow += '</tr>';
-        tbody.append(mainRow);
-
-        console.log('Main row appended');
-    }
-
-    function buildDesignCell(templateData) {
-        // Implement this function based on your specific requirements
-        return '<td class="design-cell">Design Placeholder</td>';
-    }
-
-    function getColorsSwatches(colors) {
-        return colors.map(color => 
-            `<span class="color-swatch" title="${escapeHtml(color.title)}" style="background-color: ${escapeHtml(color.colors[0])}"></span>`
-        ).join('');
+        return headerRow;
     }
 
     function getSizesString(sizes) {

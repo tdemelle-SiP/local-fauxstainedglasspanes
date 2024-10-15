@@ -14,53 +14,114 @@ The attached files contain some of the existing core code that this functionalit
 
 When a template is first created from a product, the following data is pulled directly from the selected source products json file and stored as a new template file that becomes available in the template table list.   
 
-title
-source product id //((need to add this to the create template code))
-description			
-tags				
-blueprint id			
-print provider id		
-variants			
-	id
-	price
-	is_enabled
-print areas			
-	variant ids		
-	placeholders
-		position
-		images
-			id	
-			name	
-			type
-			height
-			width
-			x
-			y
-			scale
-			angle
-options - colors
-	id
-	title
-	colors
-options - sizes
-	id
-	title
+Here's the template data framework
+
+{
+	"title":
+	"description":
+	"tags": [],
+	"variants": [
+	    {
+		"id":
+		"price":
+		"is_enabled":
+		"options": [
+			(color),
+			(size)
+		]	
+	    },
+	    {
+		"id":
+		"price":
+		"is_enabled":
+		"options": [
+			(color),
+			(size)
+		]	
+	    },
+	    etc...
+	],
+	"blueprint_id":
+	"print_provider_id":
+	"print_areas": [
+	    {
+		"variant_ids": [
+		],
+		"placeholders": [
+			"position":
+			"images": [
+				{
+					"id":
+					"name":
+					"type":
+					"height":
+					"width":
+					"x":
+					"y":
+					"scale":
+					"angle":
+					"src":
+				},
+				{
+					"id":
+					"name":
+					"type":
+					"height":
+					"width":
+					"x":
+					"y":
+					"scale":
+					"angle":
+					"src":
+				},	
+				etc...
+			]
+	    },
+	    {
+		"variant_ids": [
+		],
+		"placeholders": [
+			etc...
+	],
+	"source product":
+	"source product id":
+	"options - colors": [
+	    {
+		"id":
+		"title":
+		"colors": [
+			(#colorhex)
+		]
+	    },
+	    etc...
+	],
+	"options - sizes": [
+	    {
+		"id":
+		"title":
+	    },
+	    etc...
+	]
+
+}
 
 //the following data structures are added after work has been done and saved in the Product Creation Table
 
 //these top level categories, creations, work in progress, archived, in addition to "new", are options that appear in the "states" column in the Product Creation Table
 
+The arrays and keys in each of these categories should reflect the data that has been edited in the Product Creation Table
+
 new			//the default product state when a new product row is created
 
 
-creations		//products that have been created using the printify create product API
-	title
-		tags
-		description
-		price
-		sizes
-		colors
-		print-area
+"creations": [	//products that have been created using the printify create product API
+	"title": [
+		"tags": []
+		"description":
+		"price":
+		"sizes":
+		"colors":
+		"print-area":
 			image#
 work in progress	//products that have been modified in the table and saved, but not created
 	title
@@ -143,114 +204,72 @@ The table headers will have custom css styling to distinguish them from other ta
 
 each table header will have a selection checkbox in the upper left corner that will select all the cells in its column.  The selected cells become the targets for the actions pulldown menu.
 
+| checkbox | # | design - front | title | state | description | tags | colors | sizes | price | design - printlocation A | design - printlocation B | design - printlocation etc |
 
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ////////////////////////////////////////////////////////IMAGES/////////////////////////////////////////////////////////////////
 
-The portion of the template array that contains the images for the product is structured like this:
+The portion of the template array that contains the images for the product is structured like this in the template.json file:
 
-placeholders: [
-	"position": "front",
-	"images": [
-            {
-			"id": "66d5bce57c0b485c83827a0f",
-			"name":	"FSGPurl98989a.svg",
-			"type": "image\/png",
-                        "height": 65,
-                        "width": 800,
-                        "x": 0.5,
-                        "y": 0.82486495233750334,
-                        "scale": 0.4556,
-                        "angle": 0,
-                        "src": ""
-            },
-            {
-			"id": "66d4a40ef3e52e3c26057e06",
-            ...
-            }
+print_areas:
+	variant_ids:
+	placeholders: [
+		"position": "front",
+		"images": [
+				{
+				"id": "66d5bce57c0b485c83827a0f",
+				"name":	"FSGPurl98989a.svg",
+				"type": "image\/png",
+							"height": 65,
+							"width": 800,
+							"x": 0.5,
+							"y": 0.82486495233750334,
+							"scale": 0.4556,
+							"angle": 0,
+							"src": ""
+				},
+				{
+				"id": "66d4a40ef3e52e3c26057e06",
+				...
+				}
 
 The important data fields for our purposes are:
-"position" - the location on the product where the image is to be printed or "print area"
-"id" - the printify image id and the key for identifying images in the images table
+"variant_ids" - the ids of the variant products that use these images in their print areas - these are important for structuring and populating color swatch data in the Product Creation Table as explained later.
+"position" - the location on the product where the image is to be printed.  This is essentially the print area.  
+"id" - the printify image id and the key that well use later for identifying images in the images table
 "name" - the name of the image that will be used to label the image in the product creation table
 
 
-There may be any number of images in the images array associated with a particular print area.
+Here's how this data will drive creation of the image clusters in the Product Creation Table
+Each unique "position" value will create its own header in the Product Creations Table.  This header will be titled "(position name) - Design".
 
+Under each position there may be multiple images.  Each image in the array will be represented by a subheader cell in the table titled "image#n" from left to right corresponding to the images in the array from top to bottom.  The "(position name) - Design" main title header will span whatever number of subheaders are needed to present all the images in the position.  If a print area has only one image in it, the header cell contains simply "design - (print area)" and no subheader.
 
-Design header cells may have subheaders in a row below them to represent whatever number of images are in that print area in the template.  The subheaders are labeled 'image #1, image #2, etc'. The design header will span the subheaders below it.
-
-If a print area has only one image in it, the header cell contains simply "design - (print area)" and no subheader.
-
-The arrangement of the column headers for a template that includes images in 3 print locations would look like this.  Further details on how the design columns are populated follow below.
-
-| checkbox | # | design - front | title | description | tags | colors | sizes | price | design - printlocation A | design - printlocation B | design - printlocation etc |
+When it comes time to populate the first row of template data under the position design headers, each subheader cell will contain a small 30x30 image thumbnail derived from the url in the "src" key with the image title centered beneath it. The thumbnail should be clickable and open up a lightbox with the image in it.
 
 Here is an example of design headers and subheaders in a case where there are four images in the print area array
-						| 							Design - (print area)								|
+						---------------------------------------------------------------------------------
+						| 							(position name) - Design							|
+						| 		image #1	| 		image #2	| 		image #3	| 		image #4	|
+						---------------------------------------------------------------------------------						
 						| image thumbnail	| image thumbnail	| image thumbnail	| image thumbnail	|	
 						| image name		| image name		| image name		| image name		|
+						---------------------------------------------------------------------------------
 
-each table subheader cell that represents an image in the template has a number of features.
-	*image thumbnail - 
-		a small 30x30 image thumbnail derived from the url in the "src" key  The thumbnail should be clickable and open up a lightbox with the image in it.
-	*image name - 
-		the name of the image is displayed in small text beneath the thumbnail.  If it is the default image from the template, the text is in 70% grey.  If the image has been replaced by the user, the text is 100% black.
-    *selection toggle - 
-		a small square checkbox in the upper left corner that will designate the column as a target for image addition.  
-        When a column is selected, the user can then select a number of images in the image table, choose 'add images to new products' from the pulldown, click 'execute' and the images will populate unedited image cells one per row in the selected column.  If there ara no numbered new product rows for the images to populate, they will be automatically created with the other cells in the new rows initialized with the main template data.  In this way the user can select a large number of products and quickly create indiviudal products from each.
+Each different position in the template will have its own segment like this across the top of the table.
 
-///////////////////////////////////////////////////////MAIN TEMPLATE DATA ROW///////////////////////////////////////////////////
-The second row of the table will populate with the main template values associated with the template keys.
-	This row has custom css that distinguishes it from other rows.
-	This row is not numbered.
-	This cells in this row are editable and will be saved when the save button is clicked.
-	there is no checkbox next to this row; this row is not selectable for product Creation
-	Edits to the main template data cells will populate the corresponding cells in any new product rows created thereafter. (existing product rows created from the previous template data will not be updated)
+There are commonly cases in which the same position is used in multiple placeholders.  These are handled by adding a new row under the position design headers for each different array of images associated with a placeholder.  In the new row, any unique image or combination of images is listed under the appropriate image # subheader.
 
-    Design - (print area)
-		As described above, a product may have multiple print areas each with multiple images arranged together to create the design to be printed in that location on the product.  Each individual print area in the template is represented in the product creation table based on its array data in the template.json.
-
-		If there is a front print area it is drawn first in the table after the row number.  If there is not a front print area, the first print area in the template is drawn in this initial position.  Additional print areas in the template are drawn after the other main template data columns in the order they appear in the template.
-
-		If a print area has more than one image in it the header cell contains "design - (print area)" and spans a number of subheader cells drawn under it that correspond to the number of images in that print area.  the subheader cells are labeled "image #1", "image #2", etc.
-
-		The design header should span however many images there are in the area with the "position". the images should appear in columns under the header from left to right in the order they appear from top to bottom in the source array.  Each cell should contain a small 30x30 image thumbnail derived from the url in the "src" key with the image title centered beneath it. The thumbnail should be clickable and open up a lightbox with the image in it.
-
-						| 							Design - (print area)								|
-						| image thumbnail	| image thumbnail	| image thumbnail	| image thumbnail	|	
-						| image name		| image name		| image name		| image name		|
-
-
-    title				| The title in the table is assembled in part from the template title and in part from the front image name.  The code should look up the front image name in the template, find its string in the title string (or the placeholder "[title]") and replace it with the image name of whatever image is in the front image cell whether thats pulled in from the template or the user enters or drags a new image into the image thumb or front image name cells of the table - the name should then be editable.  There should be a reset icon on the far right side of the name cell that will revert it to the template name with the current front image.
-
-    
-    colors				| For all the ids in the colors array create a series of swatches in the "colors" table cell associated with that product.  The swatches are filled with the their associated colors hexadecimal value with rollover text that shows the associated colors title.
-
-    sizes				| For all the ids in the sizes array create a series of strings in the "sizes" table cell associated with that product.  For each size show "title" values separated by commas
-
-    description			| The description should populate from the template description.  The cell should only show the first 20 or 30 characters of the description followed by ellipsis.  There should be a document edit button on the far right side of the cell that brings up a text editor overlay using the same implementation used in the description editor already implemented in the code.  Next to the document edit button should be a reset icon that will revert it to the description in the source template.
-
-    tags				| The tags cell should be populated from the template and the cell should be editable.  There should be a reset button on the far right of the cell that reverts the contents of the cell back to the tags in the source template.
-
-    price			| not quite sure how to implement this yet.  Perhaps to start it could just show the range of lowest to highest price shown in the template.
-
-    print areas			| appear in the template in the context of the design locations	
-
-    position	| the solution for the "front" position has been included above.  Each additional position in the template should be structured in the same way and the associated headers, columns and data should be appended to the table in the order in which they appear in the template
-
-    images		| images data is integrated as described above
-
-	If another template is selected in the template list and the Create New Product action is executed, it should replace the currently open template.  If there are unsaved changes, the user should be prompted to save them.
 //////////////////////////////////////////////////DETAILED IMAGE AND COLOR POPULATION NOTES///////////////////////////////////////
 Here is how template data should be interpreted to populate image and color cells:
 
-For the purposes of filling in the images tabs, go through the print_area arrays like this:
-        "variant_ids": [				    	    |	OPEN
-                11952,					    	    |	REMEMBER
-                11951,					    	    |	REMEMBER
-                11953,					    	    |	REMEMBER
-                11950,					    	    |	REMEMBER
-                11954					    	    |	REMEMBER
+For the purposes of filling in the images tabs, go through the print_area array like this:
+"variant_ids": [				    	 		   |	OPEN
+        11952,					    	 		   |	REMEMBER
+        11951,					    	 		   |	REMEMBER
+        11953,					    	 		   |	REMEMBER
+        11950,					    	 		   |	REMEMBER
+        11954					    	 		   |	REMEMBER
 
 placeholders: [     					    	    |	OPEN
 	"position": "front",			   		        |	REMEMBER
@@ -323,6 +342,49 @@ ________________________________________________________________________________
 IMAGE THUMBNAILS WILL NEED TO BE DERIVED FROM THE IMAGES IN THE IMAGES TABLE using the image id # WHICH SHOULD CONTAIN ALL IMAGES REFERENCED IN THE CREATE NEW PRODUCTS TABLE
 
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+each table subheader cell that represents an image in the template has a number of features.
+	*image thumbnail - 
+		a small 30x30 image thumbnail derived from the url in the "src" key  The thumbnail should be clickable and open up a lightbox with the image in it.
+	*image name - 
+		the name of the image is displayed in small text beneath the thumbnail.  If it is the default image from the template, the text is in 70% grey.  If the image has been replaced by the user, the text is 100% black.
+    *selection toggle - 
+		a small square checkbox in the upper left corner that will designate the column as a target for image addition.  
+        When a column is selected, the user can then select a number of images in the image table, choose 'add images to new products' from the pulldown, click 'execute' and the images will populate unedited image cells one per row in the selected column.  If there ara no numbered new product rows for the images to populate, they will be automatically created with the other cells in the new rows initialized with the main template data.  In this way the user can select a large number of products and quickly create indiviudal products from each.
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+///////////////////////////////////////////////////////MAIN TEMPLATE DATA ROW///////////////////////////////////////////////////
+The second row of the table will populate with the main template values associated with the template keys.
+	This row has custom css that distinguishes it from other rows.
+	This row is not numbered.
+	This cells in this row are editable and will be saved when the save button is clicked.
+	there is no checkbox next to this row; this row is not selectable for product Creation
+	Edits to the main template data cells will populate the corresponding cells in any new product rows created thereafter. (existing product rows created from the previous template data will not be updated)
+
+
+    title				| The title in the table is assembled in part from the template title and in part from the front image name.  The code should look up the front image name in the template, find its string in the title string (or the placeholder "[title]") and replace it with the image name of whatever image is in the front image cell whether thats pulled in from the template or the user enters or drags a new image into the image thumb or front image name cells of the table - the name should then be editable.  There should be a reset icon on the far right side of the name cell that will revert it to the template name with the current front image.
+
+    
+    colors				| For all the ids in the colors array create a series of swatches in the "colors" table cell associated with that product.  The swatches are filled with the their associated colors hexadecimal value with rollover text that shows the associated colors title.
+
+    sizes				| For all the ids in the sizes array create a series of strings in the "sizes" table cell associated with that product.  For each size show "title" values separated by commas
+
+    description			| The description should populate from the template description.  The cell should only show the first 20 or 30 characters of the description followed by ellipsis.  There should be a document edit button on the far right side of the cell that brings up a text editor overlay using the same implementation used in the description editor already implemented in the code.  Next to the document edit button should be a reset icon that will revert it to the description in the source template.
+
+    tags				| The tags cell should be populated from the template and the cell should be editable.  There should be a reset button on the far right of the cell that reverts the contents of the cell back to the tags in the source template.
+
+    price			| not quite sure how to implement this yet.  Perhaps to start it could just show the range of lowest to highest price shown in the template.
+
+    print areas			| appear in the template in the context of the design locations	
+
+    position	| the solution for the "front" position has been included above.  Each additional position in the template should be structured in the same way and the associated headers, columns and data should be appended to the table in the order in which they appear in the template
+
+    images		| images data is integrated as described above
+
+	If another template is selected in the template list and the Create New Product action is executed, it should replace the currently open template.  If there are unsaved changes, the user should be prompted to save them.
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

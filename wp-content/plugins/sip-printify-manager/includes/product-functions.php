@@ -410,7 +410,9 @@ function transform_product_data($product) {
         'is_printify_express_enabled',
         'is_economy_shipping_eligible',
         'is_economy_shipping_enabled',
-        'views'
+        'views',
+        'font_color',
+        'font_family'
     );
 
     // Remove the specified top-level keys from the product data
