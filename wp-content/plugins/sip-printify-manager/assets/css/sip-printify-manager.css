@@ -4,6 +4,26 @@
     display: none !important; /* Forces hiding of notices */
 }
 
+
+/* Tooltip Styling for */
+.tooltip {
+    position: absolute;
+    background-color: #333; /* Dark background for tooltip */
+    color: #fff;            /* White text color for tooltip */
+    padding: 5px;           /* Padding inside the tooltip */
+    border-radius: 3px;     /* Round the corners */
+    white-space: nowrap;    /* Prevent text wrapping */
+    z-index: 10;            /* Ensure tooltip appears above other elements */
+    visibility: hidden;     /* Hidden by default */
+    opacity: 0;             /* Invisible initially */
+    transition: opacity 0.2s ease-in-out;  /* Smooth fade-in */
+}
+
+.tooltip.visible {
+    visibility: visible;
+    opacity: 1;
+}
+
 /*//////////////////////////////SORTABLE TABLE STYLES///////////////////////////////////*/
 .sortable {
     cursor: pointer;
@@ -455,21 +475,6 @@ table tbody tr:nth-child(even) {
     margin-top: 10px; /* Adds space above the text */
 }
 
-/* Tooltip Styling for Hovering over Image in the Image List */
-#image-list tr td:first-child img:hover::after {
-    cursor: pointer; /* Changes cursor to pointer over the first image */
-    content: attr(title); /* Displays the image title as a tooltip */
-    position: absolute;
-    background-color: #333; /* Dark background for tooltip */
-    color: #fff; /* White text color for tooltip */
-    padding: 5px; /* Padding inside the tooltip */
-    border-radius: 3px; /* Rounds the corners of the tooltip */
-    white-space: nowrap; /* Prevents text from wrapping */
-    transform: translateY(-100%); /* Moves tooltip above the image */
-    margin-top: -5px; /* Adds a small space between the image and tooltip */
-    z-index: 10; /* Ensures tooltip is above other content */
-}
-
 /* Styling for the Image Upload Area */
 .image-upload-area {
     display: flex; /* Aligns child elements horizontally */
@@ -802,6 +807,8 @@ body.resizing * {
 #creation-table td {
     text-align: center;
     vertical-align: middle;
+    padding: 0px 5px;
+    box-sizing: border-box; 
 }
 
 /* Example column width controls */
@@ -835,6 +842,7 @@ body.resizing * {
 /*////////////////////////////////image cell styles/////////////////////////////////////*/
 .image-cell {
     position: relative;
+    padding: 3px !important;
 }
 
 .image-container {
@@ -885,8 +893,10 @@ body.resizing * {
     justify-content: center;
     height: 100%;
     margin-top: 1px;
+    width: 100%;
+    overflow: hidden;
+    box-sizing: border-box; 
 }
-
 
 .clickable-thumbnail {
     cursor: pointer;
@@ -897,13 +907,20 @@ body.resizing * {
 }
 
 .image-name {
-    font-size: 10px;
-    max-width: 100%;
-    overflow-wrap: break-word;
-    word-break: break-word;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    cursor: default;
+    display: block;
     text-align: center;
+    font-size: 10px;
+    padding: 0px 5px !important;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    line-height: 1.2;
+    overflow: hidden;          /* Ensure content that overflows the container is hidden */
+    text-overflow: ellipsis;   /* Show ellipsis when the text overflows */
+    white-space: nowrap;       /* Prevent text from wrapping to the next line */
+    word-break: break-all;     /* Break the words at any point if necessary */
+    box-sizing: border-box; 
 }
 
 #creation-table .image-thumbnail {

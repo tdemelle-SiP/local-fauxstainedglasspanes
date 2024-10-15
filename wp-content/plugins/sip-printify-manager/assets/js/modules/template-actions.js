@@ -104,6 +104,8 @@ sip.templateActions = (function($, ajax, utilities) {
         // Call the sticky header initialization
         sip.utilities.initStickyHeader("#creation-title-header", 32); // Adjust the offset as needed
         sip.utilities.initStickyHeader("#creation-table-container thead", 93); // Adjust the offset as needed
+        // Initialize tooltips for the image names
+        sip.utilities.initTooltip('.image-name', 1000);
 
         // Show the creation table container
         $('#product-creation-container').show();
@@ -233,8 +235,8 @@ sip.templateActions = (function($, ajax, utilities) {
             if (isMainRow) {
                 rows += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
                 // Truncate tags the same way as description
-                rows += `<td class="editable" data-key="tags">${escapeHtml(truncateText(templateData.tags.join(', '), 30))}</td>`;
-                rows += `<td class="editable" data-key="description">${escapeHtml(truncateText(templateData.description, 30))}<button class="edit-button" title="Edit">&#9998;</button></td>`;
+                rows += `<td class="editable" data-key="tags">${escapeHtml(truncateText(templateData.tags.join(', '), 18))}</td>`;
+                rows += `<td class="editable" data-key="description">${escapeHtml(truncateText(templateData.description, 18))}</td>`;
                 rows += `<td>${getPriceRange(templateData.variants)}</td>`;
             } else {
                 rows += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
@@ -255,7 +257,7 @@ sip.templateActions = (function($, ajax, utilities) {
                 cells += `<div class="image-container">`;
                 cells += `<input type="checkbox" class="image-select" data-image-id="${escapeHtml(images[i].id)}">`;
                 cells += `<div class="image-content">`;
-                
+    
                 if (images[i].src) {
                     cells += `<img src="${escapeHtml(images[i].src)}" alt="${escapeHtml(images[i].name)}" width="30" height="30" data-full-src="${escapeHtml(images[i].src)}" class="clickable-thumbnail">`;
                 } else if (images[i].type && images[i].type.includes('svg')) {
@@ -263,11 +265,12 @@ sip.templateActions = (function($, ajax, utilities) {
                 } else {
                     cells += `<div class="image-placeholder">${images[i].type || 'No image'}</div>`;
                 }
-                
-                // Remove the file extension from the image name
+    
+                // Remove the file extension from the image name for display
                 let imageNameWithoutExtension = images[i].name.replace(/\.[^/.]+$/, '');
-
-                cells += `<span class="image-name">${escapeHtml(imageNameWithoutExtension)}</span>`;
+    
+                // Add a title attribute with the full image name for the tooltip
+                cells += `<span class="image-name" data-tooltip="${escapeHtml(images[i].name)}">${escapeHtml(imageNameWithoutExtension)}</span>`;
                 cells += `</div></div>`;
             } else {
                 cells += `<div class="image-placeholder"></div>`;

@@ -142,7 +142,7 @@ sip.imageActions = (function($, ajax, utilities) {
             sip.utilities.initImageSorting();
             console.log('Image sorting reinitialized');
         }
-    
+
         $('input[name="selected_images[]"], #select-all-images').prop('checked', false);
         $('#image-file-input').val('');
     

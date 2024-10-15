@@ -23,6 +23,48 @@ sip.utilities = (function($) {
         initSpinner();
     }
 
+    function initTooltip(selector, delayDuration = 500) {
+        document.querySelectorAll(selector).forEach(function(element) {
+            let tooltipTimeout;
+            let tooltip;
+    
+            element.addEventListener('mouseenter', function(event) {
+                // Set a timeout to show the tooltip after the specified delay
+                tooltipTimeout = setTimeout(function() {
+                    // Create a tooltip element if it doesn't exist
+                    tooltip = document.createElement('div');
+                    tooltip.className = 'tooltip';  // Apply the tooltip styling
+                    tooltip.textContent = element.getAttribute('data-tooltip');
+    
+                    // Append the tooltip to the body
+                    document.body.appendChild(tooltip);
+    
+                    // Position the tooltip near the hovered element
+                    const rect = element.getBoundingClientRect();
+                    tooltip.style.top = rect.top + window.scrollY - tooltip.offsetHeight - 5 + 'px';  // Above the element
+                    tooltip.style.left = rect.left + window.scrollX + 'px';  // Align left
+    
+                    // Make the tooltip visible
+                    tooltip.classList.add('visible');
+                }, delayDuration);  // Delay before showing the tooltip
+            });
+    
+            element.addEventListener('mouseleave', function() {
+                // Clear the timeout if the mouse leaves before the delay
+                clearTimeout(tooltipTimeout);
+    
+                // Remove the tooltip if it exists
+                if (tooltip) {
+                    tooltip.classList.remove('visible');
+                    tooltip.remove();
+                    tooltip = null;
+                }
+            });
+        });
+    }
+    
+    
+
     function initStickyHeader(headerSelector, stickyOffset) {
         const header = document.querySelector(headerSelector);
         
@@ -390,6 +432,7 @@ sip.utilities = (function($) {
         parseCustomDate: parseCustomDate,
         createFormData: createFormData,
         getInitialTableHtml: getInitialTableHtml,
-        initStickyHeader: initStickyHeader
+        initStickyHeader: initStickyHeader,
+        initTooltip: initTooltip
     };
 })(jQuery);
