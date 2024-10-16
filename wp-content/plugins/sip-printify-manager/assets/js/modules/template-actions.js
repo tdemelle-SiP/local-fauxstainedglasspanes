@@ -147,7 +147,9 @@ sip.templateActions = (function($, ajax, utilities) {
   
         tbody.append(rows);
         updateVariantHeaderCounts();  // Call this after rows are appended
+        collectVariantColors();
         hideVariantRowsInitially();
+        collectVariantSizes();
         
         console.log('All rows appended');
     }
@@ -280,6 +282,7 @@ sip.templateActions = (function($, ajax, utilities) {
     
         hideVariantRowsInitially();
 
+        // Call to collect and display the colors in the header
         return rows;
     }
     
@@ -370,6 +373,33 @@ sip.templateActions = (function($, ajax, utilities) {
         return swatches;
     }
 
+    function collectVariantColors() {
+        let allColors = new Set(); // Using a Set to prevent duplicates
+    
+        // Find all variant rows and collect the color swatches
+        $('.variant-row').each(function() {
+            // Look for color swatches within this row
+            $(this).find('.color-swatches .color-swatch').each(function() {
+                const colorStyle = $(this).attr('style');
+                const colorTitle = $(this).attr('title');
+    
+                // Ensure both colorStyle and colorTitle are available
+                if (colorStyle && colorTitle) {
+                    // Add the color swatch HTML to the Set (avoid duplicates)
+                    allColors.add(`<span class="color-swatch" title="${escapeHtml(colorTitle)}" style="${escapeHtml(colorStyle)}"></span>`);
+                }
+            });
+        });
+    
+        // Convert the Set to an array and join them to create the final HTML
+        const colorHeaderContent = Array.from(allColors).join('');
+    
+        // Update the header with the collected colors
+        $('#variant-header-colors').html(colorHeaderContent);
+    
+        console.log("Color header updated with: ", colorHeaderContent); // Debugging output
+    }
+
     // Existing helper functions
     function getMaxImagesCount(templateData) {
         return Math.max(...templateData.print_areas.map(area => 
@@ -408,6 +438,42 @@ sip.templateActions = (function($, ajax, utilities) {
                     .map(size => escapeHtml(size.title))
                     .join(', ');
     }
+
+    function collectVariantSizes() {
+        let mainSizes = [];
+        let variantSizesSet = new Set();
+    
+        // Extract sizes from the main template row (assuming it has a specific class or index)
+        let mainTemplateSizesText = $('.main-template-row').find('.sizes-cell').text().trim();
+        if (mainTemplateSizesText) {
+            mainSizes = mainTemplateSizesText.split(',').map(size => size.trim());
+        }
+    
+        // Loop through each variant row and compare sizes
+        $('.variant-row').each(function() {
+            let variantSizesText = $(this).find('.sizes-cell').text().trim();
+            if (variantSizesText) {
+                let variantSizes = variantSizesText.split(',').map(size => size.trim());
+    
+                // Compare sizes with the main template row sizes
+                variantSizes.forEach(size => {
+                    if (!mainSizes.includes(size)) {
+                        variantSizesSet.add(size);  // Add the size if it's not in the main template
+                    }
+                });
+            }
+        });
+    
+        // Update the variant header sizes cell
+        let variantHeaderSizesCell = $('#variant-header-sizes');
+        if (variantSizesSet.size > 0) {
+            let variantSizesArray = Array.from(variantSizesSet).join(', ');
+            variantHeaderSizesCell.html(variantSizesArray);
+        } else {
+            variantHeaderSizesCell.html('-');  // If no different sizes, display "-"
+        }
+    }
+    
 
     function getPriceRange(variants) {
         if (variants && variants.length > 0) {
@@ -488,9 +554,6 @@ sip.templateActions = (function($, ajax, utilities) {
             $('#variant-header-description').text('-');
         }
     }
-    
-    // Call this function after building the table
-    updateVariantHeaderCounts();
     
     return {
         init: init,
