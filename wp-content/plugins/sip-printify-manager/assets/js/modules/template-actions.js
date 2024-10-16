@@ -325,7 +325,7 @@ sip.templateActions = (function($, ajax, utilities) {
             // Check if the image is the same as in the first row
             if (variantImages[i] && firstRowImages[i] && variantImages[i].id === firstRowImages[i].id) {
                 // Leave the cell blank if the image matches
-                cells += '<td class="image-cell"></td>';
+                cells += '<td class="image-cell"><input type="checkbox" class="image-select"></td>';
             } else {
                 // Otherwise, build the image cell with the image content
                 cells += '<td class="image-cell">';
