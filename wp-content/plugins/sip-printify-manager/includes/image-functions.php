@@ -9,6 +9,46 @@
 // Prevent direct access for security
 if (!defined('ABSPATH')) exit;
 
+function generate_image_gallery_from_directory() {
+    $directory = WP_CONTENT_DIR . '/uploads/sip-printify-manager/images/';
+    $directory_url = content_url('uploads/sip-printify-manager/images/');
+    
+    // Ensure the directory exists
+    if (!is_dir($directory)) {
+        return '<p>Gallery directory not found.</p>';
+    }
+
+    // Read all image files from the directory
+    $image_files = glob($directory . '*.{jpg,jpeg,png,gif}', GLOB_BRACE);
+
+    if (empty($image_files)) {
+        return '<p>No images found in the gallery directory.</p>';
+    }
+
+    // Generate the gallery HTML
+    $gallery_html = '<div id="my-gallery">';
+    foreach ($image_files as $image_path) {
+        $image_url = $directory_url . basename($image_path);
+        $gallery_html .= sprintf(
+            '<a href="%1$s" data-pswp-width="800" data-pswp-height="600">
+                <img src="%1$s" alt="%2$s" width="150" height="150">
+            </a>',
+            esc_url($image_url),
+            esc_attr(basename($image_path))
+        );
+    }
+    $gallery_html .= '</div>';
+
+    return $gallery_html;
+}
+
+function sip_printify_manager_gallery_shortcode() {
+    return generate_image_gallery_from_directory();
+}
+add_shortcode('sip_gallery', 'sip_printify_manager_gallery_shortcode');
+
+// add gallery shortcode: [sip_gallery]
+
 /**
  * Handle Image Actions Triggered via AJAX
  *
@@ -302,7 +342,7 @@ function sip_display_image_list($images) {
             <button type="button" id="reload-images-button" class="button button-primary">' . esc_html__('Reload Shop Images', 'sip-printify-manager') . '</button>
         </div>';
     }
-    
+
     $html = '<div id="image-table-container">';
     $html .= '<table id="image-table-header">';
 
@@ -343,7 +383,7 @@ function sip_display_image_list($images) {
         <col style="width: 14%;">
         <col style="width: 10%;">
     </colgroup>';
-    
+
     // Table Body
     $html .= '<tbody>';
     foreach ($images as $image) {
@@ -352,15 +392,18 @@ function sip_display_image_list($images) {
         $dimensions = isset($image['width']) && isset($image['height']) ? esc_html($image['width']) . 'x' . esc_html($image['height']) : '';
         $size = isset($image['size']) ? esc_html(format_file_size($image['size'])) : '';
         $filename = esc_html($image['file_name']);
+        $full_image_url = esc_url($image['preview_url']);
+        $width = esc_attr($image['width']);
+        $height = esc_attr($image['height']);
 
-        $is_printify_image = (strpos($location, 'Printify Shop') !== false);
-        $row_style = $is_printify_image ? 'font-weight: bold;' : '';
-
-        $html .= '<tr title="' . esc_attr($filename) . '" style="' . $row_style . '">
+        // Create the table row with PhotoSwipe attributes
+        $html .= '<tr title="' . esc_attr($filename) . '">
             <td><input type="checkbox" name="selected_images[]" value="' . esc_attr($image['id']) . '" /></td>
             <td>
-                <a href="' . esc_url($image['preview_url']) . '" target="_blank">
-                    <img src="' . esc_url($image['preview_url']) . '" alt="' . esc_attr($filename) . '">
+                <a href="' . $full_image_url . '" data-pswp-src="' . $full_image_url . '" 
+                data-pswp-width="' . $width . '" 
+                data-pswp-height="' . $height . '">
+                    <img src="' . $full_image_url . '" alt="' . esc_attr($filename) . '" style="max-width: 100px;">
                 </a>
             </td>
             <td>' . $filename . '</td>
@@ -378,6 +421,7 @@ function sip_display_image_list($images) {
 
     return $html;
 }
+
 
 /**
  * Format File Size into Human-Readable Format

@@ -1,9 +1,15 @@
 var sip = sip || {};
 
 sip.shopActions = (function($) {
-//    var successHandlers = {};
+    var successHandlers = {};
+
+    // Document Ready - Ensure jQuery is ready and listeners are attached
+    $(document).ready(function() {
+        init();  // Call init to attach event listeners when the DOM is ready
+    });
+
     function init() {
-        attachEventListeners();
+        attachEventListeners();  // Attach all event listeners
     }
 
     function attachEventListeners() {
@@ -26,12 +32,13 @@ sip.shopActions = (function($) {
     }
 
     function handleNewToken() {
+        console.log("New Token Button Clicked");
         var formData = new FormData();
         formData.append('action', 'sip_handle_ajax_request');
         formData.append('action_type', 'shop_action');
         formData.append('shop_action', 'new_token');
         formData.append('nonce', sipAjax.nonce);
-
+    
         sip.ajax.handleAjaxAction('shop_action', formData);
     }    
 
@@ -45,24 +52,20 @@ sip.shopActions = (function($) {
             case 'new_token':
                 location.reload();
                 break;
-        default:
-            if (successHandlers[actionType]) {
-                console.log('Calling success handler for', actionType);
-                try {
-                    successHandlers[actionType](response);
-                } catch (error) {
-                    console.error('Error in success handler for', actionType, ':', error);
+            default:
+                if (successHandlers[actionType]) {
+                    console.log('Calling success handler for', actionType);
+                    try {
+                        successHandlers[actionType](response);
+                    } catch (error) {
+                        console.error('Error in success handler for', actionType, ':', error);
+                    }
+                } else {
+                    console.warn('No success handler found for action type:', actionType);
                 }
-            } else {
-                console.warn('No success handler found for action type:', actionType);
-            }
-            
-
-            
-            console.log('Exiting handleSuccessResponse in ajax.js');
-            console.log('calling hideSpinner');
-            sip.utilities.hideSpinner();
-            break;
+                console.log('Exiting handleSuccessResponse in ajax.js');
+                sip.utilities.hideSpinner();
+                break;
         }
     }
 
@@ -71,11 +74,11 @@ sip.shopActions = (function($) {
         successHandlers[actionType] = handler;
     }
 
-        // Expose public methods
-        return {
-            init: init,
-            handleSuccessResponse: handleSuccessResponse,
-            registerSuccessHandler: registerSuccessHandler
-        };
+    // Expose public methods
+    return {
+        init: init,
+        handleSuccessResponse: handleSuccessResponse,
+        registerSuccessHandler: registerSuccessHandler
+    };
 
 })(jQuery);

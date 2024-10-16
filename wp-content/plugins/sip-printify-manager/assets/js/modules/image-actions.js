@@ -45,6 +45,20 @@ sip.imageActions = (function($, ajax, utilities) {
         });
     }
 
+    function initPhotoSwipe() {
+        if (typeof PhotoSwipeLightbox === 'undefined') {
+            console.error('PhotoSwipeLightbox is not defined. Make sure its properly loaded.');
+            return;
+        }
+    
+        const lightbox = new PhotoSwipeLightbox({
+            gallery: '#image-table-content',
+            children: 'a',
+            pswpModule: PhotoSwipe
+        });
+        lightbox.init();
+    }
+
     function handleDragOver(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -137,6 +151,9 @@ sip.imageActions = (function($, ajax, utilities) {
             updateImageTable(response.data.images);
             console.log('Image table updated manually');
         }
+
+        // Initialize PhotoSwipe after images are loaded
+        initPhotoSwipe();
     
         if (typeof sip.utilities.initImageSorting === 'function') {
             sip.utilities.initImageSorting();

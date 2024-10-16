@@ -91,20 +91,6 @@ class SiP_Printify_Manager {
         add_action('admin_footer', 'sip_check_loaded_template');
     }
 
-    /**
-     * Get Instance
-     *
-     * Implements the singleton pattern to ensure only one instance of the class exists.
-     *
-     * @return SiP_Printify_Manager The singleton instance of the class.
-     */
-    public static function get_instance() {
-        if (null === self::$instance) {
-            self::$instance = new self();
-        }
-        return self::$instance;
-    }
-
     public function enqueue_admin_scripts($hook) 
     {
         if ($hook !== 'sip-plugins_page_sip-printify-manager') {
@@ -122,17 +108,41 @@ class SiP_Printify_Manager {
         }
         wp_enqueue_style('codemirror-addon-foldgutter-style', 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/fold/foldgutter.min.css', ['codemirror'], '5.65.13');
     
+        // Enqueue PhotoSwipe CSS
+        wp_enqueue_style('photoswipe-css', 'https://unpkg.com/photoswipe@5.3.0/dist/photoswipe.css', [], '5.3.0');
+    
+        // Enqueue PhotoSwipe scripts
+        wp_enqueue_script(
+            'photoswipe',
+            'https://unpkg.com/photoswipe@5.3.0/dist/photoswipe.esm.min.js',
+            array(),
+            '5.3.0',
+            true
+        );
+    
+        wp_enqueue_script(
+            'photoswipe-lightbox',
+            'https://unpkg.com/photoswipe@5.3.0/dist/photoswipe-lightbox.esm.min.js',
+            array('photoswipe'),
+            '5.3.0',
+            true
+        );
+    
+        // Enqueue PhotoSwipe initialization script
+        wp_enqueue_script(
+            'photoswipe-init',
+            plugin_dir_url(__FILE__) . 'assets/js/photoswipe-init.js',
+            array('photoswipe-lightbox'),
+            '1.0.0',
+            true
+        );
+    
+        // Add the script_loader_tag filter to add type="module"
+        add_filter('script_loader_tag', array($this, 'add_type_attribute'), 10, 3);
+    
         // Enqueue jQuery UI
         wp_enqueue_script('jquery-ui-resizable');
         wp_enqueue_script('jquery-ui-draggable');
-    
-        // Enqueue your custom CSS
-        wp_enqueue_style(
-            'sip-printify-manager-style',
-            plugin_dir_url(__FILE__) . 'assets/css/sip-printify-manager.css',
-            array(),
-            '1.0.0'
-        );
     
         // Enqueue your custom JS files in the correct order
         // Enqueue sip-utilities
@@ -188,7 +198,7 @@ class SiP_Printify_Manager {
             '1.0.0',
             true
         );
-
+    
         // Enqueue sip-template-editor
         wp_enqueue_script(
             'sip-template-editor',
@@ -197,7 +207,7 @@ class SiP_Printify_Manager {
             '1.0.0',
             true
         );
-        
+    
         // Enqueue sip-init
         wp_enqueue_script(
             'sip-init',
@@ -225,9 +235,17 @@ class SiP_Printify_Manager {
             true
         );
     
+        // Enqueue your custom CSS
+        wp_enqueue_style(
+            'sip-printify-manager-style',
+            plugin_dir_url(__FILE__) . 'assets/css/sip-printify-manager.css',
+            array(),
+            '1.0.0'
+        );
+
         // Get the PHP setting for max_file_uploads
         $php_limits = sip_get_php_limits();
-    
+
         // Localize script to pass PHP variables to JavaScript
         wp_localize_script('sip-ajax', 'sipAjax', [
             'ajax_url' => admin_url('admin-ajax.php'),
@@ -235,7 +253,32 @@ class SiP_Printify_Manager {
             'php_limits' => $php_limits
         ]);
     }
+
+    public function add_type_attribute($tag, $handle, $src) {
+        // Add script handles to the array below
+        $module_scripts = ['photoswipe', 'photoswipe-lightbox', 'photoswipe-init'];
     
+        if (in_array($handle, $module_scripts)) {
+            // Add type="module" to the script tag
+            $tag = str_replace('<script ', '<script type="module" ', $tag);
+        }
+        return $tag;
+    }
+
+    /**
+     * Get Instance
+     *
+     * Implements the singleton pattern to ensure only one instance of the class exists.
+     *
+     * @return SiP_Printify_Manager The singleton instance of the class.
+     */
+    public static function get_instance() {
+        if (null === self::$instance) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
     /**
      * Render Admin Page
      *
