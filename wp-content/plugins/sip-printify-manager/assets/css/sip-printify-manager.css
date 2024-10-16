@@ -973,6 +973,13 @@ body.resizing * {
 
 }
 
+#variant-header-colors .color-swatch {
+    height: 10px;
+    width: 10px;
+}
+
+
+
 /*///////////////////////////////editable cell styles///////////////////////////////////*/
 #creation-table .editable {
     cursor: pointer;

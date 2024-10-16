@@ -150,6 +150,7 @@ sip.templateActions = (function($, ajax, utilities) {
         collectVariantColors();
         hideVariantRowsInitially();
         collectVariantSizes();
+        collectVariantPrices();
         
         console.log('All rows appended');
     }
@@ -243,16 +244,16 @@ sip.templateActions = (function($, ajax, utilities) {
             }
     
             // Add state
-            rows += `<td class="non-editable">${isMainRow ? 'Template' : ''}</td>`;
+            rows += `<td class="non-editable" data-key="state">${isMainRow ? 'Template' : ''}</td>`;
     
             // Add color swatches
             rows += buildColorSwatches(variant.colors);
     
             if (isMainRow) {
-                rows += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
+                rows += `<td class="editable" data-key="sizes">${getSizesString(templateData['options - sizes'])}</td>`;
                 rows += `<td class="editable" data-key="tags">${escapeHtml(truncateText(templateData.tags.join(', '), 18))}</td>`;
                 rows += `<td class="editable" data-key="description">${escapeHtml(truncateText(templateData.description, 18))}</td>`;
-                rows += `<td>${getPriceRange(templateData.variants)}</td>`;
+                rows += `<td class="editable" data-key="prices">${getPriceRange(templateData.variants)}</td>`;
             } else {
                 rows += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
                 rows += '<td colspan="3"></td>';  // Span the remaining columns
@@ -440,37 +441,40 @@ sip.templateActions = (function($, ajax, utilities) {
     }
 
     function collectVariantSizes() {
-        let mainSizes = [];
-        let variantSizesSet = new Set();
-    
-        // Extract sizes from the main template row (assuming it has a specific class or index)
-        let mainTemplateSizesText = $('.main-template-row').find('.sizes-cell').text().trim();
-        if (mainTemplateSizesText) {
-            mainSizes = mainTemplateSizesText.split(',').map(size => size.trim());
+        // Select the main template row's sizes cell using the data-key
+        const mainTemplateRowSizes = document.querySelector('.main-template-row [data-key="sizes"]');
+        
+        if (!mainTemplateRowSizes) {
+            console.error('Main template row sizes data not found.');
+            return;
         }
-    
-        // Loop through each variant row and compare sizes
-        $('.variant-row').each(function() {
-            let variantSizesText = $(this).find('.sizes-cell').text().trim();
-            if (variantSizesText) {
-                let variantSizes = variantSizesText.split(',').map(size => size.trim());
-    
-                // Compare sizes with the main template row sizes
-                variantSizes.forEach(size => {
-                    if (!mainSizes.includes(size)) {
-                        variantSizesSet.add(size);  // Add the size if it's not in the main template
-                    }
-                });
+        
+        // Create an array of the sizes from the main template
+        const mainSizes = mainTemplateRowSizes.textContent.split(',').map(size => size.trim());
+
+        // Initialize an array to store any variant sizes that don't match the main template
+        let variantSizesDiff = [];
+
+        // Iterate through all variant rows to check if any sizes are different
+        const variantRows = document.querySelectorAll('.variant-row [data-key="sizes"]');
+        variantRows.forEach(variantRowSizes => {
+            const variantSizes = variantRowSizes.textContent.split(',').map(size => size.trim());
+
+            // Find sizes that are in the variant but not in the main template
+            const differentSizes = variantSizes.filter(size => !mainSizes.includes(size));
+            
+            // Add any different sizes to the diff array
+            if (differentSizes.length > 0) {
+                variantSizesDiff = variantSizesDiff.concat(differentSizes);
             }
         });
-    
-        // Update the variant header sizes cell
-        let variantHeaderSizesCell = $('#variant-header-sizes');
-        if (variantSizesSet.size > 0) {
-            let variantSizesArray = Array.from(variantSizesSet).join(', ');
-            variantHeaderSizesCell.html(variantSizesArray);
+
+        // Update the header cell with different sizes or set to "-" if there are none
+        const sizesHeaderCell = document.getElementById('variant-header-sizes');
+        if (variantSizesDiff.length > 0) {
+            sizesHeaderCell.textContent = variantSizesDiff.join(', ');
         } else {
-            variantHeaderSizesCell.html('-');  // If no different sizes, display "-"
+            sizesHeaderCell.textContent = '-';
         }
     }
     
@@ -484,6 +488,47 @@ sip.templateActions = (function($, ajax, utilities) {
         }
         return 'N/A';
     }
+
+    function collectVariantPrices() {
+        // Select the main template row's price cell using the data-key
+        const mainTemplateRowPrice = document.querySelector('.main-template-row [data-key="prices"]');
+        
+        if (!mainTemplateRowPrice) {
+            console.error('Main template row price data not found.');
+            return;
+        }
+        
+        // Extract the low and high price from the main template row price text (assuming format "lowPrice - highPrice")
+        let [mainLowPrice, mainHighPrice] = mainTemplateRowPrice.textContent.split('-').map(price => parseFloat(price.trim().replace('$', '')));
+        
+        // Initialize the new price range
+        let newLowPrice = mainLowPrice;
+        let newHighPrice = mainHighPrice;
+    
+        // Iterate through all variant rows to find if any price is outside the template range
+        const variantRows = document.querySelectorAll('.variant-row [data-key="prices"]');
+        variantRows.forEach(variantRowPrice => {
+            const [variantLowPrice, variantHighPrice] = variantRowPrice.textContent.split('-').map(price => parseFloat(price.trim().replace('$', '')));
+            
+            // Check if any variant price is lower or higher than the current template range
+            if (variantLowPrice < newLowPrice) {
+                newLowPrice = variantLowPrice;
+            }
+            if (variantHighPrice > newHighPrice) {
+                newHighPrice = variantHighPrice;
+            }
+        });
+    
+        // Update the header only if the price range has changed
+        const priceHeaderCell = document.getElementById('variant-header-prices');
+        if (newLowPrice !== mainLowPrice || newHighPrice !== mainHighPrice) {
+            priceHeaderCell.textContent = `$${newLowPrice.toFixed(2)} - $${newHighPrice.toFixed(2)}`;
+        } else {
+            priceHeaderCell.textContent = '-';
+        }
+    }
+    
+    
 
     function escapeHtml(string) {
         const entityMap = {
