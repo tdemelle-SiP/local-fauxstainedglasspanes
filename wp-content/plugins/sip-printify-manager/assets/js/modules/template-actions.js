@@ -210,7 +210,7 @@ sip.templateActions = (function($, ajax, utilities) {
         return arr1.every((img, index) => img.id === arr2[index].id);
     }
 
-    function buildTableRows(uniqueVariants, templateData) {
+    function buildTableRows(uniqueVariants, templateData, baseRowNumber) {
         let rows = '';
         const firstRowImages = uniqueVariants[0].images;  // Save the images of the first row
     
@@ -222,19 +222,21 @@ sip.templateActions = (function($, ajax, utilities) {
             rows += `<tr class="${isMainRow ? 'main-template-row' : 'variant-row'}">`;
             rows += `<td><input type="checkbox"></td>`;
 
-            // Number the rows:
+            // Numbering logic:
             if (isMainRow) {
-                rows += `<td>0</td>`;  // Main template row is 0
+                rows += `<td>0</td>`;  // The main product row is always numbered "0"
             } else {
-                rows += `<td>0${String.fromCharCode(97 + index - 1)}</td>`;  // Variants are 0a, 0b, 0c...
+                // Variations get a letter appended to 0: 0a, 0b, 0c, etc.
+                rows += `<td>0${String.fromCharCode(97 + index - 1)}</td>`;
             }
-    
+
             // Handle the title:
             if (isMainRow) {
                 rows += `<td class="editable" data-key="title">${escapeHtml(templateData.title)}</td>`;
                 rows += buildImageCells(variant.images);
             } else {
-                rows += `<td>Variant ${String.fromCharCode(65 + index - 1)}</td>`;  // Variants are titled Variant A, Variant B, etc.
+                // Variant title uses letters: Variant A, Variant B, etc.
+                rows += `<td>Variant ${String.fromCharCode(65 + index - 1)}</td>`;
                 rows += buildVariantImageCells(variant.images, firstRowImages);
             }
     
