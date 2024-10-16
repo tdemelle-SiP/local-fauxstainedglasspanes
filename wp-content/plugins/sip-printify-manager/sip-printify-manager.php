@@ -163,6 +163,16 @@ class SiP_Printify_Manager {
             true
         );
     
+        // Enqueue sip-shop-actions
+        wp_enqueue_script(
+            'sip-shop-actions',
+            plugin_dir_url(__FILE__) . 'assets/js/modules/shop-actions.js',
+            array('jquery', 'sip-ajax', 'sip-utilities'),
+            '1.0.0',
+            true
+        );
+
+
         // Enqueue sip-product-actions
         wp_enqueue_script(
             'sip-product-actions',

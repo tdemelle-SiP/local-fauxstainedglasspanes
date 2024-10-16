@@ -54,6 +54,7 @@ sip.productActions = (function($, ajax, utilities) {
         init: init,
         handleSuccessResponse: handleSuccessResponse
     };
+    
 })(jQuery, sip.ajax, sip.utilities);
 
 sip.ajax.registerSuccessHandler('product_action', sip.productActions.handleSuccessResponse);

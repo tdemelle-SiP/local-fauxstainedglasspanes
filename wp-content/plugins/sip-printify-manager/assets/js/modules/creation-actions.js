@@ -231,5 +231,4 @@ sip.creationActions = (function($, ajax, utilities) {
 
 })(jQuery, sip.ajax, sip.utilities);
 
-// Register the success handler
 sip.ajax.registerSuccessHandler('creation_action', sip.creationActions.handleSuccessResponse);

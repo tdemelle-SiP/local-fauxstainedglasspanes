@@ -6,7 +6,6 @@ sip.templateActions = (function($, ajax, utilities) {
 
     function init() {
         attachEventListeners();
-        ajax.registerSuccessHandler('template_action', handleSuccessResponse);
         if (!isTemplateLoaded && sip.creationActions && typeof sip.creationActions.checkForLoadedTemplate === 'function') {
             sip.creationActions.checkForLoadedTemplate();
         }
@@ -72,20 +71,20 @@ sip.templateActions = (function($, ajax, utilities) {
     }
 
     function populateCreationTable(templateData) {
-        console.log('Populating creation table with data:', templateData);
+        // console.log('Populating creation table with data:', templateData);
         initializeCreationTable(templateData);
     }
 
     function initializeCreationTable(templateData) {
-        console.log('initializeCreationTable triggered');
-        console.log('Is initStickyHeader available?', typeof sip.utilities.initStickyHeader);
+        // console.log('initializeCreationTable triggered');
+        // console.log('Is initStickyHeader available?', typeof sip.utilities.initStickyHeader);
     
         if (!templateData) {
             console.log('No template data to initialize');
             return;
         }
         
-        console.log('Initializing creation table with data:', templateData);
+        // console.log('Initializing creation table with data:', templateData);
 
         const table = $('#creation-table');
         const thead = table.find('thead');
@@ -116,7 +115,7 @@ sip.templateActions = (function($, ajax, utilities) {
     }
 
     function saveLoadedTemplate(templateData) {
-        console.log('Saving loaded template:', templateData);
+        // console.log('Saving loaded template:', templateData);
         var formData = new FormData();
         formData.append('action', 'sip_handle_ajax_request');
         formData.append('action_type', 'creation_action');
@@ -152,11 +151,11 @@ sip.templateActions = (function($, ajax, utilities) {
         collectVariantSizes();
         collectVariantPrices();
         
-        console.log('All rows appended');
+        // console.log('All rows appended');
     }
 
     function processTemplateData(templateData) {
-        console.log('Processing template data:', templateData);
+        // console.log('Processing template data:', templateData);
         const uniqueVariants = [];
         let colorOptions = templateData['options - colors'] || [];
     
@@ -204,7 +203,7 @@ sip.templateActions = (function($, ajax, utilities) {
             });
         });
     
-        console.log('Processed unique variants:', uniqueVariants);
+        // console.log('Processed unique variants:', uniqueVariants);
         return uniqueVariants;
     }
 
@@ -398,7 +397,7 @@ sip.templateActions = (function($, ajax, utilities) {
         // Update the header with the collected colors
         $('#variant-header-colors').html(colorHeaderContent);
     
-        console.log("Color header updated with: ", colorHeaderContent); // Debugging output
+        // console.log("Color header updated with: ", colorHeaderContent); // Debugging output
     }
 
     // Existing helper functions
@@ -605,4 +604,7 @@ sip.templateActions = (function($, ajax, utilities) {
         handleSuccessResponse: handleSuccessResponse,
         populateCreationTable: populateCreationTable
     };
+
 })(jQuery, sip.ajax, sip.utilities);
+
+sip.ajax.registerSuccessHandler('template_action', sip.templateActions.handleSuccessResponse);

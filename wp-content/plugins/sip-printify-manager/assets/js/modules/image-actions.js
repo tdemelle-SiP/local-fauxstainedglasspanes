@@ -173,7 +173,7 @@ sip.imageActions = (function($, ajax, utilities) {
         init: init,
         handleSuccessResponse: handleSuccessResponse
     };
+    
 })(jQuery, sip.ajax, sip.utilities);
-
 
 sip.ajax.registerSuccessHandler('image_action', sip.imageActions.handleSuccessResponse);

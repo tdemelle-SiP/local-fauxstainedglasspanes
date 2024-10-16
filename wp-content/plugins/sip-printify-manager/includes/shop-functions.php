@@ -27,6 +27,7 @@
  * Save the Printify API token and store shop details.
  */
 function sip_save_token() {
+    console_log('#######################################sip_save_token function started#########################################');
     $token = sanitize_text_field($_POST['printify_bearer_token']);
     $shop_details = fetch_shop_details($token);
     if ($shop_details) {
