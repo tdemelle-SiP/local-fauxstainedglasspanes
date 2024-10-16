@@ -221,14 +221,21 @@ sip.templateActions = (function($, ajax, utilities) {
             // Build the main data row
             rows += `<tr class="${isMainRow ? 'main-template-row' : 'variant-row'}">`;
             rows += `<td><input type="checkbox"></td>`;
-            rows += `<td>${index + 1}</td>`;
+
+            // Number the rows:
+            if (isMainRow) {
+                rows += `<td>0</td>`;  // Main template row is 0
+            } else {
+                rows += `<td>0${String.fromCharCode(97 + index - 1)}</td>`;  // Variants are 0a, 0b, 0c...
+            }
     
+            // Handle the title:
             if (isMainRow) {
                 rows += `<td class="editable" data-key="title">${escapeHtml(templateData.title)}</td>`;
-                rows += buildImageCells(variant.images);  // Use the original buildImageCells function for the main row
+                rows += buildImageCells(variant.images);
             } else {
-                rows += `<td>Variant ${index.toString().padStart(2, '0')}</td>`;
-                rows += buildVariantImageCells(variant.images, firstRowImages);  // Use the new buildVariantImageCells function for variant rows
+                rows += `<td>Variant ${String.fromCharCode(65 + index - 1)}</td>`;  // Variants are titled Variant A, Variant B, etc.
+                rows += buildVariantImageCells(variant.images, firstRowImages);
             }
     
             // Add state
@@ -265,14 +272,6 @@ sip.templateActions = (function($, ajax, utilities) {
                 rows += `<td id="variant-header-tags">-</td>`;
                 rows += `<td id="variant-header-description">-</td>`;
                 rows += `<td id="variant-header-prices">-</td>`;                
-                rows += '</tr>';
-
-
-
-
-
-
-
                 rows += '</tr>';
             }
         });
