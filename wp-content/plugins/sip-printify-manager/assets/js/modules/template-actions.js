@@ -144,8 +144,9 @@ sip.templateActions = (function($, ajax, utilities) {
 
         // Build rows
         const rows = buildTableRows(uniqueVariants, templateData);
+  
         tbody.append(rows);
-
+        updateVariantHeaderCounts();  // Call this after rows are appended
         hideVariantRowsInitially();
         
         console.log('All rows appended');
@@ -253,7 +254,25 @@ sip.templateActions = (function($, ajax, utilities) {
                 rows += '<tr class="variants-header-row">';
                 rows += `<td><input type="checkbox"></td>`; // Checkbox cell
                 rows += `<td class="toggle-variant-rows">+</td>`; // Toggle button starts as "+"
-                rows += '<td colspan="5">Toggle Variants</td>';
+                rows += `<td>${escapeHtml(templateData.title)} - Variants</td>`;
+                // Add image header cells with unique IDs for each column
+                for (let i = 1; i <= 4; i++) {
+                    rows += `<td id="variant-header-image-${i}">-</td>`;
+                }
+                rows += `<td id="variant-header-state">-</td>`;
+                rows += `<td id="variant-header-colors">-</td>`;               
+                rows += `<td id="variant-header-sizes">-</td>`;
+                rows += `<td id="variant-header-tags">-</td>`;
+                rows += `<td id="variant-header-description">-</td>`;
+                rows += `<td id="variant-header-prices">-</td>`;                
+                rows += '</tr>';
+
+
+
+
+
+
+
                 rows += '</tr>';
             }
         });
@@ -412,6 +431,66 @@ sip.templateActions = (function($, ajax, utilities) {
         return strippedText.length > maxLength ? strippedText.substring(0, maxLength) + '...' : strippedText;
     }
 
+    function updateVariantHeaderCounts() {
+        // Initialize counters
+        let imageColumnCounts = [];
+        let tagCount = 0;
+        let descriptionCount = 0;
+
+        // Find how many image columns there are dynamically (assuming all variant rows have the same number of image cells)
+        const imageColumnCount = $('.variant-row:first').find('td.image-cell').length;
+
+        // Initialize the image counters based on the number of image columns
+        for (let i = 0; i < imageColumnCount; i++) {
+            imageColumnCounts[i] = 0;
+        }
+    
+        // Iterate over all variant rows
+        $('.variant-row').each(function() {
+            // Count image columns with content
+            $(this).find('td.image-cell').each(function(index) {
+                if ($(this).find('img').length > 0) {
+                    imageColumnCounts[index]++;
+                }
+            });
+    
+            // Count if the tag cell has content
+            if ($(this).find('td[data-key="tags"]').text().trim() !== '') {
+                tagCount++;
+            }
+    
+            // Count if the description cell has content
+            if ($(this).find('td[data-key="description"]').text().trim() !== '') {
+                descriptionCount++;
+            }
+        });
+    
+        // Update the header row with the counts or '-'
+        for (let i = 0; i < imageColumnCount; i++) {
+            if (imageColumnCounts[i] > 0) {
+                $(`#variant-header-image-${i + 1}`).text(imageColumnCounts[i]);
+            } else {
+                $(`#variant-header-image-${i + 1}`).text('-');
+            }
+        }
+    
+        // Update tag and description counts
+        if (tagCount > 0) {
+            $('#variant-header-tags').text(tagCount);
+        } else {
+            $('#variant-header-tags').text('-');
+        }
+    
+        if (descriptionCount > 0) {
+            $('#variant-header-description').text(descriptionCount);
+        } else {
+            $('#variant-header-description').text('-');
+        }
+    }
+    
+    // Call this function after building the table
+    updateVariantHeaderCounts();
+    
     return {
         init: init,
         handleSuccessResponse: handleSuccessResponse,

@@ -946,6 +946,17 @@ body.resizing * {
 }
 
 /*//////////////////////////////variant header and rows///////////////////////////////////*/
+#creation-table > tbody > tr.variants-header-row{
+    background-color: #769cb0;
+    font-weight: 700;
+    height: 18px !important;
+    max-height: 18px !important;
+}
+
+#creation-table tbody tr.variants-header-row td {
+    color: white;
+}
+
 #creation-table > tbody > tr.variants-header-row > td.toggle-variant-rows {
     cursor: pointer;
     font-size: 20px;
@@ -953,7 +964,13 @@ body.resizing * {
 
 #creation-table > tbody > tr.variants-header-row > td.toggle-variant-rows:hover {
     font-weight: 700;
-    background-color: white;
+    background-color: #7aaeca;
+}
+
+#creation-table > tbody > tr.variants-header-row > td:nth-child(1) > input[type=checkbox] {
+    height: 12px;
+    max-width: 12px;
+
 }
 
 /*///////////////////////////////editable cell styles///////////////////////////////////*/
