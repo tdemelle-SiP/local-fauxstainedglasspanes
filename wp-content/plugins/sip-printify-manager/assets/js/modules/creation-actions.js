@@ -34,8 +34,9 @@ sip.creationActions = (function($, ajax, utilities) {
         });
     
         // Bind the toggle function to the variant header row toggle button
-        $('#creation-table').on('click', '.toggle-variant-rows', toggleVariantRows);
-    
+        $('#creation-table').on('click', '.toggle-variant-rows', function() {
+            toggleVariantRows.call(this);
+        });    
         // Add other event listeners here as needed
     }
 

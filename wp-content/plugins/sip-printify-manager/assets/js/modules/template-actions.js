@@ -292,6 +292,7 @@ sip.templateActions = (function($, ajax, utilities) {
     function hideVariantRowsInitially() {
         $('.variant-row').hide();  // Hide variant rows initially
         $('.toggle-variant-rows').text('+');  // Set the initial state of the toggle to collapsed
+        console.log('Variant rows in Product Creation Table collapsed');
     }
 
     function buildImageCells(images) {
