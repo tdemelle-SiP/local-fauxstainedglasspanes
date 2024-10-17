@@ -18,6 +18,12 @@ $templates  = sip_load_templates();
 
 // Get the URL to the sip-plugins-core assets directory
 $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
+
+error_log('SiP Printify Manager: Page Load');
+error_log('Retrieved token value: ' . ($token ? 'Set (length: ' . strlen($token) . ')' : 'Empty'));
+error_log('Shop Name: ' . $shop_name);
+error_log('Products count: ' . (is_array($products) ? count($products) : 'N/A'));
+error_log('Images count: ' . (is_array($images) ? count($images) : 'N/A'));
 ?>
 
 <!-- Header Section -->
@@ -29,7 +35,7 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         SiP Printify Manager!
     </h1>
     <div id="button-container" <?php echo empty($token) ? 'style="display:none;"' : ''; ?>>
-        <button id="new-token-button" class="button button-primary"><?php esc_html_e('New Shop Token', 'sip-printify-manager'); ?></button>
+        <button id="clear-shop-button" class="button button-primary"><?php esc_html_e('Clear Loaded Shop', 'sip-printify-manager'); ?></button>
     </div>
 </div>
 
@@ -39,7 +45,14 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 </div>
 
 <!-- Auth Container for Token Entry -->
+<?php
+$token = get_option('printify_bearer_token');
+error_log(' $token state for loading auth-container (will load if empty) - ' . (empty($token) ? 'Empty' : 'Not empty (length: ' . strlen($token) . ')'));
+?>
 <div id="auth-container" <?php echo empty($token) ? '' : 'style="display:none;"'; ?>>
+    <!-- Debug output -->
+    <p style="display:none;">Debug: Token is <?php echo empty($token) ? 'empty' : 'set'; ?></p>
+
     <h2><?php esc_html_e("To Begin, Please Enter Your Authorization Token From Printify.", 'sip-printify-manager'); ?></h2>
     <ol>
         <li>To get your token, log in to your Printify account and navigate to the <a href="https://printify.com/app/account/api" target="_blank">Connections</a> page.</li>
@@ -51,19 +64,26 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
         <li>Once saved, we'll connect to your shop and retrieve your image uploads and product list. From there, you'll be able to manage your Printify products and create new ones right from your WordPress dashboard!</li>
     </ol>
     <p><strong>Note:</strong> It's a good idea to save the token somewhere you can access it later in case you need to re-authorize the plugin. If you lose the token, don't worry, you can just follow these steps again to generate a new one.</p>
-    <form id="save-token-form" method="post" action="">
+    <form id="new-shop-form" method="post" action="">
         <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
         <h2>
             <label for="printify_bearer_token"><?php esc_html_e('Printify API Token:', 'sip-printify-manager'); ?></label>
             <input type="text" name="printify_bearer_token" id="printify_bearer_token" value="" class="regular-text" required/>
-            <input type="submit" name="save_token" value="<?php esc_attr_e('Save Token', 'sip-printify-manager'); ?>" class="button button-primary"/>
+            <input type="submit" name="new_shop" value="<?php esc_attr_e('Load New Shop', 'sip-printify-manager'); ?>" class="button button-primary"/>
         </h2>
         <hr class="divider">
     </form>
 </div>
 
 <!-- Shop Screen (only show if token exists) -->
+<?php
+$token = get_option('printify_bearer_token');
+error_log(' $token state for loading shop-container (will load if not empty) - ' . (empty($token) ? 'Empty' : 'Not empty (length: ' . strlen($token) . ')'));
+?>
 <div id="shop-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>
+    <!-- Debug output -->
+    <p style="display:none;">Debug: Token is <?php echo empty($token) ? 'empty' : 'set'; ?></p>
+
     <hr class="divider">
     <?php if (!empty($shop_name)) : ?>
         <!-- Store Name Section -->
@@ -233,6 +253,10 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 </div>
 
 <!-- Product Creation Table Section -->
+<?php
+$token = get_option('printify_bearer_token');
+error_log(' $token state for loading product-creation-container (will load if not empty) - ' . (empty($token) ? 'Empty' : 'Not empty (length: ' . strlen($token) . ')'));
+?>
 <div id="product-creation-container" <?php echo !empty($token) ? '' : 'style="display:none;"'; ?>>
 
     <!-- Product Creation Header and Main Controls -->
@@ -270,11 +294,15 @@ $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
     </section>
 </div>
 
-<script>
+<script type="text/javascript">
 jQuery(document).ready(function($) {
-    // If no template is initially loaded, make sure the container is visible
-    if (!$('#creation-table tbody tr').length) {
-        $('#product-creation-container').show();
+    console.log('Document ready, attempting to hide spinner');
+    if (typeof sip !== 'undefined' && sip.utilities && typeof sip.utilities.hideSpinner === 'function') {
+        sip.utilities.hideSpinner();
+    } else {
+        console.error('sip.utilities.hideSpinner is not available');
+        // Fallback method to hide spinner
+        $('#spinner-overlay').hide();
     }
 });
 </script>

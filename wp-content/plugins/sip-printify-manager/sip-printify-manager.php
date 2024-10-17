@@ -314,16 +314,38 @@ SiP_Plugin_Framework::init_plugin(
 
 
 function sip_check_loaded_template() {
-    $loaded_template = get_option('sip_loaded_template', '');
-    if (!empty($loaded_template)) {
-        ?>
-        <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            var templateData = <?php echo $loaded_template; ?>;
-            sip.templateActions.populateCreationTable(templateData);
-        });
-        </script>
-        <?php
+    $token = get_option('printify_bearer_token');
+    if (!empty($token)) {
+        $loaded_template = get_option('sip_loaded_template', '');
+        if (!empty($loaded_template)) {
+            ?>
+            <script type="text/javascript">
+            jQuery(document).ready(function($) {
+                var templateData = <?php echo $loaded_template; ?>;
+                if (typeof sip !== 'undefined' && sip.templateActions && typeof sip.templateActions.populateCreationTable === 'function') {
+                    sip.templateActions.populateCreationTable(templateData);
+                } else {
+                    console.error('Unable to populate creation table: sip.templateActions not available');
+                }
+                // Ensure spinner is hidden after template is loaded
+                if (typeof sip !== 'undefined' && sip.utilities && typeof sip.utilities.hideSpinner === 'function') {
+                    sip.utilities.hideSpinner();
+                }
+            });
+            </script>
+            <?php
+        } else {
+            // If no template is loaded, still ensure the spinner is hidden
+            ?>
+            <script type="text/javascript">
+            jQuery(document).ready(function($) {
+                if (typeof sip !== 'undefined' && sip.utilities && typeof sip.utilities.hideSpinner === 'function') {
+                    sip.utilities.hideSpinner();
+                }
+            });
+            </script>
+            <?php
+        }
     }
 }
 

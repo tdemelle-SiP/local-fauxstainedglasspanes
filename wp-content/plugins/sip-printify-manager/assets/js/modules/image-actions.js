@@ -4,7 +4,6 @@ var isUploading = false;
 sip.imageActions = (function($, ajax, utilities) {
     function init() {
         attachEventListeners();
-        
     }
 
     function attachEventListeners() {

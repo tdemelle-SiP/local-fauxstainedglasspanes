@@ -50,24 +50,29 @@ sip-printify-manager/
 │       │   ├── ajax.js
 │       │   └── utilities.js
 │       ├── modules/
-│       │   ├── product-actions.js
+│       │   ├── creation-actions.js
 │       │   ├── image-actions.js
+│       │   ├── product-actions.js
+│       │   ├── shop-actions.js
 │       │   ├── template-actions.js
-│       │   └── creation-actions.js
-│       └── main.js
+│       │   └── template-editor.js
+│       ├── main.js
+│       └── photoswipe-init.js
 ├── includes/
-│   ├── shop-functions.php
-│   ├── product-functions.php
-│   ├── image-functions.php
-│   ├── template-functions.php
 │   ├── creation-functions.php
+│   ├── icon-functions.php
+│   ├── image-functions.php
+│   ├── product-functions.php
+│   ├── shop-functions.php
+│   ├── template-functions.php
 │   └── utilities.php
 ├── views/
 │   └── admin-page.php
-├── sip-printify-manager.php
+├── work/
 ├── DOCUMENTATION.md
-├── CODE-GUIDELINES.php
-└── README.md
+├── ENGINEERING-GUIDELINES.php
+├── README.md
+└── sip-printify-manager.php
 ```
 ---
 

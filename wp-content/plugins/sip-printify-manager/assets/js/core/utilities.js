@@ -2,7 +2,6 @@
 
 var sip = sip || {};
 
-
 sip.utilities = (function($) {
     // Toast notification system
     var toastQueue = [];
@@ -11,9 +10,6 @@ sip.utilities = (function($) {
     var spinnerVisible = false;
 
     function init() {
-        // Add toast container to the body
-        $('body').append('<div id="toast-container"></div>');
-
         // Initialize event handlers
         initCheckboxHandlers();
         initSearchHandlers();

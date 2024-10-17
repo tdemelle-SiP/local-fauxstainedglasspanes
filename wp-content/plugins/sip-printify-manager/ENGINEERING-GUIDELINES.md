@@ -57,7 +57,7 @@ function sip_get_shop_details($token) {
     // Retrieve shop details from Printify API
 }
 
-function sip_save_token() {
+function sip_new_shop() {
     // Save and encrypt the API token
 }
 ```

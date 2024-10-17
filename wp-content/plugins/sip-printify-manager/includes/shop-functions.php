@@ -10,12 +10,14 @@
  function sip_handle_shop_action() {
     $shop_action = isset($_POST['shop_action']) ? sanitize_text_field($_POST['shop_action']) : '';
 
+    error_log('SiP Printify Manager: Handling shop action: ' . $shop_action);
+
     switch ($shop_action) {
-        case 'save_token':
-            sip_save_token();
+        case 'new_shop':
+            sip_new_shop();
             break;
-        case 'new_token':
-            sip_new_token();
+        case 'clear_shop':
+            sip_clear_shop();
             break;
         default:
             wp_send_json_error('Invalid shop action.');
@@ -26,8 +28,7 @@
 /**
  * Save the Printify API token and store shop details.
  */
-function sip_save_token() {
-    console_log('#######################################sip_save_token function started#########################################');
+function sip_new_shop() {
     $token = sanitize_text_field($_POST['printify_bearer_token']);
     $shop_details = fetch_shop_details($token);
     if ($shop_details) {
@@ -39,18 +40,11 @@ function sip_save_token() {
         // Fetch and store images
         $remote_images = fetch_images($token);
         if ($remote_images !== null) {
-            // Get existing images from options
             $existing_images = get_option('sip_printify_images', array());
-
-            // Separate local images from existing images
             $local_images = array_filter($existing_images, function($image) {
                 return isset($image['location']) && $image['location'] === 'Local File';
             });
-
-            // Merge local images with newly fetched remote images
             $images = array_merge($local_images, $remote_images);
-
-            // Update the images option with the merged array
             update_option('sip_printify_images', $images);
         }
 
@@ -72,31 +66,31 @@ function sip_save_token() {
  * Reset the API token and associated shop details.
  * Only remote images are removed; local images remain in the database.
  */
-function sip_new_token() {
-    delete_option('printify_bearer_token');  // Clear the API token
-    delete_option('sip_printify_shop_name'); // Clear the saved shop name
-    delete_option('sip_printify_shop_id');   // Clear the saved shop ID
-    delete_option('sip_printify_products');  // Clear the products
+function sip_clear_shop() {
+    error_log('SiP Printify Manager: Clearing shop data');
+    delete_option('printify_bearer_token');
+    delete_option('sip_printify_shop_name');
+    delete_option('sip_printify_shop_id');
+    delete_option('sip_printify_products');
+    error_log('SiP Printify Manager: Shop data cleared, token deleted');
 
     // Retrieve existing images
     $images = get_option('sip_printify_images', array());
 
-    // Check if images are not empty
-    if (!empty($images)) {
-        // Filter out remote images (keep only local images)
-        $local_images = array_filter($images, function($image) {
-            // Check if 'location' key exists and is set to 'Local File'
-            return isset($image['location']) && $image['location'] === 'Local File';
-        });
+    // Clear remote images but keep local ones
+    $existing_images = get_option('sip_printify_images', array());
+    $local_images = array_filter($existing_images, function($image) {
+        return isset($image['location']) && $image['location'] === 'Local File';
+    });
+    update_option('sip_printify_images', $local_images);
 
-        // Update the images option with only local images
-        update_option('sip_printify_images', $local_images);
-    }
+    // Unload the template from the Create New Products table
+    delete_option('sip_loaded_template');
 
     // Delete product JSON files associated with the shop
     clear_product_jsons();
 
-    wp_send_json_success('Token reset successfully.');
+    wp_send_json_success('Shop Cleared successfully.');
 }
 
 
@@ -200,11 +194,22 @@ function sip_generate_encryption_key() {
  */
 function sip_encrypt_token($token) {
     // Get the encryption key from the options or generate one if it doesn't exist
+    error_log('SiP Printify Manager: Encrypting token');
     $encryption_key = sip_generate_encryption_key();
+    error_log('SiP Printify Manager: Encryption key length: ' . strlen($encryption_key));
+
 
     // Initialization Vector (IV) for AES encryption (16 bytes)
     $iv = substr(hash('sha256', '16_char_iv_here'), 0, 16);
-    return openssl_encrypt($token, 'AES-256-CBC', base64_decode($encryption_key), 0, $iv);
+    $encrypted = openssl_encrypt($token, 'AES-256-CBC', base64_decode($encryption_key), 0, $iv);
+    
+    if ($encrypted === false) {
+        error_log('SiP Printify Manager: Encryption failed. OpenSSL error: ' . openssl_error_string());
+        return false;
+    }
+    
+    error_log('SiP Printify Manager: Token encrypted successfully. Length: ' . strlen($encrypted));
+    return $encrypted;
 }
 
 /**

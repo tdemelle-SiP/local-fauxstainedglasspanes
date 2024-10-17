@@ -326,9 +326,9 @@ shop-functions.php
 
 	sip_connect_shop()
 
-	sip_save_token()
+	sip_new_shop()
 
-	sip_new_token()
+	sip_clear_shop()
 
 	clear_product_jsons()
 
