@@ -1,5 +1,6 @@
 // main.js
 var sip = sip || {};
+console.log('main.js loaded successfully');
 
 sip.main = (function($, ajax, utilities) {
     var isInitialized = false;
@@ -13,6 +14,7 @@ sip.main = (function($, ajax, utilities) {
         
         utilities.showSpinner();
 
+        console.log('Initializing Modules');
         initializeModules();
         initializeGlobalEventListeners();
 
@@ -28,15 +30,16 @@ sip.main = (function($, ajax, utilities) {
         var modules = [
             'utilities',
             'ajax',
-            'shopActions',
             'productActions',
             'imageActions',
             'templateActions',
-            'creationActions'
+            'creationActions',
+            'shopActions'
         ];
 
         modules.forEach(function(module) {
             if (sip[module] && typeof sip[module].init === 'function') {
+                console.log('Initializing module:', module);
                 sip[module].init();
             }
         });

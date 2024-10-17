@@ -213,7 +213,7 @@ class SiP_Printify_Manager {
         wp_enqueue_script(
             'sip-main',
             plugin_dir_url(__FILE__) . 'assets/js/main.js',
-            array('sip-init'),
+            array('jquery', 'sip-ajax', 'sip-utilities'),
             '1.0.0',
             true
         );

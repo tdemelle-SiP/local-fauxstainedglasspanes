@@ -69,6 +69,7 @@ error_log(' $token state for loading auth-container (will load if empty) - ' . (
         <h2>
             <label for="printify_bearer_token"><?php esc_html_e('Printify API Token:', 'sip-printify-manager'); ?></label>
             <input type="text" name="printify_bearer_token" id="printify_bearer_token" value="" class="regular-text" required/>
+            <input type="hidden" name="shop_action" id="shop_action" value="new_shop"> <!-- Hidden input added here -->
             <input type="submit" name="new_shop" value="<?php esc_attr_e('Load New Shop', 'sip-printify-manager'); ?>" class="button button-primary"/>
         </h2>
         <hr class="divider">

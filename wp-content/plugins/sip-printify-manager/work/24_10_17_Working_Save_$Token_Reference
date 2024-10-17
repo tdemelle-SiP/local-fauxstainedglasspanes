@@ -1,23 +1,121 @@
-<?php
+THIS CODE WORKED
+----------------------------------------------------------
+ajax.js
 
+sip.ajax = (function($) {
+    var successHandlers = {};
+    /**
+     * Initialize the AJAX module
+     * Sets up event listeners for global AJAX-related actions
+     */
+    function init() {
+        // Handle New Store Token button click
+        $('#new-token-button').on('click', function (e) {
+            e.preventDefault();
+            var formData = new FormData();
+            formData.append('action', 'sip_handle_ajax_request');
+            formData.append('action_type', 'new_token');
+            formData.append('nonce', sipAjax.nonce);
+            handleAjaxAction('new_token', formData, '#new-token-button', '#loading-spinner');
+        });
 
-function sip_handle_shop_action() {
-    $shop_action = isset($_POST['shop_action']) ? sanitize_text_field($_POST['shop_action']) : '';
-
-    error_log('SiP Printify Manager: Handling shop action: ' . $shop_action);
-
-    switch ($shop_action) {
-        case 'new_shop':
-            sip_new_shop();
-            break;
-        case 'clear_shop':
-            sip_clear_shop();
-            break;
-        default:
-            wp_send_json_error('Invalid shop action.');
-            break;
+        // Handle Save Token form submission
+        $('#save-token-form').on('submit', function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            formData.append('action', 'sip_handle_ajax_request');
+            formData.append('action_type', 'save_token');
+            formData.append('nonce', sipAjax.nonce);
+            handleAjaxAction('save_token', formData, null, '#loading-spinner');
+        });
     }
+
+
+  /**
+     * Handle successful AJAX responses
+     * @param {string} actionType - Type of action that was performed
+     * @param {Object} response - Response data from the server
+     */
+    function handleSuccessResponse(actionType, response) {
+        console.log('Handling success response for action type:', actionType);
+        console.log('Registered handlers:', successHandlers);
+        console.log('Response:', response);
+
+        switch (actionType) {
+            case 'save_token':
+            case 'new_token':
+                location.reload();
+                break;
+        default:
+            if (successHandlers[actionType]) {
+                console.log('Calling success handler for', actionType);
+                try {
+                    successHandlers[actionType](response);
+                } catch (error) {
+                    console.error('Error in success handler for', actionType, ':', error);
+                }
+            } else {
+                console.warn('No success handler found for action type:', actionType);
+            }
+            
+
+            
+            console.log('Exiting handleSuccessResponse in ajax.js');
+        }
+    }
+
+
+----------------------------------------------------------
+product-functions.php
+
+// Fetch products directly from Printify API using the Bearer token
+function fetch_products($encrypted_token, $shop_id) {
+    // Decrypt the token before using it
+    $token = sip_decrypt_token($encrypted_token);
+    
+    error_log('shop_id: ' . $shop_id);   
+    
+    $url = "https://api.printify.com/v1/shops/{$shop_id}/products.json";
+
+    $response = wp_remote_get($url, array(
+        'headers' => array(
+            'Authorization' => 'Bearer ' . $token,
+        ),
+    ));
+
+    if (is_wp_error($response)) {
+        error_log('fetch_products encountered an error: ' . $response->get_error_message());
+        return null;
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $products = json_decode($body, true);
+
+    // Ensure that $products is an array
+    if (!is_array($products)) {
+        error_log('fetch_products: $products is not an array');
+        return null;
+    }
+
+    if (empty($products) || !isset($products['data'])) {
+        error_log('fetch_products received empty or invalid data');
+        return null;
+    }
+
+    error_log('fetch_products retrieved ' . count($products['data']) . ' products');
+
+    // Save each product as a separate JSON file
+    save_products_to_json($products['data']);
+
+    return $products['data']; // Return only the 'data' field that contains the products
 }
+
+
+
+-----------------------------------------------------------
+shop-functions.php
+
+<?php
 
 /**
  * Fetch shop details directly from Printify API using the Bearer token.
@@ -25,7 +123,7 @@ function sip_handle_shop_action() {
  * @param string $token The Bearer token for authenticating API requests.
  * @return array|null Array with shop ID and shop name, or null if error occurs.
  */
- function fetch_shop_details($token) {
+function fetch_shop_details($token) {
     $url = 'https://api.printify.com/v1/shops.json';
 
     $response = wp_remote_get($url, array(
@@ -66,7 +164,7 @@ function sip_connect_shop() {
 /**
  * Save the Printify API token and store shop details.
  */
-function sip_new_shop() {
+function sip_save_token() {
     $token = sanitize_text_field($_POST['printify_bearer_token']);
     $shop_details = fetch_shop_details($token);
     if ($shop_details) {
@@ -78,11 +176,18 @@ function sip_new_shop() {
         // Fetch and store images
         $remote_images = fetch_images($token);
         if ($remote_images !== null) {
+            // Get existing images from options
             $existing_images = get_option('sip_printify_images', array());
+
+            // Separate local images from existing images
             $local_images = array_filter($existing_images, function($image) {
                 return isset($image['location']) && $image['location'] === 'Local File';
             });
+
+            // Merge local images with newly fetched remote images
             $images = array_merge($local_images, $remote_images);
+
+            // Update the images option with the merged array
             update_option('sip_printify_images', $images);
         }
 
@@ -104,34 +209,32 @@ function sip_new_shop() {
  * Reset the API token and associated shop details.
  * Only remote images are removed; local images remain in the database.
  */
-function sip_clear_shop() {
-    error_log('SiP Printify Manager: Clearing shop data');
-    delete_option('printify_bearer_token');
-    delete_option('sip_printify_shop_name');
-    delete_option('sip_printify_shop_id');
-    delete_option('sip_printify_products');
-    error_log('SiP Printify Manager: Shop data cleared, token deleted');
+function sip_new_token() {
+    delete_option('printify_bearer_token');  // Clear the API token
+    delete_option('sip_printify_shop_name'); // Clear the saved shop name
+    delete_option('sip_printify_shop_id');   // Clear the saved shop ID
+    delete_option('sip_printify_products');  // Clear the products
 
     // Retrieve existing images
     $images = get_option('sip_printify_images', array());
 
-    // Clear remote images but keep local ones
-    $existing_images = get_option('sip_printify_images', array());
-    $local_images = array_filter($existing_images, function($image) {
-        return isset($image['location']) && $image['location'] === 'Local File';
-    });
-    update_option('sip_printify_images', $local_images);
+    // Check if images are not empty
+    if (!empty($images)) {
+        // Filter out remote images (keep only local images)
+        $local_images = array_filter($images, function($image) {
+            // Check if 'location' key exists and is set to 'Local File'
+            return isset($image['location']) && $image['location'] === 'Local File';
+        });
 
-    // Unload the template from the Create New Products table
-    delete_option('sip_loaded_template');
+        // Update the images option with only local images
+        update_option('sip_printify_images', $local_images);
+    }
 
     // Delete product JSON files associated with the shop
     clear_product_jsons();
 
-    wp_send_json_success('Shop Cleared successfully.');
+    wp_send_json_success('Token reset successfully.');
 }
-
-
 
 /**
  * Clear product JSON files associated with the shop.
@@ -186,8 +289,6 @@ function sip_generate_encryption_key() {
     return $encryption_key;
 }
 
-
-
 /**
  * Encrypt the bearer token before storing it.
  *
@@ -196,22 +297,11 @@ function sip_generate_encryption_key() {
  */
 function sip_encrypt_token($token) {
     // Get the encryption key from the options or generate one if it doesn't exist
-    error_log('SiP Printify Manager: Encrypting token');
     $encryption_key = sip_generate_encryption_key();
-    error_log('SiP Printify Manager: Encryption key length: ' . strlen($encryption_key));
-
 
     // Initialization Vector (IV) for AES encryption (16 bytes)
     $iv = substr(hash('sha256', '16_char_iv_here'), 0, 16);
-    $encrypted = openssl_encrypt($token, 'AES-256-CBC', base64_decode($encryption_key), 0, $iv);
-    
-    if ($encrypted === false) {
-        error_log('SiP Printify Manager: Encryption failed. OpenSSL error: ' . openssl_error_string());
-        return false;
-    }
-    
-    error_log('SiP Printify Manager: Token encrypted successfully. Length: ' . strlen($encrypted));
-    return $encrypted;
+    return openssl_encrypt($token, 'AES-256-CBC', base64_decode($encryption_key), 0, $iv);
 }
 
 /**
@@ -228,5 +318,3 @@ function sip_decrypt_token($encrypted_token) {
     $iv = substr(hash('sha256', '16_char_iv_here'), 0, 16);
     return openssl_decrypt($encrypted_token, 'AES-256-CBC', base64_decode($encryption_key), 0, $iv);
 }
-
-
