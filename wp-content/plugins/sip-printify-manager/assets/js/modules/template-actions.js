@@ -6,9 +6,9 @@ sip.templateActions = (function($, ajax, utilities) {
 
     function init() {
         attachEventListeners();
-        if (!isTemplateLoaded && sip.creationActions && typeof sip.creationActions.checkForLoadedTemplate === 'function') {
-            sip.creationActions.checkForLoadedTemplate();
-        }
+        // if (!isTemplateLoaded && sip.creationActions && typeof sip.creationActions.checkForLoadedTemplate === 'function') {
+        //     sip.creationActions.checkForLoadedTemplate();
+        // }
     }
 
     function attachEventListeners() {
@@ -37,6 +37,7 @@ sip.templateActions = (function($, ajax, utilities) {
         }
     
         utilities.showSpinner(); // Show spinner after validation
+        console.log('*****ShowSpinner called on handleTemplateFormSubmit in template-actions.js');
         handleTemplateAction(formData, action);
     }
 
@@ -67,6 +68,7 @@ sip.templateActions = (function($, ajax, utilities) {
         }
     
         $('input[name="selected_templates[]"], #select-all-templates').prop('checked', false);
+        console.log('***hidespinner called after success response in template-actions.js');
         utilities.hideSpinner();
     }
 

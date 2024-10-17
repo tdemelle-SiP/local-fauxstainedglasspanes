@@ -7,7 +7,6 @@ sip.creationActions = (function($, ajax, utilities) {
     let isDirty = false; // Flag to track unsaved changes
 
     function init(templateData) {
-        console.log('Initializing product creation...');
         if (templateData && templateData.id) {
             selectedTemplateId = templateData.id;
             // Initialize the creation table or perform other actions with the template data
@@ -46,7 +45,7 @@ sip.creationActions = (function($, ajax, utilities) {
     }
 
     function checkForLoadedTemplate() {
-        console.log('Checking for loaded template');
+        console.log('creation-action called; Checking for loaded template');
         var formData = new FormData();
         formData.append('action', 'sip_handle_ajax_request');
         formData.append('action_type', 'creation_action');
@@ -57,7 +56,6 @@ sip.creationActions = (function($, ajax, utilities) {
 
     function handleSuccessResponse(response) {
         console.log('AJAX response received:', response);
-        // utilities.hideSpinner();
 
         if (response.success) {
             switch(response.data.action) {
@@ -81,6 +79,8 @@ sip.creationActions = (function($, ajax, utilities) {
                     break;
                 case 'close_template':
                     handleCloseTemplateResponse(response.data);
+                    console.log('***hidespinner called. Template closed successfully');
+                    sip.utilities.hideSpinner();
                     break;
 
                 default:
@@ -96,9 +96,10 @@ sip.creationActions = (function($, ajax, utilities) {
         if (data.template_data) {
             console.log('Loaded template data:', data.template_data);
             sip.templateActions.populateCreationTable(data.template_data);
+            console.log('***hidespinner called. Template loaded successfully');
             sip.utilities.hideSpinner();
         } else {
-            console.log('No template loaded, using initial HTML');
+            console.log('***hidespinner called.No template loaded, using initial HTML');
             $('#creation-table-container').html(sip.utilities.getInitialTableHtml());
             sip.utilities.hideSpinner();
         }
@@ -125,7 +126,6 @@ sip.creationActions = (function($, ajax, utilities) {
     }
 
     function handleCloseTemplateResponse(data) {
-        console.log('Template closed successfully');
         $('#creation-table-container').html(sip.utilities.getInitialTableHtml());
         // Unset the template name
         $('#selected-template-subtitle').text('');

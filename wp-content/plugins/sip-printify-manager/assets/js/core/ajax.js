@@ -11,7 +11,6 @@ sip.ajax = (function($, utilities) {
      */
     function init() {
         // Any initialization code can go here
-        console.log('AJAX module initialized');
     }
 
     /**
@@ -26,7 +25,7 @@ sip.ajax = (function($, utilities) {
         if (buttonSelector) {
             $(buttonSelector).attr('disabled', true);
         }
-
+        console.log('*****ShowSpinner called on handleAjaxAction in ajax.js');
         sip.utilities.showSpinner();
 
         $.ajax({
@@ -41,8 +40,6 @@ sip.ajax = (function($, utilities) {
                     $(buttonSelector).attr('disabled', false);
                 }
 
-                console.log('Raw response in ajax.js handleAjaxAction:', response);
-
                 if (response.success) {
                     handleSuccessResponse(actionType, response);
                 } else {
@@ -56,8 +53,7 @@ sip.ajax = (function($, utilities) {
     }
 
     function handleSuccessResponse(actionType, response) {
-        console.log('Handling success response for action type:', actionType);
-        console.log('Response in ajax.js handleSuccessResponse:', response);
+        console.log('Handling success response for:', actionType);
 
         if (successHandlers[actionType]) {
             console.log('Calling success handler for', actionType);
@@ -67,7 +63,7 @@ sip.ajax = (function($, utilities) {
                 console.error('Error in success handler for', actionType, ':', error);
             }
         } else {
-            console.warn('No success handler found for action type:', actionType);
+            console.warn('No success handler found for:', actionType);
         }
     }
 

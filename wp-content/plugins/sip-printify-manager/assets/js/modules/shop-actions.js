@@ -2,13 +2,10 @@ var sip = sip || {};
 
 sip.shopActions = (function($, ajax, utilities) {
     function init() {
-        console.log('Initializing shop actions module');
-        console.log($('#clear-shop-button').length > 0 ? 'Button found' : 'Button not found');
         attachEventListeners();
     }
 
     function attachEventListeners() {
-        console.log('Attaching event listeners for shop actions');
 
         // Event delegation for dynamically added elements
         $(document).on('click', '#clear-shop-button', function(e) {
@@ -26,7 +23,7 @@ sip.shopActions = (function($, ajax, utilities) {
 
         $('#new-shop-form').on('submit', function(e) {
             e.preventDefault();
-
+            console.log('Load New Shop Clicked'); // Debugging line
             // Set the actionType
             var shop_action = 'new_shop';
 
@@ -72,12 +69,12 @@ sip.shopActions = (function($, ajax, utilities) {
                     break;
 
                 default:
-                    console.log('Action performed:', response.data.shop_action);
+                    console.log('***hidespinner called; Action performed:', response.data.shop_action);
                     sip.utilities.hideSpinner(); // H
                     break;
             }
         } else {
-            console.error('Error processing action:', response.data ? response.data.message : 'Unknown error');
+            console.error('***hidespinner called; Error processing action:', response.data ? response.data.message : 'Unknown error');
             sip.utilities.hideSpinner(); // H
         }
     }

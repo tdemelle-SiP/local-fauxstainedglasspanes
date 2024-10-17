@@ -39,7 +39,6 @@ sip.jsUtilities = (function($, ajax, utilities) {
     }
 
     function handleSuccessResponse(response) {
-        console.log('AJAX response received:', actionType);
     
         if (response.success) {
             switch(response.data.action) {   

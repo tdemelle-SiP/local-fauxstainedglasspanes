@@ -29,7 +29,6 @@ function sip_handle_creation_action() {
             wp_send_json_success(array(
                 'action' => 'close_template',
                 'message' => 'Template closed successfully'
-                // 'initial_html' => sip_get_initial_creation_table_html()
             ));
             break;           
         // case 'get_initial_table_html':
