@@ -128,15 +128,6 @@ class SiP_Printify_Manager {
             true
         );
     
-        // Enqueue PhotoSwipe initialization script
-        wp_enqueue_script(
-            'photoswipe-init',
-            plugin_dir_url(__FILE__) . 'assets/js/photoswipe-init.js',
-            array('photoswipe-lightbox'),
-            '1.0.0',
-            true
-        );
-    
         // Add the script_loader_tag filter to add type="module"
         add_filter('script_loader_tag', array($this, 'add_type_attribute'), 10, 3);
     
@@ -214,24 +205,6 @@ class SiP_Printify_Manager {
             'sip-template-editor',
             plugin_dir_url(__FILE__) . 'assets/js/modules/template-editor.js',
             array('jquery', 'sip-ajax', 'sip-utilities', 'codemirror'),
-            '1.0.0',
-            true
-        );
-    
-        // Enqueue sip-init
-        wp_enqueue_script(
-            'sip-init',
-            plugin_dir_url(__FILE__) . 'assets/js/init.js',
-            array(
-                'jquery',
-                'sip-utilities',
-                'sip-ajax',
-                'sip-product-actions',
-                'sip-image-actions',
-                'sip-template-actions',
-                'sip-template-editor',
-                'sip-creation-actions'
-            ),
             '1.0.0',
             true
         );

@@ -358,32 +358,6 @@ sip.productActions = (function($, ajax, utilities) {
 
 ### Initialization files:
 
-#### `init.js`
-**Purpose:** Initializes all JavaScript modules.
-
-**Guidelines:**
-- Ensure all modules are loaded before initialization
-- Handle any global setup required before module initialization
-
-**Example structure:**
-
-```javascript
-var sip = sip  {};
-
-sip.init = (function($, productActions, imageActions, templateActions, creationActions) {
-    function initializeAllModules() {
-        productActions.init();
-        imageActions.init();
-        templateActions.init();
-        creationActions.init();
-    }
-
-    return {
-        initializeAllModules: initializeAllModules
-    };
-})(jQuery, sip.productActions, sip.imageActions, sip.templateActions, sip.creationActions);
-```
-
 #### `main.js`
 **Purpose:** Entry point for JavaScript execution.
 

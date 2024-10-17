@@ -54,7 +54,6 @@ sip-printify-manager/
 │       │   ├── image-actions.js
 │       │   ├── template-actions.js
 │       │   └── creation-actions.js
-│       ├── init.js
 │       └── main.js
 ├── includes/
 │   ├── shop-functions.php
