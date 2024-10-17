@@ -35,7 +35,7 @@ error_log('Images count: ' . (is_array($images) ? count($images) : 'N/A'));
         SiP Printify Manager!
     </h1>
     <div id="button-container" <?php echo empty($token) ? 'style="display:none;"' : ''; ?>>
-        <button id="clear-shop-button" class="button button-primary"><?php esc_html_e('Clear Loaded Shop', 'sip-printify-manager'); ?></button>
+        <button id="clear-shop-button" class="button button-primary" data-action-type="clear_shop"><?php esc_html_e('Clear Loaded Shop', 'sip-printify-manager'); ?></button>
     </div>
 </div>
 
@@ -65,15 +65,14 @@ error_log(' $token state for loading auth-container (will load if empty) - ' . (
     </ol>
     <p><strong>Note:</strong> It's a good idea to save the token somewhere you can access it later in case you need to re-authorize the plugin. If you lose the token, don't worry, you can just follow these steps again to generate a new one.</p>
     <form id="new-shop-form" method="post" action="">
-        <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
-        <h2>
-            <label for="printify_bearer_token"><?php esc_html_e('Printify API Token:', 'sip-printify-manager'); ?></label>
-            <input type="text" name="printify_bearer_token" id="printify_bearer_token" value="" class="regular-text" required/>
-            <input type="hidden" name="shop_action" id="shop_action" value="new_shop"> <!-- Hidden input added here -->
-            <input type="submit" name="new_shop" value="<?php esc_attr_e('Load New Shop', 'sip-printify-manager'); ?>" class="button button-primary"/>
-        </h2>
-        <hr class="divider">
-    </form>
+    <?php wp_nonce_field('sip_printify_manager_nonce', 'sip_printify_manager_nonce_field'); ?>
+    <h2>
+        <label for="printify_bearer_token"><?php esc_html_e('Printify API Token:', 'sip-printify-manager'); ?></label>
+        <input type="text" name="printify_bearer_token" id="printify_bearer_token" value="" class="regular-text" required/>
+        <input type="submit" id="submit-new-shop" name="new_shop" value="<?php esc_attr_e('Load New Shop', 'sip-printify-manager'); ?>" class="button button-primary" data-action-type="new_shop"/>
+    </h2>
+    <hr class="divider">
+</form>
 </div>
 
 <!-- Shop Screen (only show if token exists) -->
@@ -295,7 +294,7 @@ error_log(' $token state for loading product-creation-container (will load if no
     </section>
 </div>
 
-<script type="text/javascript">
+<!-- <script type="text/javascript">
 jQuery(document).ready(function($) {
     console.log('Document ready, attempting to hide spinner');
     if (typeof sip !== 'undefined' && sip.utilities && typeof sip.utilities.hideSpinner === 'function') {
@@ -306,4 +305,4 @@ jQuery(document).ready(function($) {
         $('#spinner-overlay').hide();
     }
 });
-</script>
+</script> -->

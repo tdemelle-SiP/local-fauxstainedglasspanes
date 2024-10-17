@@ -41,6 +41,8 @@ sip.ajax = (function($, utilities) {
                     $(buttonSelector).attr('disabled', false);
                 }
 
+                console.log('Raw response in ajax.js handleAjaxAction:', response);
+
                 if (response.success) {
                     handleSuccessResponse(actionType, response);
                 } else {
@@ -49,16 +51,13 @@ sip.ajax = (function($, utilities) {
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 handleAjaxError(jqXHR, textStatus, errorThrown, buttonSelector, spinnerSelector);
-            },
-            complete: function() {
-                sip.utilities.hideSpinner();
             }
         });
     }
 
     function handleSuccessResponse(actionType, response) {
         console.log('Handling success response for action type:', actionType);
-        console.log('Response:', response);
+        console.log('Response in ajax.js handleSuccessResponse:', response);
 
         if (successHandlers[actionType]) {
             console.log('Calling success handler for', actionType);

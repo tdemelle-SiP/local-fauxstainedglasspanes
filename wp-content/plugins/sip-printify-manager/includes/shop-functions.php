@@ -20,6 +20,85 @@ function sip_handle_shop_action() {
 }
 
 /**
+ * Save the Printify API token and store shop details.
+ */
+function sip_new_shop() {
+    $token = sanitize_text_field($_POST['printify_bearer_token']);
+    $shop_details = fetch_shop_details($token);
+    if ($shop_details) {
+        $encrypted_token = sip_encrypt_token($token);
+        update_option('printify_bearer_token', $encrypted_token);
+        update_option('sip_printify_shop_name', $shop_details['shop_name']);
+        update_option('sip_printify_shop_id', $shop_details['shop_id']);
+
+        // Fetch and store images
+        $remote_images = fetch_images($token);
+        if ($remote_images !== null) {
+            $existing_images = get_option('sip_printify_images', array());
+            $local_images = array_filter($existing_images, function($image) {
+                return isset($image['location']) && $image['location'] === 'Local File';
+            });
+            $images = array_merge($local_images, $remote_images);
+            update_option('sip_printify_images', $images);
+        }
+
+        // Fetch and store products
+        $encrypted_token = get_option('printify_bearer_token');
+        $shop_id = get_option('sip_printify_shop_id');
+        $products = fetch_products($encrypted_token, $shop_id);
+        if ($products) {
+            update_option('sip_printify_products', $products);
+        }
+
+        // Include shop_action in the response
+        // "shop_action" must be specified to correctly trigger the success function on the front end in the .js file
+
+        wp_send_json_success(array(
+            'message' => 'Token saved and connection successful.',
+            'shop_action' => 'new_shop'  // Add the shop_action field here
+        ));
+    } else {
+        wp_send_json_error('Invalid API token. Please check and try again.');
+    }
+}
+
+/**
+ * Reset the API token and associated shop details.
+ * Only remote images are removed; local images remain in the database.
+ */
+function sip_clear_shop() {
+    error_log('SiP Printify Manager: Clearing shop data');
+    delete_option('printify_bearer_token');
+    delete_option('sip_printify_shop_name');
+    delete_option('sip_printify_shop_id');
+    delete_option('sip_printify_products');
+    error_log('SiP Printify Manager: Shop data cleared, token deleted');
+
+    // Retrieve existing images
+    $images = get_option('sip_printify_images', array());
+
+    // Clear remote images but keep local ones
+    $existing_images = get_option('sip_printify_images', array());
+    $local_images = array_filter($existing_images, function($image) {
+        return isset($image['location']) && $image['location'] === 'Local File';
+    });
+    update_option('sip_printify_images', $local_images);
+
+    // Unload the template from the Create New Products table
+    delete_option('sip_loaded_template');
+
+    // Delete product JSON files associated with the shop
+    clear_product_jsons();
+
+    // Include shop_action in the response
+    // "shop_action" must be specified to correctly trigger the success function on the front end in the .js file
+    wp_send_json_success(array(
+        'message' => 'Shop Cleared successfully.',
+        'shop_action' => 'clear_shop'
+    ));
+}
+
+/**
  * Fetch shop details directly from Printify API using the Bearer token.
  *
  * @param string $token The Bearer token for authenticating API requests.
@@ -62,76 +141,6 @@ function sip_connect_shop() {
         update_option('sip_printify_shop_id', $shop_details['shop_id']);
     }
 }
-
-/**
- * Save the Printify API token and store shop details.
- */
-function sip_new_shop() {
-    $token = sanitize_text_field($_POST['printify_bearer_token']);
-    $shop_details = fetch_shop_details($token);
-    if ($shop_details) {
-        $encrypted_token = sip_encrypt_token($token);
-        update_option('printify_bearer_token', $encrypted_token);
-        update_option('sip_printify_shop_name', $shop_details['shop_name']);
-        update_option('sip_printify_shop_id', $shop_details['shop_id']);
-
-        // Fetch and store images
-        $remote_images = fetch_images($token);
-        if ($remote_images !== null) {
-            $existing_images = get_option('sip_printify_images', array());
-            $local_images = array_filter($existing_images, function($image) {
-                return isset($image['location']) && $image['location'] === 'Local File';
-            });
-            $images = array_merge($local_images, $remote_images);
-            update_option('sip_printify_images', $images);
-        }
-
-        // Fetch and store products
-        $encrypted_token = get_option('printify_bearer_token');
-        $shop_id = get_option('sip_printify_shop_id');
-        $products = fetch_products($encrypted_token, $shop_id);
-        if ($products) {
-            update_option('sip_printify_products', $products);
-        }
-
-        wp_send_json_success('Token saved and connection successful.');
-    } else {
-        wp_send_json_error('Invalid API token. Please check and try again.');
-    }
-}
-
-/**
- * Reset the API token and associated shop details.
- * Only remote images are removed; local images remain in the database.
- */
-function sip_clear_shop() {
-    error_log('SiP Printify Manager: Clearing shop data');
-    delete_option('printify_bearer_token');
-    delete_option('sip_printify_shop_name');
-    delete_option('sip_printify_shop_id');
-    delete_option('sip_printify_products');
-    error_log('SiP Printify Manager: Shop data cleared, token deleted');
-
-    // Retrieve existing images
-    $images = get_option('sip_printify_images', array());
-
-    // Clear remote images but keep local ones
-    $existing_images = get_option('sip_printify_images', array());
-    $local_images = array_filter($existing_images, function($image) {
-        return isset($image['location']) && $image['location'] === 'Local File';
-    });
-    update_option('sip_printify_images', $local_images);
-
-    // Unload the template from the Create New Products table
-    delete_option('sip_loaded_template');
-
-    // Delete product JSON files associated with the shop
-    clear_product_jsons();
-
-    wp_send_json_success('Shop Cleared successfully.');
-}
-
-
 
 /**
  * Clear product JSON files associated with the shop.

@@ -20,60 +20,65 @@ sip.shopActions = (function($, ajax, utilities) {
             formData.append('action_type', 'shop_action');
             formData.append('shop_action', 'clear_shop');
             formData.append('nonce', sipAjax.nonce);
-
-            sip.ajax.handleAjaxAction('clear_shop', formData, '#new-token-button', '#loading-spinner');
+            //since formData is added above, don't need to go through a handler, can just send to ajax.js
+            sip.ajax.handleAjaxAction('shop_action', formData, '#clear-shop-button', '#loading-spinner');
         });
 
         $('#new-shop-form').on('submit', function(e) {
             e.preventDefault();
-            handleShopActionFormSubmit.call(this);
+
+            // Set the actionType
+            var shop_action = 'new_shop';
+
+            //formData needs to be added so it needs to go to handleShopActionForSubmit before sending to ajax.js
+            handleShopActionFormSubmit.call(this, shop_action);
         });
     }
 
-    function handleShopActionFormSubmit() {
+    function handleShopActionFormSubmit(shop_action) {
         console.log('Handling shop action form submit');
+
         var formData = new FormData(this);
-        var action = $('#shop_action').val();
+        // action: 'sip_handle_ajax_request' is set below
+        // actionType: 'shop_action' is set below
+        // shop_action: 'set by data attribute on the html element and passed here as a parameter'
 
         formData.append('action', 'sip_handle_ajax_request');
         formData.append('action_type', 'shop_action');
-        formData.append('shop_action', action);
+        formData.append('shop_action', shop_action);
         formData.append('nonce', sipAjax.nonce);
 
         sip.ajax.handleAjaxAction('shop_action', formData);
     }
 
-    // Define successHandlers
-    var successHandlers = {
-        new_shop: function(response) {
-            console.log('Handling success for new_shop:', response);
-            location.reload(); // Or handle response appropriately
-        },
-        clear_shop: function(response) {
-            console.log('Handling success for clear_shop:', response);
-            location.reload(); // Or handle response appropriately
-        }
-    };
+    function handleSuccessResponse(response) {
+        console.log('Success Response received by frontend:', response);
+    
+        // Ensure response is properly structured
+        if (typeof response === 'object' && response.success && response.data) {
+            // Log the standardized success message
+            console.log(response.data.message);
+    
+            // Handle specific shop actions with different responses
+            switch (response.data.shop_action) {
+                case 'new_shop':
+                    console.log('New shop loaded successfully');
+                    location.reload();  // Reload for new_shop
+                    break;
+    
+                case 'clear_shop':
+                    console.log('Shop has been cleared successfully');
+                    location.reload();  // Reload for clear_shop
+                    break;
 
-    function handleSuccessResponse(actionType, response) {
-        console.log('Handling success response for action type:', actionType);
-    
-        // Reload the page for 'clear_shop' and 'new_shop' actions
-        if (actionType === 'clear_shop' || actionType === 'new_shop') {
-            location.reload();  // Just reload the page for these actions
-            return;  // Exit the function after reloading
-        }
-    
-        // Handle other actions using successHandlers
-        if (successHandlers[actionType]) {
-            console.log('Calling success handler for', actionType);
-            try {
-                successHandlers[actionType](response);
-            } catch (error) {
-                console.error('Error in success handler for', actionType, ':', error);
+                default:
+                    console.log('Action performed:', response.data.shop_action);
+                    sip.utilities.hideSpinner(); // H
+                    break;
             }
         } else {
-            console.warn('No success handler found for action type:', actionType);
+            console.error('Error processing action:', response.data ? response.data.message : 'Unknown error');
+            sip.utilities.hideSpinner(); // H
         }
     }
 

@@ -17,13 +17,6 @@ sip.main = (function($, ajax, utilities) {
         console.log('Initializing Modules');
         initializeModules();
         initializeGlobalEventListeners();
-
-        setTimeout(function() {
-            if (utilities.isSpinnerVisible()) {
-                console.log('Failsafe: Hiding spinner after timeout');
-                utilities.hideSpinner();
-            }
-        }, 10000);
     }
 
     function initializeModules() {

@@ -57,7 +57,7 @@ sip.creationActions = (function($, ajax, utilities) {
 
     function handleSuccessResponse(response) {
         console.log('AJAX response received:', response);
-        utilities.hideSpinner();
+        // utilities.hideSpinner();
 
         if (response.success) {
             switch(response.data.action) {
@@ -96,9 +96,11 @@ sip.creationActions = (function($, ajax, utilities) {
         if (data.template_data) {
             console.log('Loaded template data:', data.template_data);
             sip.templateActions.populateCreationTable(data.template_data);
+            sip.utilities.hideSpinner();
         } else {
             console.log('No template loaded, using initial HTML');
             $('#creation-table-container').html(sip.utilities.getInitialTableHtml());
+            sip.utilities.hideSpinner();
         }
     }
 
