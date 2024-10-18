@@ -242,23 +242,23 @@ sip.templateActions = (function($, ajax, utilities) {
         const maxImages = getMaxImagesCount(templateData);
 
         let headerRow = '<tr>';
-        headerRow += '<th class="toggle-variant-header"rowspan="2"></th>';
-        headerRow += '<th rowspan="2"><input type="checkbox" id="select-all-rows"></th>';
-        headerRow += '<th rowspan="2">#</th>';
-        headerRow += '<th rowspan="2">Title</th>';
-        headerRow += `<th colspan="${maxImages}">${printAreaPosition.charAt(0).toUpperCase() + printAreaPosition.slice(1)} - Design</th>`;
-        headerRow += '<th rowspan="2">State</th>';
-        headerRow += '<th rowspan="2">Colors</th>';
-        headerRow += '<th rowspan="2">Sizes</th>';
-        headerRow += '<th rowspan="2">Tags</th>';
-        headerRow += '<th rowspan="2">Description</th>';
-        headerRow += '<th rowspan="2">Price</th>';
+        headerRow += '<th class="toggle-variant-header" rowspan="2" data-column="toggle"></th>';
+        headerRow += '<th rowspan="2" data-column="select"><input type="checkbox" id="select-all-rows"></th>';
+        headerRow += '<th rowspan="2" data-column="number">#</th>';
+        headerRow += '<th rowspan="2" data-column="title">Title</th>';
+        headerRow += `<th colspan="${maxImages}" data-column="print-area">${printAreaPosition.charAt(0).toUpperCase() + printAreaPosition.slice(1)} - Design</th>`;
+        headerRow += '<th rowspan="2" data-column="state">State</th>';
+        headerRow += '<th rowspan="2" data-column="colors">Colors</th>';
+        headerRow += '<th rowspan="2" data-column="sizes">Sizes</th>';
+        headerRow += '<th rowspan="2" data-column="tags">Tags</th>';
+        headerRow += '<th rowspan="2" data-column="description">Description</th>';
+        headerRow += '<th rowspan="2" data-column="price">Price</th>';
         headerRow += '</tr>';
 
         // Subheader for image numbers
         headerRow += '<tr>';
         for (let i = 1; i <= maxImages; i++) {
-            headerRow += `<th data-image-index="${i - 1}">image #${i}</th>`;
+            headerRow += `<th data-column="image" data-image-index="${i - 1}">image #${i}</th>`;
         }
         headerRow += '</tr>';
 
@@ -282,20 +282,20 @@ sip.templateActions = (function($, ajax, utilities) {
         
         // Build the main data row first
         rows += `<tr class="main-template-row">`;
-        rows += `<td class="toggle-variant-rows">+</td>`;
-        rows += `<td><input type="checkbox" class="select-template"></td>`;
-        rows += `<td>0</td>`;
-        rows += `<td class="editable" data-key="title">${escapeHtml(templateData.title)}</td>`;
+        rows += `<td class="toggle-variant-rows" data-column="toggle">+</td>`;
+        rows += `<td data-column="select"><input type="checkbox" class="select-template"></td>`;
+        rows += `<td data-column="number">0</td>`;
+        rows += `<td class="editable" data-column="title" data-key="title">${escapeHtml(templateData.title)}</td>`;
         // Add empty cells for images (will be filled by updateVariantHeaderCounts)
         for (let i = 0; i < getMaxImagesCount(templateData); i++) {
-            rows += `<td class="image-cell"></td>`;
+            rows += `<td class="image-cell" data-column="image" data-image-index="${i}"></td>`;
         }
-        rows += `<td class="non-editable" data-key="state">Template</td>`;
+        rows += `<td class="non-editable" data-column="state" data-key="state">Template</td>`;
         rows += buildColorSwatches(uniqueVariants[0].colors);
-        rows += `<td class="editable" data-key="sizes">${getSizesString(templateData['options - sizes'])}</td>`;
-        rows += `<td class="editable" data-key="tags">${escapeHtml(truncateText(templateData.tags.join(', '), 18))}</td>`;
-        rows += `<td class="editable" data-key="description">${escapeHtml(truncateText(templateData.description, 18))}</td>`;
-        rows += `<td class="editable" data-key="prices">${getPriceRange(templateData.variants)}</td>`;
+        rows += `<td class="editable" data-column="sizes" data-key="sizes">${getSizesString(templateData['options - sizes'])}</td>`;
+        rows += `<td class="editable" data-column="tags" data-key="tags">${escapeHtml(truncateText(templateData.tags.join(', '), 18))}</td>`;
+        rows += `<td class="editable" data-column="description" data-key="description">${escapeHtml(truncateText(templateData.description, 18))}</td>`;
+        rows += `<td class="editable" data-column="price" data-key="prices">${getPriceRange(templateData.variants)}</td>`;
         rows += '</tr>';
     
         // Initialize an array to keep track of unique images in each column
@@ -419,8 +419,7 @@ sip.templateActions = (function($, ajax, utilities) {
     function collectVariantSizes(templateData) {
         console.log('Entering collectVariantSizes function');
         
-        // Select the main template row's sizes cell (now in the image #4 column)
-        const mainTemplateRowSizes = document.querySelector('.main-template-row td:nth-child(7)');
+        const mainTemplateRowSizes = document.querySelector('.main-template-row [data-column="sizes"]');
         
         if (!mainTemplateRowSizes) {
             console.error('Main template row sizes data not found.');
@@ -430,16 +429,10 @@ sip.templateActions = (function($, ajax, utilities) {
         const allSizes = mainTemplateRowSizes.textContent.trim();
         console.log('All sizes:', allSizes);
     
-        // Update the sizes cell in the main row (which is actually in the 'Sizes' column)
-        const mainSizesCell = document.querySelector('.main-template-row td:nth-child(11)');
-        if (mainSizesCell) {
-            mainSizesCell.textContent = allSizes;
-        }
-    
-        // Update variant rows with their specific sizes (which should be the same as the main row in this case)
+        // Update variant rows with their specific sizes
         const variantRows = document.querySelectorAll('.variant-row');
         variantRows.forEach((row, index) => {
-            const sizeCell = row.querySelector('td:nth-child(11)');
+            const sizeCell = row.querySelector('[data-column="sizes"]');
             if (sizeCell) {
                 sizeCell.textContent = allSizes;
             } else {
@@ -468,12 +461,10 @@ sip.templateActions = (function($, ajax, utilities) {
         return `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
     }
     
-
     function collectVariantPrices() {
         console.log('Entering collectVariantPrices function');
     
-        // Select the main template row's price cell
-        const mainTemplateRowPrice = document.querySelector('.main-template-row td:nth-child(14)');
+        const mainTemplateRowPrice = document.querySelector('.main-template-row [data-column="price"]');
         
         if (!mainTemplateRowPrice) {
             console.error('Main template row price data not found.');
