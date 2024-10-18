@@ -126,26 +126,23 @@ sip.templateActions = (function($, ajax, utilities) {
         formData.append('nonce', sipAjax.nonce);
         sip.ajax.handleAjaxAction('creation_action', formData);
     }
-    
+    ///////////////////////////PROCESS TEMPLATE DATA//////////////////////////////////////
     function processTemplateData(templateData) {
         const uniqueVariants = [];
         let colorOptions = templateData['options - colors'] || [];
+
+        // Helper function to find existing variant with the same image array
+        const findExistingVariant = (images) => {
+            return uniqueVariants.find(v => 
+                v.images.length === images.length && 
+                v.images.every((img, index) => img.id === images[index].id)
+            );
+        };
     
         if (!templateData.print_areas || !Array.isArray(templateData.print_areas)) {
             console.error('print_areas not found or not an array in template data');
             return uniqueVariants;
         }
-    
-        // Helper function to find existing variant with the same image array
-        const findExistingVariant = (images) => {
-            return uniqueVariants.find(v => areImageArraysEqual(v.images, images));
-        };
-    
-        // Helper function to compare two image arrays
-        const areImageArraysEqual = (arr1, arr2) => {
-            if (arr1.length !== arr2.length) return false;
-            return arr1.every((img, index) => img.id === arr2[index].id);
-        };
     
         // Process each print area
         templateData.print_areas.forEach((printArea) => {
@@ -161,21 +158,25 @@ sip.templateActions = (function($, ajax, utilities) {
                     id: uniqueVariants.length,
                     variantIds: printArea.variant_ids,
                     images: images,
-                    colors: []
+                    colors: [],
+                    prices: []
                 };
                 uniqueVariants.push(existingVariant);
             }
     
-            // Process colors for the variant
+            // Process colors and prices for the variant
             printArea.variant_ids.forEach(variantId => {
-                if (templateData.variants && Array.isArray(templateData.variants)) {
-                    const variantData = templateData.variants.find(v => v.id === variantId);
-                    if (variantData && variantData.options && variantData.options.length > 0) {
+                const variantData = templateData.variants.find(v => v.id === variantId);
+                if (variantData) {
+                    if (variantData.options && variantData.options.length > 0) {
                         const colorId = variantData.options[0];
                         const color = colorOptions.find(c => c.id === colorId);
                         if (color && !existingVariant.colors.some(c => c.id === color.id)) {
                             existingVariant.colors.push(color);
                         }
+                    }
+                    if (typeof variantData.price === 'number') {
+                        existingVariant.prices.push(variantData.price);
                     }
                 }
             });
@@ -185,7 +186,7 @@ sip.templateActions = (function($, ajax, utilities) {
         return uniqueVariants;
     }
     
-    //////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////BUILD TABLE CONTENT////////////////////////////////////////////
     function buildTableContent(table, templateData) {
         console.log('Entering buildTableContent function');
         
@@ -271,14 +272,17 @@ sip.templateActions = (function($, ajax, utilities) {
         ));
     }
 
-
-    function areImageArraysEqual(arr1, arr2) {
-        if (arr1.length !== arr2.length) return false;
-        return arr1.every((img, index) => img.id === arr2[index].id);
-    }
-
+    ///////////////////////BUILD TABLE ROWS///////////////////////////
     function buildTableRows(uniqueVariants, templateData) {
         let rows = '';
+    
+        // Calculate the overall price range for all variants
+        const allPrices = uniqueVariants.flatMap(variant => variant.prices);
+        const mainPriceRange = getPriceRange(allPrices);
+
+        // Collect all unique colors
+        const allColors = new Set(uniqueVariants.flatMap(variant => variant.colors.map(color => JSON.stringify(color))));
+        const uniqueColors = Array.from(allColors).map(colorString => JSON.parse(colorString));
         
         // Build the main data row first
         rows += `<tr class="main-template-row">`;
@@ -291,36 +295,50 @@ sip.templateActions = (function($, ajax, utilities) {
             rows += `<td class="image-cell" data-column="image" data-image-index="${i}"></td>`;
         }
         rows += `<td class="non-editable" data-column="state" data-key="state">Template</td>`;
-        rows += buildColorSwatches(uniqueVariants[0].colors);
+        rows += buildSummaryColorSwatches(uniqueColors);
         rows += `<td class="editable" data-column="sizes" data-key="sizes">${getSizesString(templateData['options - sizes'])}</td>`;
         rows += `<td class="editable" data-column="tags" data-key="tags">${escapeHtml(truncateText(templateData.tags.join(', '), 18))}</td>`;
         rows += `<td class="editable" data-column="description" data-key="description">${escapeHtml(truncateText(templateData.description, 18))}</td>`;
-        rows += `<td class="editable" data-column="price" data-key="prices">${getPriceRange(templateData.variants)}</td>`;
+        rows += `<td class="editable" data-column="price" data-key="prices">${mainPriceRange}</td>`;
         rows += '</tr>';
     
         // Initialize an array to keep track of unique images in each column
         let uniqueImagesInColumns = new Array(getMaxImagesCount(templateData)).fill().map(() => new Set());
+
+        const mainSizes = getSizesString(templateData['options - sizes']);
+        let shownMainPriceRange = false;
     
         // Now include all variants
         uniqueVariants.forEach((variant, index) => {
             rows += `<tr class="variant-row">`;
-            rows += `<td></td>`; // Empty cell for toggle
-            rows += `<td><input type="checkbox" class="select-variant"></td>`;
-            rows += `<td>0${String.fromCharCode(97 + index)}</td>`; // a, b, c, ...
-            rows += `<td>${escapeHtml(templateData.title)} - Variant ${String.fromCharCode(65 + index)}</td>`; // A, B, C, ...
+            rows += `<td data-column="toggle"></td>`; // Empty cell for toggle
+            rows += `<td data-column="select"><input type="checkbox" class="select-variant"></td>`;
+            rows += `<td data-column="number">0${String.fromCharCode(97 + index)}</td>`; // a, b, c, ...
+            rows += `<td data-column="title">${escapeHtml(templateData.title)} - Variant ${String.fromCharCode(65 + index)}</td>`; // A, B, C, ...
             rows += buildVariantImageCells(variant.images, uniqueImagesInColumns);
-            rows += `<td class="non-editable" data-key="state">Template - Variant</td>`;
+            rows += `<td class="non-editable" data-column="state" data-key="state">Template - Variant</td>`;
             rows += buildColorSwatches(variant.colors);
-            rows += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
-            rows += '<td></td>'; // Tags (empty for variants)
-            rows += '<td></td>'; // Description (empty for variants)
-            const variantPrices = variant.variantIds
-                .map(id => templateData.variants.find(v => v.id === id))
-                .filter(v => v && v.price !== undefined)
-                .map(v => v.price);
-            rows += `<td>${getPriceRange(variantPrices)}</td>`;
+            
+            // Sizes
+            const variantSizes = getSizesString(templateData['options - sizes']);
+            rows += `<td data-column="sizes">${variantSizes !== mainSizes ? variantSizes : '-'}</td>`;
+
+            rows += '<td data-column="tags"></td>'; // Tags (empty for variants)
+            rows += '<td data-column="description"></td>'; // Description (empty for variants)
+
+            // Prices
+            const variantPriceRange = getPriceRange(variant.prices);
+            if (variantPriceRange === mainPriceRange && !shownMainPriceRange) {
+                rows += `<td data-column="price">${variantPriceRange}</td>`;
+                shownMainPriceRange = true;
+            } else if (variantPriceRange !== mainPriceRange) {
+                rows += `<td data-column="price">${variantPriceRange}</td>`;
+            } else {
+                rows += `<td data-column="price">-</td>`;
+            }
+
             rows += '</tr>';
-    
+
             // Update uniqueImagesInColumns with this variant's images
             variant.images.forEach((image, imageIndex) => {
                 if (image) {
@@ -328,9 +346,10 @@ sip.templateActions = (function($, ajax, utilities) {
                 }
             });
         });
-    
+
         return rows;
     }
+
 
     function buildVariantImageCells(variantImages, uniqueImagesInColumns) {
         let cells = '';
@@ -361,6 +380,18 @@ sip.templateActions = (function($, ajax, utilities) {
             cells += '</td>';
         }
         return cells;
+    }
+
+    function buildSummaryColorSwatches(colors) {
+        let swatches = `<td class="color-swatches">`;
+        colors.forEach(color => {
+            swatches += `
+                <span class="color-swatch" title="${escapeHtml(color.title)}" 
+                      style="background-color: ${escapeHtml(color.colors[0])}"></span>
+            `;
+        });
+        swatches += '</td>';
+        return swatches;
     }
 
     function buildColorSwatches(colors) {
@@ -416,51 +447,6 @@ sip.templateActions = (function($, ajax, utilities) {
                     .join(', ');
     }
 
-    function collectVariantSizes(templateData) {
-        console.log('Entering collectVariantSizes function');
-        
-        const mainTemplateRowSizes = document.querySelector('.main-template-row [data-column="sizes"]');
-        
-        if (!mainTemplateRowSizes) {
-            console.error('Main template row sizes data not found.');
-            return;
-        }
-        
-        const allSizes = mainTemplateRowSizes.textContent.trim();
-        console.log('All sizes:', allSizes);
-    
-        // Update variant rows with their specific sizes
-        const variantRows = document.querySelectorAll('.variant-row');
-        variantRows.forEach((row, index) => {
-            const sizeCell = row.querySelector('[data-column="sizes"]');
-            if (sizeCell) {
-                sizeCell.textContent = allSizes;
-            } else {
-                console.error(`Size cell not found for variant row ${index}`);
-            }
-        });
-    
-        console.log('Exiting collectVariantSizes function');
-    }
-
-    function getPriceRange(variants) {
-        if (!Array.isArray(variants) || variants.length === 0) {
-            return 'N/A';
-        }
-    
-        const prices = variants
-            .filter(variant => variant && typeof variant.price === 'number')
-            .map(variant => variant.price);
-    
-        if (prices.length === 0) {
-            return 'N/A';
-        }
-    
-        const minPrice = Math.min(...prices) / 100;
-        const maxPrice = Math.max(...prices) / 100;
-        return `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
-    }
-    
     function collectVariantPrices() {
         console.log('Entering collectVariantPrices function');
     
@@ -471,41 +457,87 @@ sip.templateActions = (function($, ajax, utilities) {
             return;
         }
         
-        console.log('Main template row price:', mainTemplateRowPrice.textContent);
+        const mainPriceRange = mainTemplateRowPrice.textContent.trim();
+        console.log('Main price range:', mainPriceRange);
     
-        // Extract the low and high price from the main template row price text
-        const priceMatch = mainTemplateRowPrice.textContent.match(/\$(\d+\.\d{2})\s*-\s*\$(\d+\.\d{2})/);
-        if (!priceMatch) {
-            console.error('Invalid price format in main template row');
-            return;
-        }
-    
-        let [, lowPrice, highPrice] = priceMatch.map(price => parseFloat(price));
-    
-        console.log(`Price range: $${lowPrice.toFixed(2)} - $${highPrice.toFixed(2)}`);
-    
-        // We don't need to iterate through variant rows for prices, as they all show N/A
+        // Update variant rows with their specific price ranges only if they differ from the main price range
+        const variantRows = document.querySelectorAll('.variant-row');
+        variantRows.forEach((row, index) => {
+            const priceCell = row.querySelector('[data-column="price"]');
+            if (priceCell) {
+                const variantPriceRange = priceCell.textContent.trim();
+                if (variantPriceRange === '' || variantPriceRange === mainPriceRange) {
+                    priceCell.textContent = '-';
+                }
+            } else {
+                console.error(`Price cell not found for variant row ${index}`);
+            }
+        });
     
         console.log('Exiting collectVariantPrices function');
     }
+
+    function getPriceRange(variants, allVariants = null) {
+        if (allVariants) {
+            // Calculate range for all variants
+            const allPrices = allVariants
+                .filter(v => v && typeof v.price === 'number')
+                .map(v => v.price);
+            return calculateRange(allPrices);
+        }
     
-    // Update the buildTableContent function to pass templateData to collectVariantPrices
-    function buildTableContent(table, templateData) {
-        console.log('Entering buildTableContent function');
+        // Calculate range for specific variants
+        if (!Array.isArray(variants) || variants.length === 0) {
+            return 'N/A';
+        }
+    
+        const prices = variants.filter(price => typeof price === 'number');
+        return calculateRange(prices);
+    }
+    
+    function calculateRange(prices) {
+        if (prices.length === 0) {
+            return 'N/A';
+        }
+    
+        const minPrice = Math.min(...prices) / 100;
+        const maxPrice = Math.max(...prices) / 100;
         
-        // ... (previous code remains the same)
-    
-        try {
-            if (typeof updateVariantHeaderCounts === 'function') updateVariantHeaderCounts();
-            if (typeof collectVariantColors === 'function') collectVariantColors();
-            if (typeof hideVariantRowsInitially === 'function') hideVariantRowsInitially();
-            if (typeof collectVariantSizes === 'function') collectVariantSizes(templateData);
-            if (typeof collectVariantPrices === 'function') collectVariantPrices(templateData);
-        } catch (error) {
-            console.error('Error in helper functions:', error);
+        if (minPrice === maxPrice) {
+            return `$${minPrice.toFixed(2)}`;
         }
         
-        console.log('Exiting buildTableContent function');
+        return `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
+    }
+    
+    function collectVariantSizes(templateData) {
+        console.log('Entering collectVariantSizes function');
+        
+        const mainTemplateRowSizes = document.querySelector('.main-template-row [data-column="sizes"]');
+        
+        if (!mainTemplateRowSizes) {
+            console.error('Main template row sizes data not found.');
+            return;
+        }
+        
+        const mainSizes = mainTemplateRowSizes.textContent.trim();
+        console.log('Main sizes:', mainSizes);
+    
+        // Update variant rows with their specific sizes only if they differ from the main sizes
+        const variantRows = document.querySelectorAll('.variant-row');
+        variantRows.forEach((row, index) => {
+            const sizeCell = row.querySelector('[data-column="sizes"]');
+            if (sizeCell) {
+                const variantSizes = sizeCell.textContent.trim();
+                if (variantSizes === '') {
+                    sizeCell.textContent = '-';
+                }
+            } else {
+                console.error(`Size cell not found for variant row ${index}`);
+            }
+        });
+    
+        console.log('Exiting collectVariantSizes function');
     }
     
     function buildTableContent(table, templateData) {
