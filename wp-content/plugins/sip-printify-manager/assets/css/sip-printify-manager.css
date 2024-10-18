@@ -753,6 +753,35 @@ body.resizing * {
     margin: 6px 0 0 0;
 }
 
+
+/*//////////////////////////////////////Table Column Widths////////////////////////////////////*/
+/* Example column width controls */
+#creation-table th:nth-child(1),
+#creation-table td:nth-child(1) { width: 14px; } /* Toggle column */
+
+#creation-table th:nth-child(2),
+#creation-table td:nth-child(2) { width: 20px; } /* Checkbox column */
+
+#creation-table th:nth-child(3),
+#creation-table td:nth-child(3) { width: 50px; } /* # column */
+
+
+/* Add more width controls for other columns as needed */
+
+/* Image columns */
+#creation-table th:nth-child(5) { width: auto; }
+#creation-table tr:nth-child(2) th, #creation-table .image-cell { width: 80px; padding: 3px 0px;}
+
+/* Ensure the last column doesn't have a fixed width to allow for table expansion */
+#creation-table th:last-child,
+#creation-table td:last-child {
+    width: auto;
+}
+
+#product-creation-table > hr {
+    margin-top: 10px;
+}
+
 /*///////////////////////////////////Table Header Row///////////////////////////////////*/
 
 /* Table container with horizontal scroll */
@@ -788,7 +817,16 @@ body.resizing * {
 /* Control column widths */
 #creation-table th,
 #creation-table td {
+    text-align: center;
+    vertical-align: middle;
     border: 0.5px solid #ddd;
+    padding: 0px 3px;
+    margin: 0px;
+}
+
+#select-all-rows {
+    margin: 0px;
+    padding: 0px;
 }
 
 #creation-table, #creation-table tr, #creation-table td {
@@ -805,39 +843,10 @@ body.resizing * {
 }
 
 #creation-table td {
-    text-align: center;
-    vertical-align: middle;
     padding: 0px 5px;
     box-sizing: border-box; 
 }
 
-/* Example column width controls */
-#creation-table th:nth-child(1),
-#creation-table td:nth-child(1) { width: 30px; } /* Checkbox column */
-
-#creation-table th:nth-child(2),
-#creation-table td:nth-child(2) { width: 50px; } /* # column */
-
-#creation-table th:nth-child(3),
-#creation-table td:nth-child(3) { width: 200px; } /* Title column */
-
-/* Add more width controls for other columns as needed */
-
-/* Image columns */
-#creation-table th[data-image-index],
-#creation-table td.image-cell {
-    width: 100px;
-}
-
-/* Ensure the last column doesn't have a fixed width to allow for table expansion */
-#creation-table th:last-child,
-#creation-table td:last-child {
-    width: auto;
-}
-
-#product-creation-table > hr {
-    margin-top: 10px;
-}
 
 /*////////////////////////////////image cell styles/////////////////////////////////////*/
 .image-cell {
@@ -945,37 +954,36 @@ body.resizing * {
     font-size: 11px;
 }
 
-/*//////////////////////////////variant header and rows///////////////////////////////////*/
-#creation-table > tbody > tr.variants-header-row{
-    background-color: #769cb0;
+/*//////////////////////////////main template row///////////////////////////////////*/
+#creation-table > tbody > tr.main-template-row {
+    background-color: #aed5ea;
     font-weight: 700;
     height: 18px !important;
     max-height: 18px !important;
+    border-color: #c1c0c0;
 }
 
-#creation-table tbody tr.variants-header-row td {
-    color: white;
+#creation-table > tbody > tr.main-template-row td {
+    color: rgb(0, 0, 0);
 }
 
-#creation-table > tbody > tr.variants-header-row > td.toggle-variant-rows {
+#creation-table > tbody > tr.main-template-row > td.toggle-variant-rows {
     cursor: pointer;
     font-size: 20px;
+    padding: 0px 2px;
+    background-color: #449ac9;
+    color: #ffffff;
 }
 
-#creation-table > tbody > tr.variants-header-row > td.toggle-variant-rows:hover {
+#creation-table > tbody > tr.main-template-row > td.toggle-variant-rows:hover {
     font-weight: 700;
-    background-color: #7aaeca;
+    background-color: #4cbcf8;
 }
 
-#creation-table > tbody > tr.variants-header-row > td:nth-child(1) > input[type=checkbox] {
+#creation-table > tbody > tr.main-template-row > td:nth-child(1) > input[type=checkbox] {
     height: 12px;
     max-width: 12px;
 
-}
-
-#variant-header-colors .color-swatch {
-    height: 10px;
-    width: 10px;
 }
 
 

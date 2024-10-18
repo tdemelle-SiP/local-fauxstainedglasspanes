@@ -237,7 +237,7 @@ sip.templateActions = (function($, ajax, utilities) {
         const maxImages = getMaxImagesCount(templateData);
 
         let headerRow = '<tr>';
-        headerRow += '<th rowspan="2">Variant Row Toggle</th>';
+        headerRow += '<th class="toggle-variant-header"rowspan="2"></th>';
         headerRow += '<th rowspan="2"><input type="checkbox" id="select-all-rows"></th>';
         headerRow += '<th rowspan="2">#</th>';
         headerRow += '<th rowspan="2">Title</th>';
