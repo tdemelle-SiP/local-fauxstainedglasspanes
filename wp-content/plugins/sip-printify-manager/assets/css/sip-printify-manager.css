@@ -971,8 +971,8 @@ body.resizing * {
     cursor: pointer;
     font-size: 20px;
     padding: 0px 2px;
-    background-color: #449ac9;
-    color: #ffffff;
+    background-color: #ffffff;
+    color: #0e5274;
 }
 
 #creation-table > tbody > tr.main-template-row > td.toggle-variant-rows:hover {

@@ -126,9 +126,8 @@ sip.templateActions = (function($, ajax, utilities) {
         formData.append('nonce', sipAjax.nonce);
         sip.ajax.handleAjaxAction('creation_action', formData);
     }
-
+    
     function processTemplateData(templateData) {
-        // console.log('Processing template data:', templateData);
         const uniqueVariants = [];
         let colorOptions = templateData['options - colors'] || [];
     
@@ -142,8 +141,14 @@ sip.templateActions = (function($, ajax, utilities) {
             return uniqueVariants.find(v => areImageArraysEqual(v.images, images));
         };
     
+        // Helper function to compare two image arrays
+        const areImageArraysEqual = (arr1, arr2) => {
+            if (arr1.length !== arr2.length) return false;
+            return arr1.every((img, index) => img.id === arr2[index].id);
+        };
+    
         // Process each print area
-        templateData.print_areas.forEach((printArea, index) => {
+        templateData.print_areas.forEach((printArea) => {
             const images = printArea.placeholders[0].images;
             let existingVariant = findExistingVariant(images);
     
@@ -176,10 +181,10 @@ sip.templateActions = (function($, ajax, utilities) {
             });
         });
     
-        // console.log('Processed unique variants:', uniqueVariants);
+        console.log('Processed unique variants:', uniqueVariants);
         return uniqueVariants;
     }
-
+    
     //////////////////////////////////////////////////////////////////////////////////////////////////////
     function buildTableContent(table, templateData) {
         console.log('Entering buildTableContent function');
@@ -277,7 +282,6 @@ sip.templateActions = (function($, ajax, utilities) {
         
         // Build the main data row first
         rows += `<tr class="main-template-row">`;
-        // Add main row cells (leave image cells empty for now)
         rows += `<td class="toggle-variant-rows">+</td>`;
         rows += `<td><input type="checkbox" class="select-template"></td>`;
         rows += `<td>0</td>`;
@@ -294,6 +298,9 @@ sip.templateActions = (function($, ajax, utilities) {
         rows += `<td class="editable" data-key="prices">${getPriceRange(templateData.variants)}</td>`;
         rows += '</tr>';
     
+        // Initialize an array to keep track of unique images in each column
+        let uniqueImagesInColumns = new Array(getMaxImagesCount(templateData)).fill().map(() => new Set());
+    
         // Now include all variants
         uniqueVariants.forEach((variant, index) => {
             rows += `<tr class="variant-row">`;
@@ -301,7 +308,7 @@ sip.templateActions = (function($, ajax, utilities) {
             rows += `<td><input type="checkbox" class="select-variant"></td>`;
             rows += `<td>0${String.fromCharCode(97 + index)}</td>`; // a, b, c, ...
             rows += `<td>${escapeHtml(templateData.title)} - Variant ${String.fromCharCode(65 + index)}</td>`; // A, B, C, ...
-            rows += buildVariantImageCells(variant.images, uniqueVariants[0].images);
+            rows += buildVariantImageCells(variant.images, uniqueImagesInColumns);
             rows += `<td class="non-editable" data-key="state">Template - Variant</td>`;
             rows += buildColorSwatches(variant.colors);
             rows += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
@@ -313,47 +320,23 @@ sip.templateActions = (function($, ajax, utilities) {
                 .map(v => v.price);
             rows += `<td>${getPriceRange(variantPrices)}</td>`;
             rows += '</tr>';
+    
+            // Update uniqueImagesInColumns with this variant's images
+            variant.images.forEach((image, imageIndex) => {
+                if (image) {
+                    uniqueImagesInColumns[imageIndex].add(image.id);
+                }
+            });
         });
     
         return rows;
     }
 
-
-    function buildImageCells(images, hasVariants) {
-        let cells = '';
-        for (let i = 0; i < images.length; i++) {
-            cells += '<td class="image-cell">';
-            if (images[i]) {
-                cells += `<div class="image-container">`;
-                cells += `<input type="checkbox" class="image-select" data-image-id="${escapeHtml(images[i].id)}">`;
-                cells += `<div class="image-content">`;
-    
-                if (hasVariants) {
-                    cells += `<div class="variant-count">${images.length} variants</div>`;
-                } else if (images[i].src) {
-                    cells += `<img src="${escapeHtml(images[i].src)}" alt="${escapeHtml(images[i].name)}" width="30" height="30" data-full-src="${escapeHtml(images[i].src)}" class="clickable-thumbnail">`;
-                } else if (images[i].type && images[i].type.includes('svg')) {
-                    cells += `<div class="image-placeholder">.svg</div>`;
-                } else {
-                    cells += `<div class="image-placeholder">${images[i].type || 'No image'}</div>`;
-                }
-    
-                let imageNameWithoutExtension = images[i].name.replace(/\.[^/.]+$/, '');
-                cells += `<span class="image-name" data-tooltip="${escapeHtml(images[i].name)}">${escapeHtml(imageNameWithoutExtension)}</span>`;
-                cells += `</div></div>`;
-            } else {
-                cells += `<div class="image-placeholder"></div>`;
-            }
-            cells += '</td>';
-        }
-        return cells;
-    }
-
-    function buildVariantImageCells(variantImages, firstRowImages) {
+    function buildVariantImageCells(variantImages, uniqueImagesInColumns) {
         let cells = '';
         for (let i = 0; i < variantImages.length; i++) {
             cells += '<td class="image-cell">';
-            if (variantImages[i]) {
+            if (variantImages[i] && !uniqueImagesInColumns[i].has(variantImages[i].id)) {
                 cells += `<div class="image-container">`;
                 cells += `<input type="checkbox" class="image-select" data-image-id="${escapeHtml(variantImages[i].id)}">`;
                 cells += `<div class="image-content">`;
@@ -369,8 +352,11 @@ sip.templateActions = (function($, ajax, utilities) {
                 let imageNameWithoutExtension = variantImages[i].name.replace(/\.[^/.]+$/, '');
                 cells += `<span class="image-name" data-tooltip="${escapeHtml(variantImages[i].name)}">${escapeHtml(imageNameWithoutExtension)}</span>`;
                 cells += `</div></div>`;
+    
+                // Add this image to the set of unique images for this column
+                uniqueImagesInColumns[i].add(variantImages[i].id);
             } else {
-                cells += `<div class="image-placeholder"></div>`;
+                cells += '-';
             }
             cells += '</td>';
         }
@@ -463,9 +449,6 @@ sip.templateActions = (function($, ajax, utilities) {
     
         console.log('Exiting collectVariantSizes function');
     }
-    
-    
-    
 
     function getPriceRange(variants) {
         if (!Array.isArray(variants) || variants.length === 0) {
@@ -570,8 +553,6 @@ sip.templateActions = (function($, ajax, utilities) {
         console.log('Exiting buildTableContent function');
     }
     
-    
-
     function escapeHtml(string) {
         const entityMap = {
             '&': '&amp;', '<': '&lt;', '>': '&gt;',
@@ -592,14 +573,14 @@ sip.templateActions = (function($, ajax, utilities) {
     
         imageCells.forEach((cell, index) => {
             const variantCells = Array.from(variantRows).map(row => row.querySelectorAll('td.image-cell')[index]);
-            const nonEmptyVariantCells = variantCells.filter(cell => cell.querySelector('img') || cell.textContent.trim() !== '');
+            const nonEmptyVariantCells = variantCells.filter(cell => cell.querySelector('img'));
     
             if (nonEmptyVariantCells.length === 1) {
                 const variantCell = nonEmptyVariantCells[0];
                 const img = variantCell.querySelector('img');
-                const title = variantCell.querySelector('.image-name')?.textContent || variantCell.textContent.trim();
+                const title = variantCell.querySelector('.image-name')?.textContent || '';
                 cell.innerHTML = `
-                    <img src="${img ? img.src : ''}" alt="${title}" width="30" height="30">
+                    <img src="${img.src}" alt="${title}" width="30" height="30">
                     <br>
                     <span class="image-name">${title}</span>
                 `;
