@@ -770,7 +770,7 @@ body.resizing * {
 
 /* Image columns */
 #creation-table th:nth-child(5) { width: auto; }
-#creation-table tr:nth-child(2) th, #creation-table .image-cell { width: 80px; padding: 3px 0px;}
+#creation-table tr:nth-child(2) th, #creation-table .image-cell { width: 80px;}
 
 /* Ensure the last column doesn't have a fixed width to allow for table expansion */
 #creation-table th:last-child,
@@ -849,7 +849,7 @@ body.resizing * {
 
 
 /*////////////////////////////////image cell styles/////////////////////////////////////*/
-.image-cell {
+#creation-table td .image-container {
     position: relative;
     padding: 3px !important;
 }
@@ -986,7 +986,23 @@ body.resizing * {
 
 }
 
+#creation-table .main-template-row .image-cell span {
+    display: none;
+}
 
+#creation-table .main-template-row .image-cell img {
+    padding: 3px 3px 0px 3px !important;
+    height: 20px;
+    width: 20px;
+}
+
+#creation-table .main-template-row .color-swatches .color-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 1px solid #ccc;
+    margin-right: -2px;
+}
 
 /*///////////////////////////////editable cell styles///////////////////////////////////*/
 #creation-table .editable {

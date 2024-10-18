@@ -186,44 +186,6 @@ sip.templateActions = (function($, ajax, utilities) {
         return uniqueVariants;
     }
     
-    ///////////////////////////BUILD TABLE CONTENT////////////////////////////////////////////
-    function buildTableContent(table, templateData) {
-        console.log('Entering buildTableContent function');
-        
-        const thead = table.find('thead');
-        const tbody = table.find('tbody');
-    
-        // Clear existing content
-        thead.empty();
-        tbody.empty();
-    
-        try {
-            // Build table headers
-            const headers = buildHeaders(templateData);
-            thead.append(headers);
-    
-            // Process template data to get unique variants
-            const uniqueVariants = processTemplateData(templateData);
-    
-            // Build rows
-            const rows = buildTableRows(uniqueVariants, templateData);
-          
-            tbody.append(rows);
-            
-            // Call helper functions with error handling
-            if (typeof updateVariantHeaderCounts === 'function') updateVariantHeaderCounts();
-            if (typeof collectVariantColors === 'function') collectVariantColors();
-            if (typeof hideVariantRowsInitially === 'function') hideVariantRowsInitially();
-            if (typeof collectVariantSizes === 'function') collectVariantSizes(templateData);
-            if (typeof collectVariantPrices === 'function') collectVariantPrices();
-        } catch (error) {
-            console.error('Error in buildTableContent:', error.message);
-            // You might want to display this error to the user or handle it in some other way
-        }
-        
-        console.log('Exiting buildTableContent function');
-    }
-
     function buildHeaders(templateData) {
         if (!templateData.print_areas || templateData.print_areas.length === 0) {
             throw new Error('Template data is missing print areas information.');
@@ -264,12 +226,6 @@ sip.templateActions = (function($, ajax, utilities) {
         headerRow += '</tr>';
 
         return headerRow;
-    }
-
-    function getMaxImagesCount(templateData) {
-        return Math.max(...templateData.print_areas.map(area => 
-            area.placeholders[0].images.length
-        ));
     }
 
     ///////////////////////BUILD TABLE ROWS///////////////////////////
@@ -350,6 +306,82 @@ sip.templateActions = (function($, ajax, utilities) {
         return rows;
     }
 
+    ///////////////////////////BUILD TABLE CONTENT////////////////////////////////////////////
+    function buildTableContent(table, templateData) {
+        console.log('Entering buildTableContent function');
+        
+        const thead = table.find('thead');
+        const tbody = table.find('tbody');
+    
+        // Clear existing content
+        thead.empty();
+        tbody.empty();
+    
+        try {
+            // Build table headers
+            const headers = buildHeaders(templateData);
+            thead.append(headers);
+    
+            // Process template data to get unique variants
+            const uniqueVariants = processTemplateData(templateData);
+    
+            // Build rows
+            const rows = buildTableRows(uniqueVariants, templateData);
+          
+            tbody.append(rows);
+            
+            // Call helper functions with error handling
+            if (typeof updateVariantHeaderCounts === 'function') updateVariantHeaderCounts();
+            if (typeof collectVariantColors === 'function') collectVariantColors();
+            if (typeof hideVariantRowsInitially === 'function') hideVariantRowsInitially();
+            if (typeof collectVariantSizes === 'function') collectVariantSizes(templateData);
+            if (typeof collectVariantPrices === 'function') collectVariantPrices();
+        } catch (error) {
+            console.error('Error in buildTableContent:', error.message);
+            // You might want to display this error to the user or handle it in some other way
+        }
+        
+        console.log('Exiting buildTableContent function');
+    }
+
+    function updateVariantHeaderCounts() {
+        const mainRow = document.querySelector('.main-template-row');
+        const variantRows = document.querySelectorAll('.variant-row');
+        const imageCells = mainRow.querySelectorAll('td.image-cell');
+    
+        imageCells.forEach((cell, index) => {
+            const variantCells = Array.from(variantRows).map(row => row.querySelectorAll('td.image-cell')[index]);
+            const nonEmptyVariantCells = variantCells.filter(cell => cell.querySelector('img'));
+    
+            if (nonEmptyVariantCells.length === 1) {
+                const variantCell = nonEmptyVariantCells[0];
+                const img = variantCell.querySelector('img');
+                const title = variantCell.querySelector('.image-name')?.textContent || '';
+                cell.innerHTML = `
+                    <img src="${img.src}" alt="${title}" width="30" height="30">
+                    <br>
+                    <span class="image-name">${title}</span>
+                `;
+            } else if (nonEmptyVariantCells.length > 1) {
+                cell.textContent = `${nonEmptyVariantCells.length} variants`;
+            } else {
+                cell.textContent = 'No variants';
+            }
+        });
+    }
+    
+    function hideVariantRowsInitially() {
+        $('.variant-row').hide();  // Hide variant rows initially
+        $('.toggle-variant-rows').text('+');  // Set the initial state of the toggle to collapsed
+        console.log('Variant rows in Product Creation Table collapsed');
+    }
+
+    //////////////////////////////IMAGES/////////////////////////////////
+    function getMaxImagesCount(templateData) {
+        return Math.max(...templateData.print_areas.map(area => 
+            area.placeholders[0].images.length
+        ));
+    }
 
     function buildVariantImageCells(variantImages, uniqueImagesInColumns) {
         let cells = '';
@@ -381,20 +413,8 @@ sip.templateActions = (function($, ajax, utilities) {
         }
         return cells;
     }
-
+    ////////////////////////////COLORS/////////////////////////////////////
     function buildSummaryColorSwatches(colors) {
-        let swatches = `<td class="color-swatches">`;
-        colors.forEach(color => {
-            swatches += `
-                <span class="color-swatch" title="${escapeHtml(color.title)}" 
-                      style="background-color: ${escapeHtml(color.colors[0])}"></span>
-            `;
-        });
-        swatches += '</td>';
-        return swatches;
-    }
-
-    function buildColorSwatches(colors) {
         let swatches = `<td class="color-swatches">`;
         colors.forEach(color => {
             swatches += `
@@ -433,11 +453,46 @@ sip.templateActions = (function($, ajax, utilities) {
         // console.log("Color header updated with: ", colorHeaderContent); // Debugging output
     }
 
-    // Existing helper functions
-    function getMaxImagesCount(templateData) {
-        return Math.max(...templateData.print_areas.map(area => 
-            area.placeholders[0].images.length
-        ));
+    function buildColorSwatches(colors) {
+        let swatches = `<td class="color-swatches">`;
+        colors.forEach(color => {
+            swatches += `
+                <span class="color-swatch" title="${escapeHtml(color.title)}" 
+                      style="background-color: ${escapeHtml(color.colors[0])}"></span>
+            `;
+        });
+        swatches += '</td>';
+        return swatches;
+    }
+    //////////////////////////////SIZES//////////////////////////////////////
+    function collectVariantSizes(templateData) {
+        console.log('Entering collectVariantSizes function');
+        
+        const mainTemplateRowSizes = document.querySelector('.main-template-row [data-column="sizes"]');
+        
+        if (!mainTemplateRowSizes) {
+            console.error('Main template row sizes data not found.');
+            return;
+        }
+        
+        const mainSizes = mainTemplateRowSizes.textContent.trim();
+        console.log('Main sizes:', mainSizes);
+    
+        // Update variant rows with their specific sizes only if they differ from the main sizes
+        const variantRows = document.querySelectorAll('.variant-row');
+        variantRows.forEach((row, index) => {
+            const sizeCell = row.querySelector('[data-column="sizes"]');
+            if (sizeCell) {
+                const variantSizes = sizeCell.textContent.trim();
+                if (variantSizes === '') {
+                    sizeCell.textContent = '-';
+                }
+            } else {
+                console.error(`Size cell not found for variant row ${index}`);
+            }
+        });
+    
+        console.log('Exiting collectVariantSizes function');
     }
 
     function getSizesString(sizes) {
@@ -446,7 +501,7 @@ sip.templateActions = (function($, ajax, utilities) {
                     .map(size => escapeHtml(size.title))
                     .join(', ');
     }
-
+    //////////////////////////////PRICES//////////////////////////////////////
     function collectVariantPrices() {
         console.log('Entering collectVariantPrices function');
     
@@ -510,72 +565,7 @@ sip.templateActions = (function($, ajax, utilities) {
         return `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
     }
     
-    function collectVariantSizes(templateData) {
-        console.log('Entering collectVariantSizes function');
-        
-        const mainTemplateRowSizes = document.querySelector('.main-template-row [data-column="sizes"]');
-        
-        if (!mainTemplateRowSizes) {
-            console.error('Main template row sizes data not found.');
-            return;
-        }
-        
-        const mainSizes = mainTemplateRowSizes.textContent.trim();
-        console.log('Main sizes:', mainSizes);
-    
-        // Update variant rows with their specific sizes only if they differ from the main sizes
-        const variantRows = document.querySelectorAll('.variant-row');
-        variantRows.forEach((row, index) => {
-            const sizeCell = row.querySelector('[data-column="sizes"]');
-            if (sizeCell) {
-                const variantSizes = sizeCell.textContent.trim();
-                if (variantSizes === '') {
-                    sizeCell.textContent = '-';
-                }
-            } else {
-                console.error(`Size cell not found for variant row ${index}`);
-            }
-        });
-    
-        console.log('Exiting collectVariantSizes function');
-    }
-    
-    function buildTableContent(table, templateData) {
-        console.log('Entering buildTableContent function');
-        
-        const thead = table.find('thead');
-        const tbody = table.find('tbody');
-    
-        // Clear existing content
-        thead.empty();
-        tbody.empty();
-    
-        // Build table headers
-        const headers = buildHeaders(templateData);
-        thead.append(headers);
-    
-        // Process template data to get unique variants
-        const uniqueVariants = processTemplateData(templateData);
-    
-        // Build rows
-        const rows = buildTableRows(uniqueVariants, templateData);
-      
-        tbody.append(rows);
-        
-        // Call helper functions with error handling
-        try {
-            if (typeof updateVariantHeaderCounts === 'function') updateVariantHeaderCounts();
-            if (typeof collectVariantColors === 'function') collectVariantColors();
-            if (typeof hideVariantRowsInitially === 'function') hideVariantRowsInitially();
-            if (typeof collectVariantSizes === 'function') collectVariantSizes(templateData);
-            if (typeof collectVariantPrices === 'function') collectVariantPrices();
-        } catch (error) {
-            console.error('Error in helper functions:', error);
-        }
-        
-        console.log('Exiting buildTableContent function');
-    }
-    
+    //////////////////////////////UTILITY FUNCTIONS//////////////////////////////////////
     function escapeHtml(string) {
         const entityMap = {
             '&': '&amp;', '<': '&lt;', '>': '&gt;',
@@ -589,42 +579,9 @@ sip.templateActions = (function($, ajax, utilities) {
         return strippedText.length > maxLength ? strippedText.substring(0, maxLength) + '...' : strippedText;
     }
 
-    function updateVariantHeaderCounts() {
-        const mainRow = document.querySelector('.main-template-row');
-        const variantRows = document.querySelectorAll('.variant-row');
-        const imageCells = mainRow.querySelectorAll('td.image-cell');
-    
-        imageCells.forEach((cell, index) => {
-            const variantCells = Array.from(variantRows).map(row => row.querySelectorAll('td.image-cell')[index]);
-            const nonEmptyVariantCells = variantCells.filter(cell => cell.querySelector('img'));
-    
-            if (nonEmptyVariantCells.length === 1) {
-                const variantCell = nonEmptyVariantCells[0];
-                const img = variantCell.querySelector('img');
-                const title = variantCell.querySelector('.image-name')?.textContent || '';
-                cell.innerHTML = `
-                    <img src="${img.src}" alt="${title}" width="30" height="30">
-                    <br>
-                    <span class="image-name">${title}</span>
-                `;
-            } else if (nonEmptyVariantCells.length > 1) {
-                cell.textContent = `${nonEmptyVariantCells.length} variants`;
-            } else {
-                cell.textContent = 'No variants';
-            }
-        });
-    }
-    
     function updateOtherSummaryColumns() {
         // Update other summary columns (sizes, tags, description, etc.) if needed
         // This function can be implemented based on your specific requirements
-    }
-    
-    // This function ensures that variant rows are collapsed on page load
-    function hideVariantRowsInitially() {
-        $('.variant-row').hide();  // Hide variant rows initially
-        $('.toggle-variant-rows').text('+');  // Set the initial state of the toggle to collapsed
-        console.log('Variant rows in Product Creation Table collapsed');
     }
 
     // Add this new function to handle the toggle functionality
