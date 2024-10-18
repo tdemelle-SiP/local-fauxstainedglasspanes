@@ -145,10 +145,14 @@ sip.imageActions = (function($, ajax, utilities) {
         if (response.data.image_list_html) {
             $('#image-table-list').html(response.data.image_list_html).show();
             console.log('Image list HTML updated');
+            console.log('***hidespinner called. Images loaded successfully');
+            sip.utilities.hideSpinner();
         } else if (response.data.images) {
             // If we receive image data instead of HTML, we need to update the table manually
             updateImageTable(response.data.images);
             console.log('Image table updated manually');
+            console.log('***hidespinner called. Images loaded successfully');
+            sip.utilities.hideSpinner();
         }
 
         // Initialize PhotoSwipe after images are loaded

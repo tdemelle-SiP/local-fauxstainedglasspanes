@@ -37,9 +37,13 @@ sip.productActions = (function($, ajax, utilities) {
         if (response.success && response.data.product_list_html) {
             if (response.data.product_list_html) {
                 $('#product-table-list').html(response.data.product_list_html).show();
+                console.log ('***hide spinner called - products-actions - product list');
+                utilities.hideSpinner();
             }
             if (response.data.template_list_html) {
                 $('#template-table-list').html(response.data.template_list_html).show();
+                console.log ('***hide spinner called - products-actions - template list');
+                utilities.hideSpinner();
             }
             if (response.data.message) {
 

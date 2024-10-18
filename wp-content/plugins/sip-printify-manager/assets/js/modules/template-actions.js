@@ -127,35 +127,6 @@ sip.templateActions = (function($, ajax, utilities) {
         sip.ajax.handleAjaxAction('creation_action', formData);
     }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-    function buildTableContent(table, templateData) {
-        const thead = table.find('thead');
-        const tbody = table.find('tbody');
-
-        // Clear existing content
-        thead.empty();
-        tbody.empty();
-
-        // Build table headers
-        const headers = buildHeaders(templateData);
-        thead.append(headers);
-
-        // Process template data to get unique variants
-        const uniqueVariants = processTemplateData(templateData);
-
-        // Build rows
-        const rows = buildTableRows(uniqueVariants, templateData);
-  
-        tbody.append(rows);
-        updateVariantHeaderCounts();  // Call this after rows are appended
-        collectVariantColors();
-        hideVariantRowsInitially();
-        collectVariantSizes();
-        collectVariantPrices();
-        
-        // console.log('All rows appended');
-    }
-
     function processTemplateData(templateData) {
         // console.log('Processing template data:', templateData);
         const uniqueVariants = [];
@@ -209,93 +180,146 @@ sip.templateActions = (function($, ajax, utilities) {
         return uniqueVariants;
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////
+    function buildTableContent(table, templateData) {
+        console.log('Entering buildTableContent function');
+        
+        const thead = table.find('thead');
+        const tbody = table.find('tbody');
+    
+        // Clear existing content
+        thead.empty();
+        tbody.empty();
+    
+        try {
+            // Build table headers
+            const headers = buildHeaders(templateData);
+            thead.append(headers);
+    
+            // Process template data to get unique variants
+            const uniqueVariants = processTemplateData(templateData);
+    
+            // Build rows
+            const rows = buildTableRows(uniqueVariants, templateData);
+          
+            tbody.append(rows);
+            
+            // Call helper functions with error handling
+            if (typeof updateVariantHeaderCounts === 'function') updateVariantHeaderCounts();
+            if (typeof collectVariantColors === 'function') collectVariantColors();
+            if (typeof hideVariantRowsInitially === 'function') hideVariantRowsInitially();
+            if (typeof collectVariantSizes === 'function') collectVariantSizes(templateData);
+            if (typeof collectVariantPrices === 'function') collectVariantPrices();
+        } catch (error) {
+            console.error('Error in buildTableContent:', error.message);
+            // You might want to display this error to the user or handle it in some other way
+        }
+        
+        console.log('Exiting buildTableContent function');
+    }
+
+    function buildHeaders(templateData) {
+        if (!templateData.print_areas || templateData.print_areas.length === 0) {
+            throw new Error('Template data is missing print areas information.');
+        }
+
+        const firstPrintArea = templateData.print_areas[0];
+        if (!firstPrintArea.placeholders || firstPrintArea.placeholders.length === 0) {
+            throw new Error('Print area is missing placeholder information.');
+        }
+
+        const firstPlaceholder = firstPrintArea.placeholders[0];
+        if (!firstPlaceholder.position) {
+            throw new Error('Print area position is not specified in the template data.');
+        }
+
+        const printAreaPosition = firstPlaceholder.position;
+        const maxImages = getMaxImagesCount(templateData);
+
+        let headerRow = '<tr>';
+        headerRow += '<th rowspan="2">Variant Row Toggle</th>';
+        headerRow += '<th rowspan="2"><input type="checkbox" id="select-all-rows"></th>';
+        headerRow += '<th rowspan="2">#</th>';
+        headerRow += '<th rowspan="2">Title</th>';
+        headerRow += `<th colspan="${maxImages}">${printAreaPosition.charAt(0).toUpperCase() + printAreaPosition.slice(1)} - Design</th>`;
+        headerRow += '<th rowspan="2">State</th>';
+        headerRow += '<th rowspan="2">Colors</th>';
+        headerRow += '<th rowspan="2">Sizes</th>';
+        headerRow += '<th rowspan="2">Tags</th>';
+        headerRow += '<th rowspan="2">Description</th>';
+        headerRow += '<th rowspan="2">Price</th>';
+        headerRow += '</tr>';
+
+        // Subheader for image numbers
+        headerRow += '<tr>';
+        for (let i = 1; i <= maxImages; i++) {
+            headerRow += `<th data-image-index="${i - 1}">image #${i}</th>`;
+        }
+        headerRow += '</tr>';
+
+        return headerRow;
+    }
+
+    function getMaxImagesCount(templateData) {
+        return Math.max(...templateData.print_areas.map(area => 
+            area.placeholders[0].images.length
+        ));
+    }
+
+
     function areImageArraysEqual(arr1, arr2) {
         if (arr1.length !== arr2.length) return false;
         return arr1.every((img, index) => img.id === arr2[index].id);
     }
 
-    function buildTableRows(uniqueVariants, templateData, baseRowNumber) {
+    function buildTableRows(uniqueVariants, templateData) {
         let rows = '';
-        const firstRowImages = uniqueVariants[0].images;  // Save the images of the first row
+        
+        // Build the main data row first
+        rows += `<tr class="main-template-row">`;
+        // Add main row cells (leave image cells empty for now)
+        rows += `<td class="toggle-variant-rows">+</td>`;
+        rows += `<td><input type="checkbox" class="select-template"></td>`;
+        rows += `<td>0</td>`;
+        rows += `<td class="editable" data-key="title">${escapeHtml(templateData.title)}</td>`;
+        // Add empty cells for images (will be filled by updateVariantHeaderCounts)
+        for (let i = 0; i < getMaxImagesCount(templateData); i++) {
+            rows += `<td class="image-cell"></td>`;
+        }
+        rows += `<td class="non-editable" data-key="state">Template</td>`;
+        rows += buildColorSwatches(uniqueVariants[0].colors);
+        rows += `<td class="editable" data-key="sizes">${getSizesString(templateData['options - sizes'])}</td>`;
+        rows += `<td class="editable" data-key="tags">${escapeHtml(truncateText(templateData.tags.join(', '), 18))}</td>`;
+        rows += `<td class="editable" data-key="description">${escapeHtml(truncateText(templateData.description, 18))}</td>`;
+        rows += `<td class="editable" data-key="prices">${getPriceRange(templateData.variants)}</td>`;
+        rows += '</tr>';
     
-        // Insert the main data row first
+        // Now include all variants
         uniqueVariants.forEach((variant, index) => {
-            const isMainRow = index === 0;
-            
-            // Build the main data row
-            rows += `<tr class="${isMainRow ? 'main-template-row' : 'variant-row'}">`;
-            rows += `<td><input type="checkbox"></td>`;
-
-            // Numbering logic:
-            if (isMainRow) {
-                rows += `<td>0</td>`;  // The main product row is always numbered "0"
-            } else {
-                // Variations get a letter appended to 0: 0a, 0b, 0c, etc.
-                rows += `<td>0${String.fromCharCode(97 + index - 1)}</td>`;
-            }
-
-            // Handle the title:
-            if (isMainRow) {
-                rows += `<td class="editable" data-key="title">${escapeHtml(templateData.title)}</td>`;
-                rows += buildImageCells(variant.images);
-            } else {
-                // Variant title uses letters: Variant A, Variant B, etc.
-                rows += `<td>Variant ${String.fromCharCode(65 + index - 1)}</td>`;
-                rows += buildVariantImageCells(variant.images, firstRowImages);
-            }
-    
-            // Add state
-            rows += `<td class="non-editable" data-key="state">${isMainRow ? 'Template' : ''}</td>`;
-    
-            // Add color swatches
+            rows += `<tr class="variant-row">`;
+            rows += `<td></td>`; // Empty cell for toggle
+            rows += `<td><input type="checkbox" class="select-variant"></td>`;
+            rows += `<td>0${String.fromCharCode(97 + index)}</td>`; // a, b, c, ...
+            rows += `<td>${escapeHtml(templateData.title)} ${String.fromCharCode(65 + index)}</td>`; // A, B, C, ...
+            rows += buildVariantImageCells(variant.images, uniqueVariants[0].images);
+            rows += `<td class="non-editable" data-key="state">Template - Variant</td>`;
             rows += buildColorSwatches(variant.colors);
-    
-            if (isMainRow) {
-                rows += `<td class="editable" data-key="sizes">${getSizesString(templateData['options - sizes'])}</td>`;
-                rows += `<td class="editable" data-key="tags">${escapeHtml(truncateText(templateData.tags.join(', '), 18))}</td>`;
-                rows += `<td class="editable" data-key="description">${escapeHtml(truncateText(templateData.description, 18))}</td>`;
-                rows += `<td class="editable" data-key="prices">${getPriceRange(templateData.variants)}</td>`;
-            } else {
-                rows += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
-                rows += '<td colspan="3"></td>';  // Span the remaining columns
-            }
-    
+            rows += `<td>${getSizesString(templateData['options - sizes'])}</td>`;
+            rows += '<td></td>'; // Tags (empty for variants)
+            rows += '<td></td>'; // Description (empty for variants)
+            const variantPrices = variant.variantIds
+                .map(id => templateData.variants.find(v => v.id === id))
+                .filter(v => v && v.price !== undefined)
+                .map(v => v.price);
+            rows += `<td>${getPriceRange(variantPrices)}</td>`;
             rows += '</tr>';
-    
-            // Insert the variants header row after the main data row
-            if (isMainRow) {
-                rows += '<tr class="variants-header-row">';
-                rows += `<td><input type="checkbox"></td>`; // Checkbox cell
-                rows += `<td class="toggle-variant-rows">+</td>`; // Toggle button starts as "+"
-                rows += `<td>${escapeHtml(templateData.title)} - Variants</td>`;
-                // Add image header cells with unique IDs for each column
-                for (let i = 1; i <= 4; i++) {
-                    rows += `<td id="variant-header-image-${i}">-</td>`;
-                }
-                rows += `<td id="variant-header-state">-</td>`;
-                rows += `<td id="variant-header-colors">-</td>`;               
-                rows += `<td id="variant-header-sizes">-</td>`;
-                rows += `<td id="variant-header-tags">-</td>`;
-                rows += `<td id="variant-header-description">-</td>`;
-                rows += `<td id="variant-header-prices">-</td>`;                
-                rows += '</tr>';
-            }
         });
     
-        hideVariantRowsInitially();
-
-        // Call to collect and display the colors in the header
         return rows;
     }
-    
-    // This function ensures that variant rows are collapsed on page load
-    function hideVariantRowsInitially() {
-        $('.variant-row').hide();  // Hide variant rows initially
-        $('.toggle-variant-rows').text('+');  // Set the initial state of the toggle to collapsed
-        console.log('Variant rows in Product Creation Table collapsed');
-    }
 
-    function buildImageCells(images) {
+
+    function buildImageCells(images, hasVariants) {
         let cells = '';
         for (let i = 0; i < images.length; i++) {
             cells += '<td class="image-cell">';
@@ -304,7 +328,9 @@ sip.templateActions = (function($, ajax, utilities) {
                 cells += `<input type="checkbox" class="image-select" data-image-id="${escapeHtml(images[i].id)}">`;
                 cells += `<div class="image-content">`;
     
-                if (images[i].src) {
+                if (hasVariants) {
+                    cells += `<div class="variant-count">${images.length} variants</div>`;
+                } else if (images[i].src) {
                     cells += `<img src="${escapeHtml(images[i].src)}" alt="${escapeHtml(images[i].name)}" width="30" height="30" data-full-src="${escapeHtml(images[i].src)}" class="clickable-thumbnail">`;
                 } else if (images[i].type && images[i].type.includes('svg')) {
                     cells += `<div class="image-placeholder">.svg</div>`;
@@ -312,10 +338,7 @@ sip.templateActions = (function($, ajax, utilities) {
                     cells += `<div class="image-placeholder">${images[i].type || 'No image'}</div>`;
                 }
     
-                // Remove the file extension from the image name for display
                 let imageNameWithoutExtension = images[i].name.replace(/\.[^/.]+$/, '');
-    
-                // Add a title attribute with the full image name for the tooltip
                 cells += `<span class="image-name" data-tooltip="${escapeHtml(images[i].name)}">${escapeHtml(imageNameWithoutExtension)}</span>`;
                 cells += `</div></div>`;
             } else {
@@ -329,37 +352,27 @@ sip.templateActions = (function($, ajax, utilities) {
     function buildVariantImageCells(variantImages, firstRowImages) {
         let cells = '';
         for (let i = 0; i < variantImages.length; i++) {
-            // Check if the image is the same as in the first row
-            if (variantImages[i] && firstRowImages[i] && variantImages[i].id === firstRowImages[i].id) {
-                // Leave the cell blank if the image matches
-                cells += '<td class="image-cell"><input type="checkbox" class="image-select"></td>';
-            } else {
-                // Otherwise, build the image cell with the image content
-                cells += '<td class="image-cell">';
-                if (variantImages[i]) {
-                    cells += `<div class="image-container">`;
-                    cells += `<input type="checkbox" class="image-select" data-image-id="${escapeHtml(variantImages[i].id)}">`;
-                    cells += `<div class="image-content">`;
+            cells += '<td class="image-cell">';
+            if (variantImages[i]) {
+                cells += `<div class="image-container">`;
+                cells += `<input type="checkbox" class="image-select" data-image-id="${escapeHtml(variantImages[i].id)}">`;
+                cells += `<div class="image-content">`;
     
-                    if (variantImages[i].src) {
-                        cells += `<img src="${escapeHtml(variantImages[i].src)}" alt="${escapeHtml(variantImages[i].name)}" width="30" height="30" data-full-src="${escapeHtml(variantImages[i].src)}" class="clickable-thumbnail">`;
-                    } else if (variantImages[i].type && variantImages[i].type.includes('svg')) {
-                        cells += `<div class="image-placeholder">.svg</div>`;
-                    } else {
-                        cells += `<div class="image-placeholder">${variantImages[i].type || 'No image'}</div>`;
-                    }
-    
-                    // Remove the file extension from the image name for display
-                    let imageNameWithoutExtension = variantImages[i].name.replace(/\.[^/.]+$/, '');
-    
-                    // Add a title attribute with the full image name for the tooltip
-                    cells += `<span class="image-name" data-tooltip="${escapeHtml(variantImages[i].name)}">${escapeHtml(imageNameWithoutExtension)}</span>`;
-                    cells += `</div></div>`;
+                if (variantImages[i].src) {
+                    cells += `<img src="${escapeHtml(variantImages[i].src)}" alt="${escapeHtml(variantImages[i].name)}" width="30" height="30" data-full-src="${escapeHtml(variantImages[i].src)}" class="clickable-thumbnail">`;
+                } else if (variantImages[i].type && variantImages[i].type.includes('svg')) {
+                    cells += `<div class="image-placeholder">.svg</div>`;
                 } else {
-                    cells += `<div class="image-placeholder"></div>`;
+                    cells += `<div class="image-placeholder">${variantImages[i].type || 'No image'}</div>`;
                 }
-                cells += '</td>';
+    
+                let imageNameWithoutExtension = variantImages[i].name.replace(/\.[^/.]+$/, '');
+                cells += `<span class="image-name" data-tooltip="${escapeHtml(variantImages[i].name)}">${escapeHtml(imageNameWithoutExtension)}</span>`;
+                cells += `</div></div>`;
+            } else {
+                cells += `<div class="image-placeholder"></div>`;
             }
+            cells += '</td>';
         }
         return cells;
     }
@@ -410,31 +423,6 @@ sip.templateActions = (function($, ajax, utilities) {
         ));
     }
 
-    function buildHeaders(templateData) {
-        const maxImages = getMaxImagesCount(templateData);
-        let headerRow = '<tr>';
-        headerRow += '<th rowspan="2"><input type="checkbox" id="select-all-rows"></th>';
-        headerRow += '<th rowspan="2">#</th>';
-        headerRow += '<th rowspan="2">Title</th>';
-        headerRow += `<th colspan="${maxImages}">Front - Design</th>`;
-        headerRow += '<th rowspan="2">State</th>';
-        headerRow += '<th rowspan="2">Colors</th>';
-        headerRow += '<th rowspan="2">Sizes</th>';
-        headerRow += '<th rowspan="2">Tags</th>';
-        headerRow += '<th rowspan="2">Description</th>';
-        headerRow += '<th rowspan="2">Price</th>';
-        headerRow += '</tr>';
-    
-        // Subheader for image numbers
-        headerRow += '<tr>';
-        for (let i = 1; i <= maxImages; i++) {
-            headerRow += `<th data-image-index="${i - 1}">image #${i}</th>`;
-        }
-        headerRow += '</tr>';
-    
-        return headerRow;
-    }
-
     function getSizesString(sizes) {
         const desiredSizeOrder = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
         return sizes.sort((a, b) => desiredSizeOrder.indexOf(a.title) - desiredSizeOrder.indexOf(b.title))
@@ -442,92 +430,144 @@ sip.templateActions = (function($, ajax, utilities) {
                     .join(', ');
     }
 
-    function collectVariantSizes() {
-        // Select the main template row's sizes cell using the data-key
-        const mainTemplateRowSizes = document.querySelector('.main-template-row [data-key="sizes"]');
+    function collectVariantSizes(templateData) {
+        console.log('Entering collectVariantSizes function');
+        
+        // Select the main template row's sizes cell (now in the image #4 column)
+        const mainTemplateRowSizes = document.querySelector('.main-template-row td:nth-child(7)');
         
         if (!mainTemplateRowSizes) {
             console.error('Main template row sizes data not found.');
             return;
         }
         
-        // Create an array of the sizes from the main template
-        const mainSizes = mainTemplateRowSizes.textContent.split(',').map(size => size.trim());
-
-        // Initialize an array to store any variant sizes that don't match the main template
-        let variantSizesDiff = [];
-
-        // Iterate through all variant rows to check if any sizes are different
-        const variantRows = document.querySelectorAll('.variant-row [data-key="sizes"]');
-        variantRows.forEach(variantRowSizes => {
-            const variantSizes = variantRowSizes.textContent.split(',').map(size => size.trim());
-
-            // Find sizes that are in the variant but not in the main template
-            const differentSizes = variantSizes.filter(size => !mainSizes.includes(size));
-            
-            // Add any different sizes to the diff array
-            if (differentSizes.length > 0) {
-                variantSizesDiff = variantSizesDiff.concat(differentSizes);
+        const allSizes = mainTemplateRowSizes.textContent.trim();
+        console.log('All sizes:', allSizes);
+    
+        // Update the sizes cell in the main row (which is actually in the 'Sizes' column)
+        const mainSizesCell = document.querySelector('.main-template-row td:nth-child(11)');
+        if (mainSizesCell) {
+            mainSizesCell.textContent = allSizes;
+        }
+    
+        // Update variant rows with their specific sizes (which should be the same as the main row in this case)
+        const variantRows = document.querySelectorAll('.variant-row');
+        variantRows.forEach((row, index) => {
+            const sizeCell = row.querySelector('td:nth-child(11)');
+            if (sizeCell) {
+                sizeCell.textContent = allSizes;
+            } else {
+                console.error(`Size cell not found for variant row ${index}`);
             }
         });
-
-        // Update the header cell with different sizes or set to "-" if there are none
-        const sizesHeaderCell = document.getElementById('variant-header-sizes');
-        if (variantSizesDiff.length > 0) {
-            sizesHeaderCell.textContent = variantSizesDiff.join(', ');
-        } else {
-            sizesHeaderCell.textContent = '-';
-        }
+    
+        console.log('Exiting collectVariantSizes function');
     }
+    
+    
     
 
     function getPriceRange(variants) {
-        if (variants && variants.length > 0) {
-            const prices = variants.map(variant => variant.price);
-            const minPrice = Math.min(...prices) / 100;
-            const maxPrice = Math.max(...prices) / 100;
-            return `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
+        if (!Array.isArray(variants) || variants.length === 0) {
+            return 'N/A';
         }
-        return 'N/A';
+    
+        const prices = variants
+            .filter(variant => variant && typeof variant.price === 'number')
+            .map(variant => variant.price);
+    
+        if (prices.length === 0) {
+            return 'N/A';
+        }
+    
+        const minPrice = Math.min(...prices) / 100;
+        const maxPrice = Math.max(...prices) / 100;
+        return `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
     }
+    
 
     function collectVariantPrices() {
-        // Select the main template row's price cell using the data-key
-        const mainTemplateRowPrice = document.querySelector('.main-template-row [data-key="prices"]');
+        console.log('Entering collectVariantPrices function');
+    
+        // Select the main template row's price cell
+        const mainTemplateRowPrice = document.querySelector('.main-template-row td:nth-child(14)');
         
         if (!mainTemplateRowPrice) {
             console.error('Main template row price data not found.');
             return;
         }
         
-        // Extract the low and high price from the main template row price text (assuming format "lowPrice - highPrice")
-        let [mainLowPrice, mainHighPrice] = mainTemplateRowPrice.textContent.split('-').map(price => parseFloat(price.trim().replace('$', '')));
-        
-        // Initialize the new price range
-        let newLowPrice = mainLowPrice;
-        let newHighPrice = mainHighPrice;
+        console.log('Main template row price:', mainTemplateRowPrice.textContent);
     
-        // Iterate through all variant rows to find if any price is outside the template range
-        const variantRows = document.querySelectorAll('.variant-row [data-key="prices"]');
-        variantRows.forEach(variantRowPrice => {
-            const [variantLowPrice, variantHighPrice] = variantRowPrice.textContent.split('-').map(price => parseFloat(price.trim().replace('$', '')));
-            
-            // Check if any variant price is lower or higher than the current template range
-            if (variantLowPrice < newLowPrice) {
-                newLowPrice = variantLowPrice;
-            }
-            if (variantHighPrice > newHighPrice) {
-                newHighPrice = variantHighPrice;
-            }
-        });
-    
-        // Update the header only if the price range has changed
-        const priceHeaderCell = document.getElementById('variant-header-prices');
-        if (newLowPrice !== mainLowPrice || newHighPrice !== mainHighPrice) {
-            priceHeaderCell.textContent = `$${newLowPrice.toFixed(2)} - $${newHighPrice.toFixed(2)}`;
-        } else {
-            priceHeaderCell.textContent = '-';
+        // Extract the low and high price from the main template row price text
+        const priceMatch = mainTemplateRowPrice.textContent.match(/\$(\d+\.\d{2})\s*-\s*\$(\d+\.\d{2})/);
+        if (!priceMatch) {
+            console.error('Invalid price format in main template row');
+            return;
         }
+    
+        let [, lowPrice, highPrice] = priceMatch.map(price => parseFloat(price));
+    
+        console.log(`Price range: $${lowPrice.toFixed(2)} - $${highPrice.toFixed(2)}`);
+    
+        // We don't need to iterate through variant rows for prices, as they all show N/A
+    
+        console.log('Exiting collectVariantPrices function');
+    }
+    
+    // Update the buildTableContent function to pass templateData to collectVariantPrices
+    function buildTableContent(table, templateData) {
+        console.log('Entering buildTableContent function');
+        
+        // ... (previous code remains the same)
+    
+        try {
+            if (typeof updateVariantHeaderCounts === 'function') updateVariantHeaderCounts();
+            if (typeof collectVariantColors === 'function') collectVariantColors();
+            if (typeof hideVariantRowsInitially === 'function') hideVariantRowsInitially();
+            if (typeof collectVariantSizes === 'function') collectVariantSizes(templateData);
+            if (typeof collectVariantPrices === 'function') collectVariantPrices(templateData);
+        } catch (error) {
+            console.error('Error in helper functions:', error);
+        }
+        
+        console.log('Exiting buildTableContent function');
+    }
+    
+    function buildTableContent(table, templateData) {
+        console.log('Entering buildTableContent function');
+        
+        const thead = table.find('thead');
+        const tbody = table.find('tbody');
+    
+        // Clear existing content
+        thead.empty();
+        tbody.empty();
+    
+        // Build table headers
+        const headers = buildHeaders(templateData);
+        thead.append(headers);
+    
+        // Process template data to get unique variants
+        const uniqueVariants = processTemplateData(templateData);
+    
+        // Build rows
+        const rows = buildTableRows(uniqueVariants, templateData);
+      
+        tbody.append(rows);
+        
+        // Call helper functions with error handling
+        try {
+            if (typeof updateVariantHeaderCounts === 'function') updateVariantHeaderCounts();
+            if (typeof collectVariantColors === 'function') collectVariantColors();
+            if (typeof hideVariantRowsInitially === 'function') hideVariantRowsInitially();
+            if (typeof collectVariantSizes === 'function') collectVariantSizes(templateData);
+            if (typeof collectVariantPrices === 'function') collectVariantPrices();
+        } catch (error) {
+            console.error('Error in helper functions:', error);
+        }
+        
+        console.log('Exiting buildTableContent function');
     }
     
     
@@ -546,64 +586,62 @@ sip.templateActions = (function($, ajax, utilities) {
     }
 
     function updateVariantHeaderCounts() {
-        // Initialize counters
-        let imageColumnCounts = [];
-        let tagCount = 0;
-        let descriptionCount = 0;
-
-        // Find how many image columns there are dynamically (assuming all variant rows have the same number of image cells)
-        const imageColumnCount = $('.variant-row:first').find('td.image-cell').length;
-
-        // Initialize the image counters based on the number of image columns
-        for (let i = 0; i < imageColumnCount; i++) {
-            imageColumnCounts[i] = 0;
-        }
+        const mainRow = document.querySelector('.main-template-row');
+        const variantRows = document.querySelectorAll('.variant-row');
+        const imageCells = mainRow.querySelectorAll('td.image-cell');
     
-        // Iterate over all variant rows
-        $('.variant-row').each(function() {
-            // Count image columns with content
-            $(this).find('td.image-cell').each(function(index) {
-                if ($(this).find('img').length > 0) {
-                    imageColumnCounts[index]++;
-                }
-            });
+        imageCells.forEach((cell, index) => {
+            const variantCells = Array.from(variantRows).map(row => row.querySelectorAll('td.image-cell')[index]);
+            const nonEmptyVariantCells = variantCells.filter(cell => cell.querySelector('img') || cell.textContent.trim() !== '');
     
-            // Count if the tag cell has content
-            if ($(this).find('td[data-key="tags"]').text().trim() !== '') {
-                tagCount++;
-            }
-    
-            // Count if the description cell has content
-            if ($(this).find('td[data-key="description"]').text().trim() !== '') {
-                descriptionCount++;
+            if (nonEmptyVariantCells.length === 1) {
+                const variantCell = nonEmptyVariantCells[0];
+                const img = variantCell.querySelector('img');
+                const title = variantCell.querySelector('.image-name')?.textContent || variantCell.textContent.trim();
+                cell.innerHTML = `
+                    <img src="${img ? img.src : ''}" alt="${title}" width="30" height="30">
+                    <br>
+                    <span class="image-name">${title}</span>
+                `;
+            } else if (nonEmptyVariantCells.length > 1) {
+                cell.textContent = `${nonEmptyVariantCells.length} variants`;
+            } else {
+                cell.textContent = 'No variants';
             }
         });
-    
-        // Update the header row with the counts or '-'
-        for (let i = 0; i < imageColumnCount; i++) {
-            if (imageColumnCounts[i] > 0) {
-                $(`#variant-header-image-${i + 1}`).text(imageColumnCounts[i]);
-            } else {
-                $(`#variant-header-image-${i + 1}`).text('-');
-            }
-        }
-    
-        // Update tag and description counts
-        if (tagCount > 0) {
-            $('#variant-header-tags').text(tagCount);
-        } else {
-            $('#variant-header-tags').text('-');
-        }
-    
-        if (descriptionCount > 0) {
-            $('#variant-header-description').text(descriptionCount);
-        } else {
-            $('#variant-header-description').text('-');
-        }
     }
     
+    function updateOtherSummaryColumns() {
+        // Update other summary columns (sizes, tags, description, etc.) if needed
+        // This function can be implemented based on your specific requirements
+    }
+    
+    // This function ensures that variant rows are collapsed on page load
+    function hideVariantRowsInitially() {
+        $('.variant-row').hide();  // Hide variant rows initially
+        $('.toggle-variant-rows').text('+');  // Set the initial state of the toggle to collapsed
+        console.log('Variant rows in Product Creation Table collapsed');
+    }
+
+    // Add this new function to handle the toggle functionality
+    function attachToggleEventListener() {
+        $('.toggle-variant-rows').on('click', function() {
+            const $this = $(this);
+            const $variantRows = $this.closest('tr').nextAll('.variant-row');
+            
+            if ($this.text() === '+') {
+                $variantRows.show();
+                $this.text('-');
+            } else {
+                $variantRows.hide();
+                $this.text('+');
+            }
+        });
+    }
+
     return {
         init: init,
+        attachToggleEventListeners: attachToggleEventListener,
         handleSuccessResponse: handleSuccessResponse,
         populateCreationTable: populateCreationTable
     };
