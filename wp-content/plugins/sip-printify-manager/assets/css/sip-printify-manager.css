@@ -763,7 +763,10 @@ body.resizing * {
 #creation-table td:nth-child(2) { width: 20px; } /* Checkbox column */
 
 #creation-table th:nth-child(3),
-#creation-table td:nth-child(3) { width: 50px; } /* # column */
+#creation-table td:nth-child(3) { width: 100px; } /* State column */
+
+#creation-table th:nth-child(4),
+#creation-table td:nth-child(4) { width: 20px; } /* # column */
 
 
 /* Add more width controls for other columns as needed */

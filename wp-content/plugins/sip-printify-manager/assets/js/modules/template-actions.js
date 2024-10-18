@@ -207,10 +207,10 @@ sip.templateActions = (function($, ajax, utilities) {
         let headerRow = '<tr>';
         headerRow += '<th class="toggle-variant-header" rowspan="2" data-column="toggle"></th>';
         headerRow += '<th rowspan="2" data-column="select"><input type="checkbox" id="select-all-rows"></th>';
+        headerRow += '<th rowspan="2" data-column="state">State</th>';
         headerRow += '<th rowspan="2" data-column="number">#</th>';
         headerRow += '<th rowspan="2" data-column="title">Title</th>';
         headerRow += `<th colspan="${maxImages}" data-column="print-area">${printAreaPosition.charAt(0).toUpperCase() + printAreaPosition.slice(1)} - Design</th>`;
-        headerRow += '<th rowspan="2" data-column="state">State</th>';
         headerRow += '<th rowspan="2" data-column="colors">Colors</th>';
         headerRow += '<th rowspan="2" data-column="sizes">Sizes</th>';
         headerRow += '<th rowspan="2" data-column="tags">Tags</th>';
@@ -244,13 +244,13 @@ sip.templateActions = (function($, ajax, utilities) {
         rows += `<tr class="main-template-row">`;
         rows += `<td class="toggle-variant-rows" data-column="toggle">+</td>`;
         rows += `<td data-column="select"><input type="checkbox" class="select-template"></td>`;
+        rows += `<td class="non-editable" data-column="state" data-key="state">Template</td>`;
         rows += `<td data-column="number">0</td>`;
         rows += `<td class="editable" data-column="title" data-key="title">${escapeHtml(templateData.title)}</td>`;
         // Add empty cells for images (will be filled by updateVariantHeaderCounts)
         for (let i = 0; i < getMaxImagesCount(templateData); i++) {
             rows += `<td class="image-cell" data-column="image" data-image-index="${i}"></td>`;
         }
-        rows += `<td class="non-editable" data-column="state" data-key="state">Template</td>`;
         rows += buildSummaryColorSwatches(uniqueColors);
         rows += `<td class="editable" data-column="sizes" data-key="sizes">${getSizesString(templateData['options - sizes'])}</td>`;
         rows += `<td class="editable" data-column="tags" data-key="tags">${escapeHtml(truncateText(templateData.tags.join(', '), 18))}</td>`;
@@ -269,10 +269,10 @@ sip.templateActions = (function($, ajax, utilities) {
             rows += `<tr class="variant-row">`;
             rows += `<td data-column="toggle"></td>`; // Empty cell for toggle
             rows += `<td data-column="select"><input type="checkbox" class="select-variant"></td>`;
+            rows += `<td class="non-editable" data-column="state" data-key="state">Template - Variant</td>`;
             rows += `<td data-column="number">0${String.fromCharCode(97 + index)}</td>`; // a, b, c, ...
             rows += `<td data-column="title">${escapeHtml(templateData.title)} - Variant ${String.fromCharCode(65 + index)}</td>`; // A, B, C, ...
             rows += buildVariantImageCells(variant.images, uniqueImagesInColumns);
-            rows += `<td class="non-editable" data-column="state" data-key="state">Template - Variant</td>`;
             rows += buildColorSwatches(variant.colors);
             
             // Sizes
