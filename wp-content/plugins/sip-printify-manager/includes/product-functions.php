@@ -302,28 +302,35 @@ function transform_product_data($product) {
     $colors_map = array();
     $sizes_map = array();
 
+    // Iterate over the 'options' array to build the color and size maps
     if (isset($product['options']) && is_array($product['options'])) {
         foreach ($product['options'] as $option) {
-            if ($option['name'] == 'Colors' && isset($option['values'])) {
-                foreach ($option['values'] as $value) {
-                    $id = $value['id'];
-                    $colors_map[$id] = array(
-                        'id' => $value['id'],
-                        'title' => $value['title'],
-                        'colors' => $value['colors']
-                    );
-                }
-            } elseif ($option['name'] == 'Sizes' && isset($option['values'])) {
-                foreach ($option['values'] as $value) {
-                    $id = $value['id'];
-                    $sizes_map[$id] = array(
-                        'id' => $value['id'],
-                        'title' => $value['title']
-                    );
+            if (isset($option['name'], $option['values'])) {
+                // Process colors
+                if (($option['name'] == 'Colors' || $option['name'] == 'Color') && isset($option['values'])) {
+                    foreach ($option['values'] as $value) {
+                        foreach ($option['values'] as $value) {
+                            $id = $value['id'];
+                            $colors_map[$id] = array(
+                                'id' => $value['id'],
+                                'title' => $value['title'],
+                                'colors' => isset($value['colors']) ? $value['colors'] : null
+                            );
+                        }
+                    }
+                } elseif (($option['name'] == 'Sizes' || $option['name'] == 'Size') && isset($option['values'])) {
+                    foreach ($option['values'] as $value) {
+                        $id = $value['id'];
+                        $sizes_map[$id] = array(
+                            'id' => $value['id'],
+                            'title' => $value['title']
+                        );
+                    }
                 }
             }
         }
     }
+        
 
     // Initialize arrays to hold enabled variants and IDs of removed variants
     $enabled_variants = array();
@@ -336,20 +343,22 @@ function transform_product_data($product) {
     // Process the 'variants' array
     if (isset($product['variants']) && is_array($product['variants'])) {
         foreach ($product['variants'] as $variant) {
-            if (isset($variant['is_enabled']) && $variant['is_enabled'] === false) {
-                // If the variant is not enabled, collect its ID for later removal
-                if (isset($variant['id'])) {
-                    $removed_variant_ids[] = $variant['id'];
-                }
-                // Do not include this variant in the enabled variants array
-            } else {
+            if (isset($variant['is_enabled']) && $variant['is_enabled'] === true) {
                 // Collect option IDs from enabled variants
                 if (isset($variant['options']) && is_array($variant['options'])) {
-                    $option1 = $variant['options'][0]; // Color ID
-                    $option2 = $variant['options'][1]; // Size ID
+                    // Determine which option is size and which is color
+                    $size_id = null;
+                    $color_id = null;
+                    if (isset($sizes_map[$variant['options'][0]])) {
+                        $size_id = $variant['options'][0];
+                        $color_id = $variant['options'][1];
+                    } else {
+                        $color_id = $variant['options'][0];
+                        $size_id = $variant['options'][1];
+                    }
 
-                    $enabled_color_ids[] = $option1;
-                    $enabled_size_ids[] = $option2;
+                    if ($size_id !== null) $enabled_size_ids[] = $size_id;
+                    if ($color_id !== null) $enabled_color_ids[] = $color_id;
                 }
 
                 // If the variant is enabled, keep only specified keys
@@ -362,6 +371,11 @@ function transform_product_data($product) {
                 }
                 // Add the new variant to the enabled variants array
                 $enabled_variants[] = $new_variant;
+            } else {
+                // If the variant is not enabled, collect its ID for later removal
+                if (isset($variant['id'])) {
+                    $removed_variant_ids[] = $variant['id'];
+                }
             }
         }
         // Replace the 'variants' array with the array of enabled variants
@@ -421,7 +435,7 @@ function transform_product_data($product) {
             unset($product[$key]);
         }
     }
-/////////////////////////////////////////////////////////////////////////////////////////
+
     // Process the 'print_areas' array
     if (isset($product['placeholders']) && is_array($product['placeholders'])) {
         $new_print_areas = array();
