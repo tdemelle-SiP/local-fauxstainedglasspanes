@@ -944,7 +944,40 @@ body.resizing * {
 
 #creation-table .image-cell {
     text-align: center;
+    vertical-align: middle;
     position: relative;
+    width: 100px; /* Adjust as needed */
+    max-width: 100px;
+    overflow: hidden;
+}
+
+#creation-table .main-template-row td img {
+    object-fit:contain;
+}
+
+.svg-text-thumbnail {
+    width: 100%;
+    height: auto;
+    display: inline-block;
+    overflow: hidden;
+    border: 1px solid #ccc;
+    padding: 0 5px;
+    box-sizing: border-box;
+    white-space:nowrap;
+    text-overflow: ellipsis;
+    cursor: default;
+}
+
+
+.svg-text-content {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.image-cell:hover .svg-text-thumbnail {
+    justify-content: flex-start;
 }
 
 #creation-table .image-cell .reset-image-button {

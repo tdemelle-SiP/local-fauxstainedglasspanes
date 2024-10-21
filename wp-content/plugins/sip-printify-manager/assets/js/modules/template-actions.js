@@ -132,7 +132,6 @@ sip.templateActions = (function($, ajax, utilities) {
         const colorOptions = templateData['options - colors'] || [];
         const sizeOptions = templateData['options - sizes'] || [];
     
-        // Helper function to find existing variant with the same image array
         const findExistingVariant = (images) => {
             return uniqueVariants.find(v => 
                 v.images.length === images.length && 
@@ -145,16 +144,13 @@ sip.templateActions = (function($, ajax, utilities) {
             return uniqueVariants;
         }
     
-        // Process each print area
         templateData.print_areas.forEach((printArea) => {
             const images = printArea.placeholders[0].images;
             let existingVariant = findExistingVariant(images);
     
             if (existingVariant) {
-                // Combine variant_ids if image array already exists
                 existingVariant.variantIds = [...new Set([...existingVariant.variantIds, ...printArea.variant_ids])];
             } else {
-                // Create new variant if image array is unique
                 existingVariant = {
                     id: uniqueVariants.length,
                     variantIds: printArea.variant_ids,
@@ -166,33 +162,31 @@ sip.templateActions = (function($, ajax, utilities) {
                 uniqueVariants.push(existingVariant);
             }
     
-            // Process colors, sizes, and prices for the variant
             printArea.variant_ids.forEach(variantId => {
                 const variantData = templateData.variants.find(v => v.id === variantId);
                 if (variantData && variantData.options && variantData.options.length >= 2) {
-                    const colorId = variantData.options[0];
-                    const sizeId = variantData.options[1];
-                    
-                    const color = colorOptions.find(c => c.id === colorId);
-                    if (color && !existingVariant.colors.some(c => c.id === color.id)) {
-                        existingVariant.colors.push(color);
-                    }
+                    variantData.options.forEach(optionId => {
+                        const colorOption = colorOptions.find(c => c.id === optionId);
+                        if (colorOption && !existingVariant.colors.some(c => c.id === colorOption.id)) {
+                            existingVariant.colors.push(colorOption);
+                        }
     
-                    const size = sizeOptions.find(s => s.id === sizeId);
-                    if (size && !existingVariant.sizes.some(s => s.id === size.id)) {
-                        existingVariant.sizes.push(size);
-                    }
+                        const sizeOption = sizeOptions.find(s => s.id === optionId);
+                        if (sizeOption && !existingVariant.sizes.some(s => s.id === sizeOption.id)) {
+                            existingVariant.sizes.push(sizeOption);
+                        }
+                    });
     
                     if (typeof variantData.price === 'number' && !existingVariant.prices.includes(variantData.price)) {
                         existingVariant.prices.push(variantData.price);
                     }
                 }
             });
-            // Sort sizes and prices
+    
             existingVariant.sizes.sort((a, b) => sizeOptions.indexOf(a) - sizeOptions.indexOf(b));
             existingVariant.prices.sort((a, b) => a - b);
         });
-
+    
         return uniqueVariants;
     }
     
@@ -352,21 +346,41 @@ sip.templateActions = (function($, ajax, utilities) {
     
         imageCells.forEach((cell, index) => {
             const variantCells = Array.from(variantRows).map(row => row.querySelectorAll('td.image-cell')[index]);
-            const nonEmptyVariantCells = variantCells.filter(cell => cell.querySelector('img'));
+            const nonEmptyVariantCells = variantCells.filter(cell => 
+                cell.querySelector('img') || cell.querySelector('.svg-text-thumbnail') || cell.querySelector('.image-placeholder')
+            );
+    
+            console.log(`Cell ${index}: ${nonEmptyVariantCells.length} non-empty variants`);
     
             if (nonEmptyVariantCells.length === 1) {
                 const variantCell = nonEmptyVariantCells[0];
                 const img = variantCell.querySelector('img');
+                const svgText = variantCell.querySelector('.svg-text-thumbnail');
+                const placeholder = variantCell.querySelector('.image-placeholder');
                 const title = variantCell.querySelector('.image-name')?.textContent || '';
-                cell.innerHTML = `
-                    <img src="${img.src}" alt="${title}" width="30" height="30">
-                    <br>
-                    <span class="image-name">${title}</span>
-                `;
+    
+                if (img) {
+                    cell.innerHTML = `
+                        <img src="${img.src}" alt="${title}" width="30" height="30">
+                        <br>
+                        <span class="image-name">${title}</span>
+                    `;
+                } else if (svgText) {
+                    cell.innerHTML = `
+                        <div class="svg-text-thumbnail" style="${svgText.style.cssText}">
+                            ${svgText.textContent}
+                        </div>
+                        <br>
+                        <span class="image-name">${title}</span>
+                    `;
+                } else if (placeholder) {
+                    cell.innerHTML = placeholder.outerHTML + `<br><span class="image-name">${title}</span>`;
+                }
             } else if (nonEmptyVariantCells.length > 1) {
                 cell.textContent = `${nonEmptyVariantCells.length} variants`;
             } else {
-                cell.textContent = 'No variants';
+                cell.innerHTML = 'No variants<br><span class="debug-info">Debug: Check console</span>';
+                console.log(`No variants for cell ${index}. Variant cells:`, variantCells);
             }
         });
     }
@@ -385,35 +399,52 @@ sip.templateActions = (function($, ajax, utilities) {
     }
 
     function buildVariantImageCells(variantImages, uniqueImagesInColumns) {
+        console.log('Building variant image cells:', variantImages);
         let cells = '';
         for (let i = 0; i < variantImages.length; i++) {
             cells += '<td class="image-cell">';
             if (variantImages[i] && !uniqueImagesInColumns[i].has(variantImages[i].id)) {
+                console.log(`Processing image ${i}:`, variantImages[i]);
                 cells += `<div class="image-container">`;
                 cells += `<input type="checkbox" class="image-select" data-image-id="${escapeHtml(variantImages[i].id)}">`;
-                cells += `<div class="image-content">`;
+                cells += `<div class="image-content" title="${escapeHtml(variantImages[i].name || variantImages[i].input_text || '')}">`;
+
     
                 if (variantImages[i].src) {
                     cells += `<img src="${escapeHtml(variantImages[i].src)}" alt="${escapeHtml(variantImages[i].name)}" width="30" height="30" data-full-src="${escapeHtml(variantImages[i].src)}" class="clickable-thumbnail">`;
                 } else if (variantImages[i].type && variantImages[i].type.includes('svg')) {
-                    cells += `<div class="image-placeholder">.svg</div>`;
+                    console.log('Creating SVG text thumbnail');
+                    const svgText = variantImages[i].input_text || '';
+                    const fontFamily = variantImages[i].font_family || 'sans-serif';
+                    const fontColor = variantImages[i].font_color || '#000000';
+                    const fontSize = Math.min(parseInt(variantImages[i].font_size) || 11, 13);
+                    const fontWeight = variantImages[i].font_weight || 'normal';
+                    const backgroundColor = variantImages[i].background_color || 'transparent';
+                    
+                    cells += `
+                        <div class="svg-text-thumbnail" 
+                             style="font-family: ${fontFamily}; color: ${fontColor}; font-size: ${fontSize}px; font-weight: ${fontWeight}; background-color: ${backgroundColor};"
+                             title="${escapeHtml(svgText)}">
+                            ${escapeHtml(svgText)}
+                        </div>`;
                 } else {
                     cells += `<div class="image-placeholder">${variantImages[i].type || 'No image'}</div>`;
                 }
     
-                let imageNameWithoutExtension = variantImages[i].name.replace(/\.[^/.]+$/, '');
-                cells += `<span class="image-name" data-tooltip="${escapeHtml(variantImages[i].name)}">${escapeHtml(imageNameWithoutExtension)}</span>`;
+                let imageNameWithoutExtension = variantImages[i].name ? variantImages[i].name.replace(/\.[^/.]+$/, '') : (variantImages[i].input_text || 'Unnamed');
+                cells += `<span class="image-name" data-tooltip="${escapeHtml(variantImages[i].name || variantImages[i].input_text || '')}">${escapeHtml(imageNameWithoutExtension)}</span>`;
                 cells += `</div></div>`;
     
-                // Add this image to the set of unique images for this column
                 uniqueImagesInColumns[i].add(variantImages[i].id);
             } else {
-                cells += '-';
+                console.log(`Skipping image ${i}:`, variantImages[i]);
+                // cells += `<div class="debug-info">Debug: ${JSON.stringify(variantImages[i])}</div>`;
             }
             cells += '</td>';
         }
         return cells;
     }
+
     ////////////////////////////COLORS/////////////////////////////////////
     function buildSummaryColorSwatches(colors) {
         let swatches = `<td class="color-swatches">`;
