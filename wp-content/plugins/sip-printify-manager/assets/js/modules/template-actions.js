@@ -129,8 +129,9 @@ sip.templateActions = (function($, ajax, utilities) {
     ///////////////////////////PROCESS TEMPLATE DATA//////////////////////////////////////
     function processTemplateData(templateData) {
         const uniqueVariants = [];
-        let colorOptions = templateData['options - colors'] || [];
-
+        const colorOptions = templateData['options - colors'] || [];
+        const sizeOptions = templateData['options - sizes'] || [];
+    
         // Helper function to find existing variant with the same image array
         const findExistingVariant = (images) => {
             return uniqueVariants.find(v => 
@@ -159,30 +160,39 @@ sip.templateActions = (function($, ajax, utilities) {
                     variantIds: printArea.variant_ids,
                     images: images,
                     colors: [],
+                    sizes: [],
                     prices: []
                 };
                 uniqueVariants.push(existingVariant);
             }
     
-            // Process colors and prices for the variant
+            // Process colors, sizes, and prices for the variant
             printArea.variant_ids.forEach(variantId => {
                 const variantData = templateData.variants.find(v => v.id === variantId);
-                if (variantData) {
-                    if (variantData.options && variantData.options.length > 0) {
-                        const colorId = variantData.options[0];
-                        const color = colorOptions.find(c => c.id === colorId);
-                        if (color && !existingVariant.colors.some(c => c.id === color.id)) {
-                            existingVariant.colors.push(color);
-                        }
+                if (variantData && variantData.options && variantData.options.length >= 2) {
+                    const colorId = variantData.options[0];
+                    const sizeId = variantData.options[1];
+                    
+                    const color = colorOptions.find(c => c.id === colorId);
+                    if (color && !existingVariant.colors.some(c => c.id === color.id)) {
+                        existingVariant.colors.push(color);
                     }
-                    if (typeof variantData.price === 'number') {
+    
+                    const size = sizeOptions.find(s => s.id === sizeId);
+                    if (size && !existingVariant.sizes.some(s => s.id === size.id)) {
+                        existingVariant.sizes.push(size);
+                    }
+    
+                    if (typeof variantData.price === 'number' && !existingVariant.prices.includes(variantData.price)) {
                         existingVariant.prices.push(variantData.price);
                     }
                 }
             });
+            // Sort sizes and prices
+            existingVariant.sizes.sort((a, b) => sizeOptions.indexOf(a) - sizeOptions.indexOf(b));
+            existingVariant.prices.sort((a, b) => a - b);
         });
-    
-        console.log('Processed unique variants:', uniqueVariants);
+
         return uniqueVariants;
     }
     
@@ -232,19 +242,20 @@ sip.templateActions = (function($, ajax, utilities) {
     function buildTableRows(uniqueVariants, templateData) {
         let rows = '';
     
-        // Calculate the overall price range for all variants
-        const allPrices = uniqueVariants.flatMap(variant => variant.prices);
+        // Calculate the overall price range and sizes for all variants
+        const allPrices = uniqueVariants.flatMap(v => v.prices);
+        const allSizes = uniqueVariants.flatMap(v => v.sizes.map(s => s.title));
         const mainPriceRange = getPriceRange(allPrices);
-
+        const mainSizes = getSizesString(allSizes);
+    
         // Collect all unique colors
-        const allColors = new Set(uniqueVariants.flatMap(variant => variant.colors.map(color => JSON.stringify(color))));
-        const uniqueColors = Array.from(allColors).map(colorString => JSON.parse(colorString));
-        
-        // Build the main data row first
+        const uniqueColors = [...new Set(uniqueVariants.flatMap(v => v.colors.map(c => JSON.stringify(c))))].map(c => JSON.parse(c));
+    
+        // Build the main data row
         rows += `<tr class="main-template-row">`;
         rows += `<td class="toggle-variant-rows" data-column="toggle">+</td>`;
         rows += `<td data-column="select"><input type="checkbox" class="select-template"></td>`;
-        rows += `<td class="non-editable" data-column="state" data-key="state">Template</td>`;
+        rows += `<td class="non-editable" data-column="type" data-key="type">Template</td>`;
         rows += `<td data-column="number">0</td>`;
         rows += `<td class="editable" data-column="title" data-key="title">${escapeHtml(templateData.title)}</td>`;
         // Add empty cells for images (will be filled by updateVariantHeaderCounts)
@@ -252,7 +263,7 @@ sip.templateActions = (function($, ajax, utilities) {
             rows += `<td class="image-cell" data-column="image" data-image-index="${i}"></td>`;
         }
         rows += buildSummaryColorSwatches(uniqueColors);
-        rows += `<td class="editable" data-column="sizes" data-key="sizes">${getSizesString(templateData['options - sizes'])}</td>`;
+        rows += `<td class="editable" data-column="sizes" data-key="sizes">${mainSizes}</td>`;
         rows += `<td class="editable" data-column="tags" data-key="tags">${escapeHtml(truncateText(templateData.tags.join(', '), 18))}</td>`;
         rows += `<td class="editable" data-column="description" data-key="description">${escapeHtml(truncateText(templateData.description, 18))}</td>`;
         rows += `<td class="editable" data-column="price" data-key="prices">${mainPriceRange}</td>`;
@@ -261,37 +272,27 @@ sip.templateActions = (function($, ajax, utilities) {
         // Initialize an array to keep track of unique images in each column
         let uniqueImagesInColumns = new Array(getMaxImagesCount(templateData)).fill().map(() => new Set());
 
-        const mainSizes = getSizesString(templateData['options - sizes']);
-        let shownMainPriceRange = false;
-    
         // Now include all variants
         uniqueVariants.forEach((variant, index) => {
             rows += `<tr class="variant-row">`;
             rows += `<td data-column="toggle"></td>`; // Empty cell for toggle
             rows += `<td data-column="select"><input type="checkbox" class="select-variant"></td>`;
-            rows += `<td class="non-editable" data-column="state" data-key="state">Template - Variant</td>`;
+            rows += `<td class="non-editable" data-column="type" data-key="type">Template - Variant</td>`;
             rows += `<td data-column="number">0${String.fromCharCode(97 + index)}</td>`; // a, b, c, ...
             rows += `<td data-column="title">${escapeHtml(templateData.title)} - Variant ${String.fromCharCode(65 + index)}</td>`; // A, B, C, ...
             rows += buildVariantImageCells(variant.images, uniqueImagesInColumns);
             rows += buildColorSwatches(variant.colors);
             
-            // Sizes
-            const variantSizes = getSizesString(templateData['options - sizes']);
-            rows += `<td data-column="sizes">${variantSizes !== mainSizes ? variantSizes : '-'}</td>`;
+            // Sizes - always display the full range
+            const variantSizes = getSizesString(variant.sizes.map(s => s.title));
+            rows += `<td data-column="sizes">${variantSizes}</td>`;
 
             rows += '<td data-column="tags"></td>'; // Tags (empty for variants)
             rows += '<td data-column="description"></td>'; // Description (empty for variants)
 
-            // Prices
+            // Prices - always display the full range
             const variantPriceRange = getPriceRange(variant.prices);
-            if (variantPriceRange === mainPriceRange && !shownMainPriceRange) {
-                rows += `<td data-column="price">${variantPriceRange}</td>`;
-                shownMainPriceRange = true;
-            } else if (variantPriceRange !== mainPriceRange) {
-                rows += `<td data-column="price">${variantPriceRange}</td>`;
-            } else {
-                rows += `<td data-column="price">-</td>`;
-            }
+            rows += `<td data-column="price">${variantPriceRange}</td>`;
 
             rows += '</tr>';
 
@@ -465,7 +466,7 @@ sip.templateActions = (function($, ajax, utilities) {
         return swatches;
     }
     //////////////////////////////SIZES//////////////////////////////////////
-    function collectVariantSizes(templateData) {
+    function collectVariantSizes() {
         console.log('Entering collectVariantSizes function');
         
         const mainTemplateRowSizes = document.querySelector('.main-template-row [data-column="sizes"]');
@@ -497,10 +498,11 @@ sip.templateActions = (function($, ajax, utilities) {
 
     function getSizesString(sizes) {
         const desiredSizeOrder = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
-        return sizes.sort((a, b) => desiredSizeOrder.indexOf(a.title) - desiredSizeOrder.indexOf(b.title))
-                    .map(size => escapeHtml(size.title))
-                    .join(', ');
+        return [...new Set(sizes)]
+            .sort((a, b) => desiredSizeOrder.indexOf(a) - desiredSizeOrder.indexOf(b))
+            .join(', ');
     }
+    
     //////////////////////////////PRICES//////////////////////////////////////
     function collectVariantPrices() {
         console.log('Entering collectVariantPrices function');
@@ -532,31 +534,19 @@ sip.templateActions = (function($, ajax, utilities) {
         console.log('Exiting collectVariantPrices function');
     }
 
-    function getPriceRange(variants, allVariants = null) {
-        if (allVariants) {
-            // Calculate range for all variants
-            const allPrices = allVariants
-                .filter(v => v && typeof v.price === 'number')
-                .map(v => v.price);
-            return calculateRange(allPrices);
-        }
-    
-        // Calculate range for specific variants
-        if (!Array.isArray(variants) || variants.length === 0) {
+    function getPriceRange(prices) {
+        if (!Array.isArray(prices) || prices.length === 0) {
             return 'N/A';
         }
     
-        const prices = variants.filter(price => typeof price === 'number');
-        return calculateRange(prices);
-    }
+        const validPrices = prices.filter(price => typeof price === 'number');
     
-    function calculateRange(prices) {
-        if (prices.length === 0) {
+        if (validPrices.length === 0) {
             return 'N/A';
         }
     
-        const minPrice = Math.min(...prices) / 100;
-        const maxPrice = Math.max(...prices) / 100;
+        const minPrice = Math.min(...validPrices) / 100;
+        const maxPrice = Math.max(...validPrices) / 100;
         
         if (minPrice === maxPrice) {
             return `$${minPrice.toFixed(2)}`;
@@ -564,7 +554,7 @@ sip.templateActions = (function($, ajax, utilities) {
         
         return `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
     }
-    
+
     //////////////////////////////UTILITY FUNCTIONS//////////////////////////////////////
     function escapeHtml(string) {
         const entityMap = {
