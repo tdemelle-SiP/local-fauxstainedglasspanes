@@ -217,7 +217,7 @@ sip.templateActions = (function($, ajax, utilities) {
         let headerRow = '<tr>';
         headerRow += '<th class="toggle-variant-header" rowspan="2" data-column="toggle"></th>';
         headerRow += '<th rowspan="2" data-column="select"><input type="checkbox" id="select-all-rows"></th>';
-        headerRow += '<th rowspan="2" data-column="state">State</th>';
+        headerRow += '<th rowspan="2" data-column="type">Row Type</th>';
         headerRow += '<th rowspan="2" data-column="number">#</th>';
         headerRow += '<th rowspan="2" data-column="title">Title</th>';
         headerRow += `<th colspan="${maxImages}" data-column="print-area">${printAreaPosition.charAt(0).toUpperCase() + printAreaPosition.slice(1)} - Design</th>`;
@@ -502,7 +502,7 @@ sip.templateActions = (function($, ajax, utilities) {
             .sort((a, b) => desiredSizeOrder.indexOf(a) - desiredSizeOrder.indexOf(b))
             .join(', ');
     }
-    
+
     //////////////////////////////PRICES//////////////////////////////////////
     function collectVariantPrices() {
         console.log('Entering collectVariantPrices function');
