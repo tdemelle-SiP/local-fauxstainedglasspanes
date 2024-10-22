@@ -7,10 +7,14 @@ sip.templateActions = (function($, ajax, utilities) {
     function init() {
         attachEventListeners();
         
-        // Restore template highlight
-        const activeTemplate = localStorage.getItem('activeTemplate');
-        if (activeTemplate) {
-            $(`tr[data-template-id="${activeTemplate}"]`).addClass('wip');
+        // Restore highlight from localStorage on page load
+        const savedTemplate = localStorage.getItem('lastSelectedTemplate');
+        if (savedTemplate) {
+            window.lastSelectedTemplate = savedTemplate;
+            const templateRow = $(`tr[data-template-id="${savedTemplate}"]`);
+            if (templateRow.length) {
+                templateRow.addClass('wip');
+            }
         }
     }
 
@@ -46,10 +50,11 @@ sip.templateActions = (function($, ajax, utilities) {
 
     function handleTemplateAction(formData, action) {
         if (action === 'create_new_products') {
-            // Get and store the selected template ID when creating new products
             const selectedId = $('input[name="selected_templates[]"]:checked').val();
             console.log('Selected template ID:', selectedId);
             window.lastSelectedTemplate = selectedId;
+            // Mirror to localStorage
+            localStorage.setItem('lastSelectedTemplate', selectedId);
         }
 
         $('input[name="selected_templates[]"]:checked').each(function() {

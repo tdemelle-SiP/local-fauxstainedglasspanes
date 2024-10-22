@@ -127,11 +127,14 @@ sip.creationActions = (function($, ajax, utilities) {
     }
 
     function handleCloseTemplateResponse(data) {
-        // Remove highlight from template row
+        // Clear visual highlights
+        $('#image-table-content tr').removeClass('created wip archived');
         $('#template-table-content tr').removeClass('wip');
         
-        // Clear the stored selected template
+        // Clear stored states
         window.lastSelectedTemplate = null;
+        localStorage.removeItem('lastSelectedTemplate');
+        localStorage.removeItem('sip_image_highlights');
         
         // Existing close functionality
         $('#creation-table-container').html(sip.utilities.getInitialTableHtml());
