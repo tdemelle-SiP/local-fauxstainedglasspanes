@@ -5,13 +5,10 @@ var sip = sip || {};
 sip.creationActions = (function($, ajax, utilities) {
     let selectedTemplateId = null;
     let isDirty = false; // Flag to track unsaved changes
-    // let descriptionEditor, jsonEditor;
 
     function init(templateData) {
         if (templateData && templateData.id) {
             selectedTemplateId = templateData.id;
-            // Initialize the creation table or perform other actions with the template data
-            // initializeCreationTable(templateData); //This is handled by the template-actions.js
             initializeCreationContainer();
         } else {
             console.log('No template data provided - creation-actions.js is checking for loaded template');
@@ -31,73 +28,11 @@ sip.creationActions = (function($, ajax, utilities) {
         $('#creation-table').on('click', '.edit-button', handleDescriptionEdit);
         $('#close-template').on('click', closeTemplate);
     
-        // $('#creation-table').on('input', 'input, textarea', function() {
-        //     isDirty = true;
-        // });
-    
         // Bind the toggle function to the variant header row toggle button
         $('#creation-table').on('click', '.toggle-variant-rows', function() {
+            console.log('Toggling variant rows');
             toggleVariantRows.call(this);
         });
-    
-        // $('#creation-table').on('input', 'input, textarea', function() {
-        //     isDirty = true;
-        // });
-    
-        // $('#edit-json').on('click', function() {
-        //     console.log('Edit JSON clicked');
-            
-        //     const overlay = $('#template-editor-overlay');
-        //     overlay.show().addClass('active');
-            
-        //     var formData = new FormData();
-        //     formData.append('action', 'sip_handle_ajax_request');
-        //     formData.append('action_type', 'creation_action');
-        //     formData.append('creation_action', 'edit_json');
-        //     formData.append('nonce', sipAjax.nonce);
-        
-        //     sip.ajax.handleAjaxAction('creation_action', formData);
-        // });
-
-        // $('#template-editor-save').on('click', function() {
-        //     console.log('Save clicked');
-        //     if (!descriptionEditor || !jsonEditor) return;
-            
-        //     try {
-        //         const updatedData = JSON.parse(jsonEditor.getValue());
-        //         updatedData.description = descriptionEditor.getValue();
-                
-        //         var saveFormData = new FormData();
-        //         saveFormData.append('action', 'sip_handle_ajax_request');
-        //         saveFormData.append('action_type', 'creation_action');
-        //         saveFormData.append('creation_action', 'save_template');
-        //         saveFormData.append('template_content', JSON.stringify(updatedData));
-        //         saveFormData.append('template_name', selectedTemplateId);
-        //         saveFormData.append('nonce', sipAjax.nonce);
-        
-        //         sip.ajax.handleAjaxAction('creation_action', saveFormData,
-        //             function(response) {
-        //                 if (response.success) {
-        //                     utilities.showToast('Template saved successfully');
-        //                     $('#template-editor-overlay').hide().removeClass('active');
-        //                 }
-        //             }
-        //         );
-        //     } catch (e) {
-        //         utilities.showToast('Invalid JSON format');
-        //     }
-        // });
-        
-        // $('#template-editor-close').on('click', function() {
-        //     $('#template-editor-overlay').hide().removeClass('active');
-        // });
-
-        // // Add escape key handler
-        // $(document).on('keydown', function(e) {
-        //     if (e.key === "Escape") {
-        //         $('#template-editor-overlay').hide().removeClass('active');
-        //     }
-        // });
 
     }
 
@@ -140,9 +75,6 @@ sip.creationActions = (function($, ajax, utilities) {
                     console.log('***hidespinner called. Template closed successfully');
                     sip.utilities.hideSpinner();
                     break;
-                // case 'edit_json':
-                //     handleEditJsonSuccess(response.data);
-                //     break;
                 default:
                     console.warn('Unhandled creation action type:', response.data.action);
             }
@@ -168,28 +100,6 @@ sip.creationActions = (function($, ajax, utilities) {
     function handleSetLoadedTemplateSuccess(data) {
         console.log('Template data saved successfully');
     }
-
-
-    // function handleEditJsonSuccess(data) {
-    //     const templateData = data.template_data;
-    //     const separatedContent = separateContent(JSON.stringify(templateData));
-    //     sip.templateEditor.setupEditors(separatedContent.html, separatedContent.json);
-    // }
-
-    // function separateContent(content) {
-    //     try {
-    //         var parsedContent = JSON.parse(content);
-    //         var description = parsedContent.description || '';
-    //         delete parsedContent.description;
-    //         return {
-    //             html: description,
-    //             json: JSON.stringify(parsedContent, null, 2)
-    //         };
-    //     } catch (e) {
-    //         console.error('Error separating content:', e);
-    //         return { html: '', json: content };
-    //     }
-    // }
 
     function handleUpdateWipSuccess(data) {
         console.log('Product data updated successfully');
