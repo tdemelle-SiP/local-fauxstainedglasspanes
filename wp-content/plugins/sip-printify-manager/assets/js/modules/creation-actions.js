@@ -34,6 +34,20 @@ sip.creationActions = (function($, ajax, utilities) {
             toggleVariantRows.call(this);
         });
 
+        $('#edit-json').on('click', function() {
+            console.log('Edit JSON clicked');
+            const overlay = $('#template-editor-overlay');
+            overlay.show().addClass('active');
+        
+            var formData = new FormData();
+            formData.append('action', 'sip_handle_ajax_request');
+            formData.append('action_type', 'creation_action');
+            formData.append('creation_action', 'edit_json');
+            formData.append('nonce', sipAjax.nonce);
+        
+            sip.ajax.handleAjaxAction('creation_action', formData);
+        });
+
     }
 
     function initializeCreationContainer() {
