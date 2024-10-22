@@ -21,6 +21,17 @@ function sip_handle_creation_action() {
         case 'save_loaded_template':
             sip_save_loaded_template();
             break;
+        case 'edit_json':
+            $loaded_template = get_option('sip_loaded_template', '');
+            if (!empty($loaded_template)) {
+                wp_send_json_success(array(
+                    'action' => 'edit_json',
+                    'template_data' => json_decode($loaded_template, true)
+                ));
+            } else {
+                wp_send_json_error('No template loaded to edit.');
+            }
+            break;
         case 'save_template':
             sip_save_template_content();
             break;
