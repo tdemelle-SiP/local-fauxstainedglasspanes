@@ -128,10 +128,14 @@ function sip_display_template_list($templates) {
     
     $html .= '<tbody>';
     foreach ($templates as $template) {
-        $html .= '<tr>
-            <td><input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '" /></td>
-            <td>' . esc_html($template) . '</td>
-        </tr>';
+        $html .= sprintf(
+            '<tr data-template-id="%1$s">
+                <td><input type="checkbox" name="selected_templates[]" value="%1$s" /></td>
+                <td>%2$s</td>
+            </tr>',
+            esc_attr($template),
+            esc_html($template)
+        );
     }
     $html .= '</tbody>';
 

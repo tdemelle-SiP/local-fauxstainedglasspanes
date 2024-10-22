@@ -466,6 +466,40 @@ table tbody tr:nth-child(even) {
     background-color: #f2f2f2; /* Slightly darker gray for even rows */
 }
 
+
+
+/*//////////////////////////////image table row highlight colors///////////////////////////////////*/
+
+/* Template table highlighting */
+#template-table-content tr.wip,
+#template-table-content tr.wip td {
+    background-color: #dcf3ff !important;
+    color: #36b6fc !important;
+}
+
+/* Ensure checkbox retains visibility */
+#template-table-content tr.wip input[type="checkbox"] {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Image table highlighting */
+#image-table-content tr.created td {
+    background-color: #ddfde9;
+    color: #19f369;
+}
+
+#image-table-content tr.wip td {
+    background-color: #dcf3ff;
+    color: #36b6fc;
+}
+
+#image-table-content tr.archived td {
+    background-color: #fff3f0;
+    color: #f96943;
+}
+
+
 /*//////////////////////////////////////////////////////////////////////////////////////*/
 /*/////////////////////////// Styling for the Image Section ///////////////////////////*/
 

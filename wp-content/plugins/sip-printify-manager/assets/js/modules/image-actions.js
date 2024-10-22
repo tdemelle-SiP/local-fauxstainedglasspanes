@@ -4,6 +4,7 @@ var isUploading = false;
 sip.imageActions = (function($, ajax, utilities) {
     function init() {
         attachEventListeners();
+        restoreImageHighlights();
     }
 
     function attachEventListeners() {
@@ -144,37 +145,132 @@ sip.imageActions = (function($, ajax, utilities) {
     
         if (response.data.image_list_html) {
             $('#image-table-list').html(response.data.image_list_html).show();
+            
+            // Get loaded template data
+            const loadedTemplate = JSON.parse(localStorage.getItem('sip_loaded_template') || '{}');
+            if (loadedTemplate) {
+                updateImageRowHighlights(loadedTemplate);
+            }
+            
             console.log('Image list HTML updated');
             console.log('***hidespinner called. Images loaded successfully');
             sip.utilities.hideSpinner();
         } else if (response.data.images) {
-            // If we receive image data instead of HTML, we need to update the table manually
             updateImageTable(response.data.images);
             console.log('Image table updated manually');
             console.log('***hidespinner called. Images loaded successfully');
             sip.utilities.hideSpinner();
         }
-
-        // Initialize PhotoSwipe after images are loaded
+    
         initPhotoSwipe();
     
         if (typeof sip.utilities.initImageSorting === 'function') {
             sip.utilities.initImageSorting();
             console.log('Image sorting reinitialized');
         }
-
+    
         $('input[name="selected_images[]"], #select-all-images').prop('checked', false);
         $('#image-file-input').val('');
     
-        // Reset isUploading flag if this was an upload action
         if (response.data.action === 'upload_images') {
             isUploading = false;
         }
     }
 
+    // Add new function to handle image row highlighting
+    function updateImageRowHighlights(templateData) {
+        // Clear existing highlights
+        $('#image-table-content tr').removeClass('created wip archived');
+        
+        // Get all images used in template
+        const templateImages = getTemplateImages(templateData);
+        
+        // Get creation table row types and their images
+        const creationTableRows = $('#creation-table tbody tr');
+        const rowTypeImages = {
+            'created': [],
+            'wip': [],
+            'archived': []
+        };
+        
+        creationTableRows.each(function() {
+            const rowType = $(this).attr('data-row-type');
+            if (rowType && rowTypeImages[rowType]) {
+                const images = $(this).find('.image-cell img').map(function() {
+                    return $(this).attr('data-image-id');
+                }).get();
+                rowTypeImages[rowType].push(...images);
+            }
+        });
+        
+        // Apply highlights to image table rows
+        $('#image-table-content tr').each(function() {
+            const imageId = $(this).find('input[type="checkbox"]').val();
+            
+            if (templateImages.includes(imageId)) {
+                $(this).addClass('created');
+            } else if (rowTypeImages.created.includes(imageId)) {
+                $(this).addClass('created');
+            } else if (rowTypeImages.wip.includes(imageId)) {
+                $(this).addClass('wip');
+            } else if (rowTypeImages.archived.includes(imageId)) {
+                $(this).addClass('archived');
+            }
+        });
+    
+        // Store the highlight state
+        localStorage.setItem('sip_image_highlights', JSON.stringify({
+            templateImages,
+            rowTypeImages
+        }));
+    }
+
+    function restoreImageHighlights() {
+        const highlightData = localStorage.getItem('sip_image_highlights');
+        if (highlightData) {
+            const { templateImages, rowTypeImages } = JSON.parse(highlightData);
+            $('#image-table-content tr').each(function() {
+                const imageId = $(this).find('input[type="checkbox"]').val();
+                if (templateImages.includes(imageId)) {
+                    $(this).addClass('created');
+                } else if (rowTypeImages.created.includes(imageId)) {
+                    $(this).addClass('created');
+                } else if (rowTypeImages.wip.includes(imageId)) {
+                    $(this).addClass('wip');
+                } else if (rowTypeImages.archived.includes(imageId)) {
+                    $(this).addClass('archived');
+                }
+            });
+        }
+    }
+
+    // Helper function to extract all image IDs from template data
+    function getTemplateImages(templateData) {
+        const imageIds = [];
+        if (templateData.print_areas) {
+            templateData.print_areas.forEach(area => {
+                if (area.placeholders) {
+                    area.placeholders.forEach(placeholder => {
+                        if (placeholder.images) {
+                            placeholder.images.forEach(image => {
+                                if (image.id) {
+                                    imageIds.push(image.id);
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+        return imageIds;
+    }
+
     return {
         init: init,
-        handleSuccessResponse: handleSuccessResponse
+        handleSuccessResponse: handleSuccessResponse,
+        updateImageRowHighlights: updateImageRowHighlights,
+        getTemplateImages: getTemplateImages,
+        updateImageRowHighlights: updateImageRowHighlights
     };
     
 })(jQuery, sip.ajax, sip.utilities);

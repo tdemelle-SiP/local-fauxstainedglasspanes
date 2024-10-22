@@ -6,9 +6,6 @@ sip.templateActions = (function($, ajax, utilities) {
 
     function init() {
         attachEventListeners();
-        // if (!isTemplateLoaded && sip.creationActions && typeof sip.creationActions.checkForLoadedTemplate === 'function') {
-        //     sip.creationActions.checkForLoadedTemplate();
-        // }
     }
 
     function attachEventListeners() {
@@ -42,9 +39,17 @@ sip.templateActions = (function($, ajax, utilities) {
     }
 
     function handleTemplateAction(formData, action) {
+        if (action === 'create_new_products') {
+            // Get and store the selected template ID when creating new products
+            const selectedId = $('input[name="selected_templates[]"]:checked').val();
+            console.log('Selected template ID:', selectedId);
+            window.lastSelectedTemplate = selectedId;
+        }
+
         $('input[name="selected_templates[]"]:checked').each(function() {
             formData.append('selected_templates[]', $(this).val());
         });
+        
         formData.append('action', 'sip_handle_ajax_request');
         formData.append('action_type', 'template_action');
         formData.append('template_action', action);
@@ -54,24 +59,35 @@ sip.templateActions = (function($, ajax, utilities) {
     }
 
     function handleSuccessResponse(response) {
-        console.log('Entering handleSuccessResponse in template-actions.js');
-        console.log('Response:', response);
-    
+        console.log('Template response:', response);
+        
         if (response.data && response.data.template_list_html) {
             $('#template-table-list').html(response.data.template_list_html).show();
         }
+        
+        // After any template-related success response
+        if (window.lastSelectedTemplate) {
+            console.log('Restoring highlight for template:', window.lastSelectedTemplate);
+            const templateRow = $(`tr[data-template-id="${window.lastSelectedTemplate}"]`);
+            if (templateRow.length) {
+                $('#template-table-content tr').removeClass('wip'); // Clear any existing highlights
+                templateRow.addClass('wip');
+                console.log('Template highlighted');
+            }
+        }
+        
         if (response.data && response.data.template_data) {
-            console.log('Template data received:', response.data.template_data);
             initializeCreationTable(response.data.template_data);
-        } else {
-            console.log('No template data in response');
+            
+            if (sip.imageActions && typeof sip.imageActions.updateImageRowHighlights === 'function') {
+                sip.imageActions.updateImageRowHighlights(response.data.template_data);
+            }
         }
     
         $('input[name="selected_templates[]"], #select-all-templates').prop('checked', false);
-        console.log('***hidespinner called after success response in template-actions.js');
         utilities.hideSpinner();
     }
-
+    
     function populateCreationTable(templateData) {
         // console.log('Populating creation table with data:', templateData);
         initializeCreationTable(templateData);
@@ -625,7 +641,7 @@ sip.templateActions = (function($, ajax, utilities) {
         init: init,
         attachToggleEventListeners: attachToggleEventListener,
         handleSuccessResponse: handleSuccessResponse,
-        populateCreationTable: populateCreationTable
+        populateCreationTable: populateCreationTable,
     };
 
 })(jQuery, sip.ajax, sip.utilities);

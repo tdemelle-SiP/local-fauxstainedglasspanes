@@ -127,8 +127,14 @@ sip.creationActions = (function($, ajax, utilities) {
     }
 
     function handleCloseTemplateResponse(data) {
+        // Remove highlight from template row
+        $('#template-table-content tr').removeClass('wip');
+        
+        // Clear the stored selected template
+        window.lastSelectedTemplate = null;
+        
+        // Existing close functionality
         $('#creation-table-container').html(sip.utilities.getInitialTableHtml());
-        // Unset the template name
         $('#selected-template-subtitle').text('');
         $('#product-creation-container').show();
         $('#creation-table').hide();
