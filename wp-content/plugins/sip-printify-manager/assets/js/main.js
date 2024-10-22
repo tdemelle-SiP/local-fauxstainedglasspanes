@@ -28,7 +28,8 @@ sip.main = (function($, ajax, utilities) {
             'imageActions',
             'templateActions',
             'creationActions',
-            'shopActions'
+            'shopActions',
+            'templateEditor'
         ];
 
         modules.forEach(function(module) {

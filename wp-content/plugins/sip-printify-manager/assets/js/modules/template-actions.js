@@ -88,6 +88,7 @@ sip.templateActions = (function($, ajax, utilities) {
         }
         
         if (response.data && response.data.template_data) {
+            console.log('template-actions.js handlesuccessresponse - initializecreationtable');
             initializeCreationTable(response.data.template_data);
             
             if (sip.imageActions && typeof sip.imageActions.updateImageRowHighlights === 'function') {
@@ -100,7 +101,7 @@ sip.templateActions = (function($, ajax, utilities) {
     }
     
     function populateCreationTable(templateData) {
-        // console.log('Populating creation table with data:', templateData);
+        console.log('template-actions.js populateCreationTable function', templateData);
         initializeCreationTable(templateData);
     }
 
