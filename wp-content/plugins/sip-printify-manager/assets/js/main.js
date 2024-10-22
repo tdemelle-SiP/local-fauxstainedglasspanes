@@ -15,7 +15,6 @@ sip.main = (function($, ajax, utilities) {
         console.log('*****ShowSpinner called on initialization in main.js');
         utilities.showSpinner();
 
-        console.log('Initializing Modules');
         initializeModules();
         initializeGlobalEventListeners();
     }
@@ -28,7 +27,8 @@ sip.main = (function($, ajax, utilities) {
             'imageActions',
             'templateActions',
             'creationActions',
-            'shopActions'
+            'shopActions',
+            'templateEditor'
         ];
 
         modules.forEach(function(module) {

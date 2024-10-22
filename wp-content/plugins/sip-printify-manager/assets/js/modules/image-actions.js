@@ -141,7 +141,7 @@ sip.imageActions = (function($, ajax, utilities) {
     }
 
     function handleSuccessResponse(response) {
-        console.log('Handling success response:', response);
+        // console.log('Handling success response:', response);
     
         if (response.data.image_list_html) {
             $('#image-table-list').html(response.data.image_list_html).show();

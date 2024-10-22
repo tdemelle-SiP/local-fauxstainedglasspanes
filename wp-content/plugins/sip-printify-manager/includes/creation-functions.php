@@ -18,8 +18,8 @@ function sip_handle_creation_action() {
         case 'get_loaded_template':
             sip_get_loaded_template();
             break;
-        case 'set_loaded_template':
-            sip_set_loaded_template();
+        case 'save_loaded_template':
+            sip_save_loaded_template();
             break;
         case 'save_template':
             sip_save_template_content();
@@ -63,14 +63,14 @@ function sip_get_loaded_template() {
 /**
  * Set the loaded template data.
  */
-function sip_set_loaded_template() {
+function sip_save_loaded_template() {
     if (!isset($_POST['template_data'])) {
         wp_send_json_error('No template data provided');
     }
     $template_data = wp_unslash($_POST['template_data']);
     update_option('sip_loaded_template', $template_data);
     wp_send_json_success(array(
-        'action' => 'set_loaded_template',
+        'action' => 'save_loaded_template',
         'message' => 'Template data saved successfully'
     ));
 }

@@ -53,7 +53,7 @@ sip.ajax = (function($, utilities) {
     }
 
     function handleSuccessResponse(actionType, response) {
-        console.log('Handling success response for:', actionType);
+        // console.log('Handling success response for:', actionType);
 
         if (successHandlers[actionType]) {
             console.log('Calling success handler for', actionType);

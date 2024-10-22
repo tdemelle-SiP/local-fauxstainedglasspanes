@@ -49,6 +49,7 @@ $includes = [
     'image-functions.php',
     'template-functions.php',
     'creation-functions.php',
+    'template-editor-functions.php',
     'icon-functions.php',
     'utilities.php'
 ];
@@ -389,6 +390,10 @@ function sip_handle_ajax_request() {
 
         case 'creation_action':
             sip_handle_creation_action();
+            break;
+
+        case 'template_editor':
+            sip_handle_template_editor();
             break;
 
         default:

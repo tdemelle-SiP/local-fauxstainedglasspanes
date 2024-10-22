@@ -51,7 +51,7 @@ sip.templateActions = (function($, ajax, utilities) {
     function handleTemplateAction(formData, action) {
         if (action === 'create_new_products') {
             const selectedId = $('input[name="selected_templates[]"]:checked').val();
-            console.log('Selected template ID:', selectedId);
+            // console.log('Selected template ID:', selectedId);
             window.lastSelectedTemplate = selectedId;
             // Mirror to localStorage
             localStorage.setItem('lastSelectedTemplate', selectedId);
@@ -78,12 +78,12 @@ sip.templateActions = (function($, ajax, utilities) {
         
         // After any template-related success response
         if (window.lastSelectedTemplate) {
-            console.log('Restoring highlight for template:', window.lastSelectedTemplate);
+            // console.log('Restoring highlight for template:', window.lastSelectedTemplate);
             const templateRow = $(`tr[data-template-id="${window.lastSelectedTemplate}"]`);
             if (templateRow.length) {
                 $('#template-table-content tr').removeClass('wip'); // Clear any existing highlights
                 templateRow.addClass('wip');
-                console.log('Template highlighted');
+                // console.log('Template highlighted');
             }
         }
         
@@ -148,7 +148,7 @@ sip.templateActions = (function($, ajax, utilities) {
         var formData = new FormData();
         formData.append('action', 'sip_handle_ajax_request');
         formData.append('action_type', 'creation_action');
-        formData.append('creation_action', 'set_loaded_template');
+        formData.append('creation_action', 'save_loaded_template');
         formData.append('template_data', JSON.stringify(templateData));
         formData.append('nonce', sipAjax.nonce);
         sip.ajax.handleAjaxAction('creation_action', formData);
@@ -369,7 +369,7 @@ sip.templateActions = (function($, ajax, utilities) {
                 cell.querySelector('img') || cell.querySelector('.svg-text-thumbnail') || cell.querySelector('.image-placeholder')
             );
     
-            console.log(`Cell ${index}: ${nonEmptyVariantCells.length} non-empty variants`);
+            // console.log(`Cell ${index}: ${nonEmptyVariantCells.length} non-empty variants`);
     
             if (nonEmptyVariantCells.length === 1) {
                 const variantCell = nonEmptyVariantCells[0];
@@ -408,7 +408,7 @@ sip.templateActions = (function($, ajax, utilities) {
     function hideVariantRowsInitially() {
         $('.variant-row').hide();
         $('.toggle-variant-rows').text('+');
-        console.log('Variant rows initially hidden');
+        // console.log('Variant rows initially hidden');
     }
 
     //////////////////////////////IMAGES/////////////////////////////////
@@ -419,12 +419,12 @@ sip.templateActions = (function($, ajax, utilities) {
     }
 
     function buildVariantImageCells(variantImages, uniqueImagesInColumns) {
-        console.log('Building variant image cells:', variantImages);
+        // console.log('Building variant image cells:', variantImages);
         let cells = '';
         for (let i = 0; i < variantImages.length; i++) {
             cells += '<td class="image-cell">';
             if (variantImages[i] && !uniqueImagesInColumns[i].has(variantImages[i].id)) {
-                console.log(`Processing image ${i}:`, variantImages[i]);
+                // console.log(`Processing image ${i}:`, variantImages[i]);
                 cells += `<div class="image-container">`;
                 cells += `<input type="checkbox" class="image-select" data-image-id="${escapeHtml(variantImages[i].id)}">`;
                 cells += `<div class="image-content" title="${escapeHtml(variantImages[i].name || variantImages[i].input_text || '')}">`;
@@ -433,7 +433,7 @@ sip.templateActions = (function($, ajax, utilities) {
                 if (variantImages[i].src) {
                     cells += `<img src="${escapeHtml(variantImages[i].src)}" alt="${escapeHtml(variantImages[i].name)}" width="30" height="30" data-full-src="${escapeHtml(variantImages[i].src)}" class="clickable-thumbnail">`;
                 } else if (variantImages[i].type && variantImages[i].type.includes('svg')) {
-                    console.log('Creating SVG text thumbnail');
+                    // console.log('Creating SVG text thumbnail');
                     const svgText = variantImages[i].input_text || '';
                     const fontFamily = variantImages[i].font_family || 'sans-serif';
                     const fontColor = variantImages[i].font_color || '#000000';
@@ -457,7 +457,7 @@ sip.templateActions = (function($, ajax, utilities) {
     
                 uniqueImagesInColumns[i].add(variantImages[i].id);
             } else {
-                console.log(`Skipping image ${i}:`, variantImages[i]);
+                // console.log(`Skipping image ${i}:`, variantImages[i]);
                 // cells += `<div class="debug-info">Debug: ${JSON.stringify(variantImages[i])}</div>`;
             }
             cells += '</td>';
@@ -518,7 +518,7 @@ sip.templateActions = (function($, ajax, utilities) {
     }
     //////////////////////////////SIZES//////////////////////////////////////
     function collectVariantSizes() {
-        console.log('Entering collectVariantSizes function');
+        // console.log('Entering collectVariantSizes function');
         
         const mainTemplateRowSizes = document.querySelector('.main-template-row [data-column="sizes"]');
         
@@ -528,7 +528,7 @@ sip.templateActions = (function($, ajax, utilities) {
         }
         
         const mainSizes = mainTemplateRowSizes.textContent.trim();
-        console.log('Main sizes:', mainSizes);
+        // console.log('Main sizes:', mainSizes);
     
         // Update variant rows with their specific sizes only if they differ from the main sizes
         const variantRows = document.querySelectorAll('.variant-row');
@@ -544,7 +544,7 @@ sip.templateActions = (function($, ajax, utilities) {
             }
         });
     
-        console.log('Exiting collectVariantSizes function');
+        // console.log('Exiting collectVariantSizes function');
     }
 
     function getSizesString(sizes) {
@@ -556,7 +556,7 @@ sip.templateActions = (function($, ajax, utilities) {
 
     //////////////////////////////PRICES//////////////////////////////////////
     function collectVariantPrices() {
-        console.log('Entering collectVariantPrices function');
+        // console.log('Entering collectVariantPrices function');
     
         const mainTemplateRowPrice = document.querySelector('.main-template-row [data-column="price"]');
         
@@ -566,7 +566,7 @@ sip.templateActions = (function($, ajax, utilities) {
         }
         
         const mainPriceRange = mainTemplateRowPrice.textContent.trim();
-        console.log('Main price range:', mainPriceRange);
+        // console.log('Main price range:', mainPriceRange);
     
         // Update variant rows with their specific price ranges only if they differ from the main price range
         const variantRows = document.querySelectorAll('.variant-row');
@@ -582,7 +582,7 @@ sip.templateActions = (function($, ajax, utilities) {
             }
         });
     
-        console.log('Exiting collectVariantPrices function');
+        // console.log('Exiting collectVariantPrices function');
     }
 
     function getPriceRange(prices) {

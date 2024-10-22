@@ -89,12 +89,12 @@ sip.templateEditor = (function($, ajax, utilities) {
 
             var formData = new FormData();
             formData.append('action', 'sip_handle_ajax_request');
-            formData.append('action_type', 'template_action');
-            formData.append('template_action', 'edit_template');
+            formData.append('action_type', 'template_editor');
+            formData.append('template_editor', 'editor_edit_template');
             formData.append('template_name', templateName);
             formData.append('nonce', sipAjax.nonce);
 
-            sip.ajax.handleAjaxAction('template_action', formData, 
+            sip.ajax.handleAjaxAction('template_editor', formData, 
                 function(response) {
                     if (response.success) {
                         var content = response.data.template_content;
@@ -142,12 +142,13 @@ sip.templateEditor = (function($, ajax, utilities) {
 
                 var formData = new FormData();
                 formData.append('action', 'sip_handle_ajax_request');
-                formData.append('action_type', 'save_template');
+                formData.append('action_type', 'template_editor');
+                formData.append('template_editor', 'editor_save_template');               
                 formData.append('template_name', templateName);
                 formData.append('template_content', finalContent);
                 formData.append('nonce', sipAjax.nonce);
 
-                sip.ajax.handleAjaxAction('save_template', formData, 
+                sip.ajax.handleAjaxAction('template_editor', formData, 
                     function(response) {
                         if (response.success) {
                             $('#template-editor-overlay').removeClass('active').one('transitionend', function() {
@@ -340,3 +341,5 @@ sip.templateEditor = (function($, ajax, utilities) {
         init: init,
     };
 })(jQuery, sip.ajax, sip.utilities);
+
+sip.ajax.registerSuccessHandler('template_editor', sip.templateEditor.handleSuccessResponse);

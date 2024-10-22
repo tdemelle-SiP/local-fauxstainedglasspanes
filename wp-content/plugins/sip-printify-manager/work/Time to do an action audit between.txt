@@ -1,0 +1,754 @@
+Time to do an action audit between template actions creation actions and template editor.
+
+let's start with a list:
+template-actions.js
+	create_new_products
+	delete_template
+creation-actions.js
+	get_loaded_template
+	update_new_product
+	create_product
+	save_loaded_template
+	save_template
+	close_template
+template-editor.js
+	edit_template
+	save_template
+
+
+
+-------------------------------------------------
+
+does there need to be a distinction between save template between the template json editor and the product creation table?  Perhaps not.
+
+there does need to be a distinction between the close template editor and close product creation table.
+
+we need to go through and change function names and messaging for the functions in the creation-actions handlers.
+
+-----------------------------------------------------------------------------------------------------------
+
+
+ 
+
+       $('.edit-template-content').on('click', function () {
+            var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
+            $('#template-editor-overlay').show().addClass('active');
+            $('#template-editor-header span').text('Edit Template: ' + templateName);
+
+            var formData = new FormData();
+            formData.append('action', 'sip_handle_ajax_request');
+            formData.append('action_type', 'template_action');
+            formData.append('template_action', 'edit_template');
+            formData.append('template_name', templateName);
+            formData.append('nonce', sipAjax.nonce);
+
+            $.ajax({
+                url: sipAjax.ajax_url,
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        var content = response.data.template_content;
+
+                        // Initialize editors with content
+                        if (!descriptionEditor || !jsonEditor) {
+                            initializeEditors(content);
+                        } else {
+                            // If editors already exist, update their content
+                            var separatedContent = separateContent(content);
+                            descriptionEditor.setValue(separatedContent.html);
+                            jsonEditor.setValue(separatedContent.json);
+
+                            // Force refresh after updating content
+                            setTimeout(() => {
+                                descriptionEditor.refresh();
+                                jsonEditor.refresh();
+                            }, 0);
+                        }
+                    } else {
+                        alert('Error: ' + response.data);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('AJAX Error: ' + error);
+                }
+            });
+        });
+
+
+----------------------------------FULL template-editor.js file from back in the day-----------------------
+
+// templateEditor.js
+
+var sip = sip || {};
+
+sip.templateEditor = (function($) {
+    function init() {
+        // Handle inline renaming
+        $('.rename-template').on('click', function() {
+            var $cell = $(this).closest('tr').find('.template-name-cell');
+            var oldName = $cell.data('template-name');
+            var $input = $('<input type="text" class="rename-input" />').val(oldName);
+
+            $cell.empty().append($input);
+            $input.focus();
+
+            $input.on('blur keyup', function(e) {
+                if (e.type === 'blur' || e.keyCode === 13) {
+                    var newName = $input.val();
+
+                    if (newName && newName !== oldName) {
+                        var formData = new FormData();
+                        formData.append('action', 'sip_handle_ajax_request');
+                        formData.append('action_type', 'template_action');
+                        formData.append('template_action', 'rename_template');
+                        formData.append('old_template_name', oldName);
+                        formData.append('new_template_name', newName);
+                        formData.append('nonce', sipAjax.nonce);
+
+                        $.ajax({
+                            url: sipAjax.ajax_url,
+                            method: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function(response) {
+                                if (response.success) {
+                                    $cell.text(newName).data('template-name', newName);
+                                } else {
+                                    alert('Error: ' + response.data);
+                                    $cell.text(oldName);
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                alert('AJAX Error: ' + error);
+                                $cell.text(oldName);
+                            }
+                        });
+                    } else {
+                        $cell.text(oldName);
+                    }
+                }
+            });
+        });
+
+        // Template editor functionality
+        initializeTemplateEditor($);
+    }
+
+    function initializeTemplateEditor($) {
+        let descriptionEditor, jsonEditor;
+
+        function initializeEditors(content) {
+            const outerWindow = document.getElementById('template-editor-outer-window');
+            const header = document.getElementById('template-editor-header');
+            const resizer = document.getElementById('template-editor-resizer');
+            const toggleButton = document.getElementById('template-editor-toggle-view');
+            const topEditorContainer = document.getElementById('template-editor-top-editor');
+            const bottomEditorContainer = document.getElementById('template-editor-bottom-editor');
+            const renderedHtml = document.getElementById('template-editor-rendered-html');
+
+            const separatedContent = separateContent(content);
+
+            // Initialize editors with equal heights
+            const totalHeight = outerWindow.clientHeight - header.clientHeight - resizer.clientHeight;
+            const halfHeight = totalHeight / 2;
+
+            // Initialize editors
+            descriptionEditor = wp.CodeMirror(topEditorContainer, {
+                mode: 'htmlmixed',
+                lineNumbers: true,
+                lineWrapping: true,
+                dragDrop: false,
+                viewportMargin: Infinity,
+                value: separatedContent.html,
+                foldGutter: true,
+                gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+            });
+
+            jsonEditor = wp.CodeMirror(bottomEditorContainer, {
+                mode: 'application/json',
+                lineNumbers: true,
+                lineWrapping: true,
+                dragDrop: false,
+                viewportMargin: Infinity,
+                value: separatedContent.json,
+                foldGutter: true,
+                gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+                extraKeys: {
+                    "Ctrl-Q": function(cm) {
+                        cm.foldCode(cm.getCursor());
+                    }
+                },
+                foldOptions: {
+                    // You can specify options for code folding here
+                }
+            });
+
+
+            // Set initial sizes for editors
+            descriptionEditor.setSize(null, halfHeight);
+            jsonEditor.setSize(null, halfHeight);
+
+            // Function to adjust modal size and position
+            function adjustModalSize() {
+                requestAnimationFrame(() => {
+                    const windowWidth = window.innerWidth;
+                    const windowHeight = window.innerHeight;
+                    const modalWidth = windowWidth * 0.8;
+                    const modalHeight = windowHeight * 0.8;
+
+                    outerWindow.style.width = `${modalWidth}px`;
+                    outerWindow.style.height = `${modalHeight}px`;
+                    outerWindow.style.left = `${(windowWidth - modalWidth) / 2}px`;
+                    outerWindow.style.top = `${(windowHeight - modalHeight) / 2}px`;
+
+                    adjustEditors();
+                });
+            }
+
+            let adjustEditorsRAF;
+            function adjustEditors() {
+                cancelAnimationFrame(adjustEditorsRAF);
+                adjustEditorsRAF = requestAnimationFrame(() => {
+                    const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+                    const halfHeight = containerHeight / 2;
+
+                    descriptionEditor.setSize(null, halfHeight - 30);
+                    jsonEditor.setSize(null, halfHeight - 30);
+
+                    descriptionEditor.refresh();
+                    jsonEditor.refresh();
+                });
+            }
+
+            // Initial adjustment and window resize listener
+            adjustModalSize();
+            window.addEventListener('resize', adjustModalSize);
+
+            // Toggle view functionality
+            let isRendered = false;
+            toggleButton.addEventListener('click', () => {
+                isRendered = !isRendered;
+                if (isRendered) {
+                    renderedHtml.innerHTML = descriptionEditor.getValue();
+                    renderedHtml.style.display = 'block';
+                    topEditorContainer.style.display = 'none';
+                    toggleButton.textContent = 'View Code';
+                } else {
+                    renderedHtml.style.display = 'none';
+                    topEditorContainer.style.display = 'block';
+                    toggleButton.textContent = 'View Rendered';
+                }
+                adjustEditors();
+            });
+
+            // Dragging functionality
+            let isDragging = false;
+            let startX, startY, startLeft, startTop;
+
+            header.addEventListener("mousedown", dragStart);
+            document.addEventListener("mousemove", drag);
+            document.addEventListener("mouseup", dragEnd);
+
+            function dragStart(e) {
+                if (e.target === header) {
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startLeft = outerWindow.offsetLeft;
+                    startTop = outerWindow.offsetTop;
+                    outerWindow.style.transition = 'none';
+                }
+            }
+
+            let dragRAF;
+            function drag(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                cancelAnimationFrame(dragRAF);
+                dragRAF = requestAnimationFrame(() => {
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    outerWindow.style.left = `${startLeft + dx}px`;
+                    outerWindow.style.top = `${startTop + dy}px`;
+                });
+            }
+
+            function dragEnd() {
+                isDragging = false;
+                outerWindow.style.transition = '';
+            }
+
+            // Vertical resizing functionality
+            let isResizerDragging = false;
+            let startResizerY, startTopHeight;
+
+            resizer.addEventListener('mousedown', initResize);
+            document.addEventListener('mousemove', resize);
+            document.addEventListener('mouseup', stopResize);
+
+            function initResize(e) {
+                e.preventDefault();
+                isResizerDragging = true;
+                startResizerY = e.clientY;
+                startTopHeight = resizer.previousElementSibling.offsetHeight;
+                document.body.classList.add('resizing');
+            }
+
+            let resizeRAF;
+            function resize(e) {
+                if (!isResizerDragging) return;
+
+                cancelAnimationFrame(resizeRAF);
+                resizeRAF = requestAnimationFrame(() => {
+                    const difference = e.clientY - startResizerY;
+                    const newTopHeight = startTopHeight + difference;
+                    const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+
+                    if (newTopHeight > 0 && newTopHeight < containerHeight) {
+                        resizer.previousElementSibling.style.height = `${newTopHeight}px`;
+                        resizer.nextElementSibling.style.height = `${containerHeight - newTopHeight}px`;
+                        descriptionEditor.setSize(null, newTopHeight - 30);
+                        jsonEditor.setSize(null, containerHeight - newTopHeight - 30);
+                    }
+                });
+            }
+
+            function stopResize() {
+                isResizerDragging = false;
+                document.body.classList.remove('resizing');
+                descriptionEditor.refresh();
+                jsonEditor.refresh();
+            }
+
+            // Use ResizeObserver for efficient window resizing
+            new ResizeObserver(() => {
+                requestAnimationFrame(adjustEditors);
+            }).observe(outerWindow);
+        }
+
+        function separateContent(content) {
+            try {
+                var parsedContent = JSON.parse(content);
+                var description = parsedContent.description || '';
+                delete parsedContent.description;
+                return {
+                    html: description,
+                    json: JSON.stringify(parsedContent, null, 2)
+                };
+            } catch (e) {
+                console.error('Error separating content:', e);
+                return { html: '', json: content };
+            }
+        }
+
+        $('.edit-template-content').on('click', function () {
+            var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
+            $('#template-editor-overlay').show().addClass('active');
+            $('#template-editor-header span').text('Edit Template: ' + templateName);
+
+            var formData = new FormData();
+            formData.append('action', 'sip_handle_ajax_request');
+            formData.append('action_type', 'template_action');
+            formData.append('template_action', 'edit_template');
+            formData.append('template_name', templateName);
+            formData.append('nonce', sipAjax.nonce);
+
+            $.ajax({
+                url: sipAjax.ajax_url,
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        var content = response.data.template_content;
+
+                        // Initialize editors with content
+                        if (!descriptionEditor || !jsonEditor) {
+                            initializeEditors(content);
+                        } else {
+                            // If editors already exist, update their content
+                            var separatedContent = separateContent(content);
+                            descriptionEditor.setValue(separatedContent.html);
+                            jsonEditor.setValue(separatedContent.json);
+
+                            // Force refresh after updating content
+                            setTimeout(() => {
+                                descriptionEditor.refresh();
+                                jsonEditor.refresh();
+                            }, 0);
+                        }
+                    } else {
+                        alert('Error: ' + response.data);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('AJAX Error: ' + error);
+                }
+            });
+        });
+
+        $('#template-editor-close').on('click', function() {
+            $('#template-editor-overlay').removeClass('active').one('transitionend', function() {
+                $(this).hide();
+            });
+        });
+    
+
+        $('#template-editor-save').on('click', function() {
+            var templateName = $('#template-editor-header span').text().replace('Edit Template: ', '');
+            var descriptionContent = descriptionEditor.getValue();
+            var jsonContent = jsonEditor.getValue();
+
+            try {
+                var parsedJson = JSON.parse(jsonContent);
+                parsedJson.description = descriptionContent;
+                var finalContent = JSON.stringify(parsedJson);
+
+                var formData = new FormData();
+                formData.append('action', 'sip_handle_ajax_request');
+                formData.append('action_type', 'save_template');
+                formData.append('template_name', templateName);
+                formData.append('template_content', finalContent);
+                formData.append('nonce', sipAjax.nonce);
+
+                $.ajax({
+                    url: sipAjax.ajax_url,
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Template saved successfully.');
+                            $('#template-editor-overlay').removeClass('active').one('transitionend', function() {
+                                $(this).hide();
+                            });
+                        } else {
+                            alert('Error: ' + response.data);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        alert('AJAX Error: ' + error);
+                    }
+                });
+            } catch (e) {
+                console.error('Error re-integrating content:', e);
+                alert('There was an error saving your template. Please check your JSON syntax.');
+            }
+        });
+    }
+
+    // Expose the init function
+    return {
+        init: init
+    };
+})(jQuery);
+
+
+---------------------------------old template-functions.php file-------------------------------
+
+<?php
+
+/**
+ * Save a product template to the custom directory.
+ *
+ * This function saves the given product data as a JSON file in the custom templates directory.
+ * If the directory does not exist, it will be created. The function also handles duplicate file names.
+ *
+ * @param array $product The product data to save as a template.
+ * @param string $template_name The name of the template.
+ */
+
+// Include the creation functions file
+require_once plugin_dir_path(__FILE__) . 'creation-functions.php';
+
+function sip_save_template($product, $template_name) {
+    // Get the WordPress upload directory
+    $upload_dir = wp_upload_dir();
+    $template_dir = $upload_dir['basedir'] . '/sip-printify-manager/templates/';
+
+    // Create directory if it doesn't exist
+    if (!file_exists($template_dir)) {
+        if (!wp_mkdir_p($template_dir)) {
+            error_log('Failed to create template directory at: ' . $template_dir);
+            return;
+        }
+        error_log('Created template directory at: ' . $template_dir);
+    }
+
+    // Format template name and handle duplicates
+    $base_name = sanitize_file_name(strtolower(str_replace(' ', '_', $template_name))) . '_template';
+    $file_path = $template_dir . $base_name . '.json';
+
+    $counter = 1;
+    while (file_exists($file_path)) {
+        $file_path = $template_dir . $base_name . '_' . str_pad($counter, 2, '0', STR_PAD_LEFT) . '.json';
+        $counter++;
+    }
+
+    // Save template as JSON
+    if (file_put_contents($file_path, json_encode($product, JSON_PRETTY_PRINT))) {
+        error_log("Template saved successfully at: $file_path");
+    } else {
+        error_log("Failed to save template at: $file_path");
+    }
+}
+
+/**
+ * Load all available templates from the custom directory.
+ *
+ * This function scans the templates directory and returns an array of template names.
+ *
+ * @return array List of template names.
+ */
+function sip_load_templates() {
+    // Get the WordPress upload directory
+    $upload_dir = wp_upload_dir();
+    $template_dir = $upload_dir['basedir'] . '/sip-printify-manager/templates/';
+
+    $templates = array();
+    if (file_exists($template_dir)) {
+        $files = glob($template_dir . '*.json');
+        foreach ($files as $file) {
+            $templates[] = basename($file, '.json');
+        }
+    }
+
+    error_log('Loaded templates: ' . print_r($templates, true));
+    return $templates;
+}
+
+/**
+ * Get the template directory path.
+ *
+ * This function returns the full path to the template directory.
+ *
+ * @return string The path to the template directory.
+ */
+function sip_get_template_dir() {
+    $upload_dir = wp_upload_dir();
+    $template_dir = $upload_dir['basedir'] . '/sip-printify-manager/templates/';
+    return $template_dir;
+}
+
+/**
+ * Display the list of templates in the WordPress admin interface.
+ *
+ * This function outputs the list of templates as a table with a sticky header.
+ * The header includes a select-all checkbox and a label "Template Name".
+ *
+ * @param array $templates List of template names to display.
+ */
+function sip_display_template_list($templates) {
+    if (empty($templates)) {
+        echo '<p>No templates found.</p>';
+    } else {
+        echo '<div style="max-height: 250px; overflow-y: auto;">'; // Contain the scroll within this div
+        echo '<table style="width: 100%; border-collapse: collapse; table-layout: fixed;">';
+
+        // Define column widths to prevent horizontal scrollbar
+        echo '<colgroup>';
+        echo '<col style="width: 8%;">';   // Select checkbox
+        echo '<col style="width: 76%;">';  // Template Name
+        echo '<col style="width: 8%;">';   // Actions (pencil icon)
+        echo '<col style="width: 8%;">';  // Edit (edit doc icon)
+        echo '</colgroup>';
+
+        // Table Header
+        echo '<thead>';
+        echo '<tr>';
+        echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: center; padding: 2px;"><input type="checkbox" id="select-all-templates"></th>';
+        echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2; text-align: left; padding: 2px;">Template Name</th>';
+        echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2;"></th>';
+        echo '<th style="position: sticky; top: 0; background-color: #fff; z-index: 2;"></th>';
+        echo '</tr>';
+        echo '</thead>';
+
+        // Table Body
+        echo '<tbody>';
+        foreach ($templates as $template) {
+            echo '<tr>';
+            echo '<td style="text-align: center; padding: 2px;">';
+            echo '<input type="checkbox" name="selected_templates[]" value="' . esc_attr($template) . '" />';
+            echo '<td class="template-name-cell" style="text-align: left; padding: 2px;" data-template-name="' . esc_attr($template) . '">' . esc_html($template) . '</td>';
+            echo '<td style="text-align: center; padding: 2px;">';
+            echo '<span class="rename-template" style="cursor: pointer;" title="Rename Template"><i class="dashicons dashicons-edit"></i></span>';
+            echo '</td>';
+            echo '<td style="text-align: center; padding: 2px;">';
+            echo '<span class="edit-template-content" style="cursor: pointer;" title="Edit Template"><i class="dashicons dashicons-edit-page"></i></span>';
+            echo '</td>';
+            echo '</tr>';
+        }
+        echo '</tbody>';
+
+        echo '</table>';
+        echo '</div>';
+    }
+}
+
+/**
+ * Delete a specific template by name.
+ *
+ * This function deletes the specified template file from the template directory.
+ *
+ * @param string $template_name The name of the template to delete.
+ * @return bool True on success, false on failure.
+ */
+function sip_delete_template($template_name) {
+    $template_dir = sip_get_template_dir();
+    $file_path = $template_dir . $template_name . '.json';
+
+    error_log("Attempting to delete template file: $file_path");
+
+    if (file_exists($file_path)) {
+        if (unlink($file_path)) {
+            error_log("Template $template_name deleted successfully.");
+            return true;
+        } else {
+            error_log("Failed to delete template $template_name. Check file permissions.");
+            return false;
+        }
+    } else {
+        error_log("Template file not found: $file_path");
+        return false;
+    }
+}
+
+/**
+ * Rename a specific template.
+ *
+ * This function renames the specified template file in the template directory.
+ *
+ * @param string $old_name The current name of the template.
+ * @param string $new_name The new name to assign to the template.
+ * @return bool True on success, false on failure.
+ */
+
+ function sip_rename_template($old_name, $new_name) {
+    $template_dir = sip_get_template_dir();
+    $old_file = $template_dir . $old_name . '.json';
+    $new_file = $template_dir . $new_name . '.json';
+
+    if (!file_exists($old_file)) {
+        return false;
+    }
+
+    return rename($old_file, $new_file);
+}
+
+/**
+ * Handle template actions triggered via AJAX.
+ *
+ * This function handles actions like deleting, editing, renaming templates, and creating new products from templates based on AJAX requests.
+ */
+function sip_handle_template_action() {
+    $template_action = isset($_POST['template_action']) ? sanitize_text_field($_POST['template_action']) : '';
+
+    switch ($template_action) {
+        case 'delete_template':
+            $selected_templates = isset($_POST['selected_templates']) ? $_POST['selected_templates'] : array();
+            foreach ($selected_templates as $templateId) {
+                sip_delete_template(sanitize_text_field($templateId));
+            }
+
+            // Start output buffering to capture the template list HTML
+            ob_start();
+            $templates = sip_load_templates();
+            sip_display_template_list($templates);
+            $template_list_html = ob_get_clean();
+
+            // Send a JSON response back to the AJAX call with the updated HTML content
+            wp_send_json_success(array('template_list_html' => $template_list_html));
+            break;
+
+        case 'rename_template':
+            $old_template_name = isset($_POST['old_template_name']) ? sanitize_text_field($_POST['old_template_name']) : '';
+            $new_template_name = isset($_POST['new_template_name']) ? sanitize_text_field($_POST['new_template_name']) : '';
+
+            if (!empty($old_template_name) && !empty($new_template_name)) {
+                $old_file_path = sip_get_template_dir() . $old_template_name . '.json';
+                $new_file_path = sip_get_template_dir() . $new_template_name . '.json';
+
+                if (file_exists($old_file_path)) {
+                    // Rename the template file
+                    if (rename($old_file_path, $new_file_path)) {
+                        wp_send_json_success(array(
+                            'old_template_name' => $old_template_name,
+                            'new_template_name' => $new_template_name
+                        ));
+                    } else {
+                        wp_send_json_error('Error renaming the template file.');
+                    }
+                } else {
+                    wp_send_json_error('Old template file not found.');
+                }
+            } else {
+                wp_send_json_error('Template names cannot be empty.');
+            }
+            break;
+
+        case 'edit_template':
+            // Extract the template name directly from the POST data
+            $template_name = isset($_POST['template_name']) ? sanitize_text_field($_POST['template_name']) : '';
+
+            if (!empty($template_name)) {
+                $file_path = sip_get_template_dir() . $template_name . '.json';
+
+                // Check if the template file exists
+                if (file_exists($file_path)) {
+                    // Get the content of the template file
+                    $template_content = file_get_contents($file_path);
+                    // Send the template content back to the AJAX call
+                    wp_send_json_success(array(
+                        'template_content' => $template_content,
+                        'template_name'    => $template_name
+                    ));
+                } else {
+                    // Send an error if the file is not found
+                    wp_send_json_error('Template file not found.');
+                }
+            } else {
+                // Send an error if no template name is provided
+                wp_send_json_error('No template name provided.');
+            }
+            break;
+
+        case 'create_new_products':
+            // Handle creating new products from template
+            sip_create_new_product_from_template();
+            break;
+
+        default:
+            wp_send_json_error('Unknown template action.');
+            break;
+    }
+}
+
+
+/**
+ * Save the edited template content from the template editor.
+ *
+ * This function saves the edited template content back to the JSON file.
+ */
+function sip_save_template_content() {
+    check_ajax_referer('sip_printify_manager_nonce', '_ajax_nonce');
+
+    $template_name    = sanitize_text_field($_POST['template_name']);
+    $template_content = wp_unslash($_POST['template_content']);
+    $file_path        = sip_get_template_dir() . $template_name . '.json';
+
+    if (file_exists($file_path)) {
+        if (file_put_contents($file_path, $template_content)) {
+            wp_send_json_success('Template saved successfully.');
+        } else {
+            wp_send_json_error('Failed to save template.');
+        }
+    } else {
+        wp_send_json_error('Template file not found.');
+    }
+}

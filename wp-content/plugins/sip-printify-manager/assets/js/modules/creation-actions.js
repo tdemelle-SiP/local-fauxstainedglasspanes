@@ -66,14 +66,14 @@ sip.creationActions = (function($, ajax, utilities) {
                 case 'get_loaded_template':
                     handleGetLoadedTemplateSuccess(response.data);
                     break;
-                case 'update_new_product':
-                    handleUpdateNewProductSuccess(response.data);
+                case 'update_wip':
+                    handleUpdateWipSuccess(response.data);
                     break;
                 case 'create_product':
                     handleCreateProductSuccess(response.data);
                     break;
-                case 'set_loaded_template':
-                    handleSetLoadedTemplateSuccess(response.data);
+                case 'save_loaded_template':
+                    handleSaveLoadedTemplateSuccess(response.data);
                     break;
                 case 'save_template':
                     handleSaveTemplateSuccess(response.data);
@@ -106,7 +106,7 @@ sip.creationActions = (function($, ajax, utilities) {
         }
     }
 
-    function handleUpdateNewProductSuccess(data) {
+    function handleUpdateWipSuccess(data) {
         console.log('Product data updated successfully');
         isDirty = false;
     }
@@ -117,7 +117,7 @@ sip.creationActions = (function($, ajax, utilities) {
         // You might want to reset the form or redirect the user
     }
 
-    function handleSetLoadedTemplateSuccess(data) {
+    function handleSaveLoadedTemplateSuccess(data) {
         console.log('Template data saved successfully');
     }
 
@@ -212,7 +212,7 @@ sip.creationActions = (function($, ajax, utilities) {
         const formData = new FormData();
         formData.append('action', 'sip_handle_ajax_request');
         formData.append('action_type', 'creation_action');
-        formData.append('creation_action', 'update_new_product');
+        formData.append('creation_action', 'update_wip');
         formData.append('key', key);
         formData.append('value', newValue);
         formData.append('template_name', selectedTemplateId);
