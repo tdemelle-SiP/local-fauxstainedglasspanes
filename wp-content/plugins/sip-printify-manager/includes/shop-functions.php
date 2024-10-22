@@ -68,6 +68,7 @@ function sip_new_shop() {
  */
 function sip_clear_shop() {
     error_log('SiP Printify Manager: Clearing shop data');
+    delete_option('sip_loaded_template');
     delete_option('printify_bearer_token');
     delete_option('sip_printify_shop_name');
     delete_option('sip_printify_shop_id');

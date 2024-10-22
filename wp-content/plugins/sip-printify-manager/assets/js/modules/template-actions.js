@@ -6,6 +6,12 @@ sip.templateActions = (function($, ajax, utilities) {
 
     function init() {
         attachEventListeners();
+        
+        // Restore template highlight
+        const activeTemplate = localStorage.getItem('activeTemplate');
+        if (activeTemplate) {
+            $(`tr[data-template-id="${activeTemplate}"]`).addClass('wip');
+        }
     }
 
     function attachEventListeners() {
@@ -319,40 +325,32 @@ sip.templateActions = (function($, ajax, utilities) {
 
     ///////////////////////////BUILD TABLE CONTENT////////////////////////////////////////////
     function buildTableContent(table, templateData) {
-        console.log('Entering buildTableContent function');
+        console.log('Building table content');
         
         const thead = table.find('thead');
         const tbody = table.find('tbody');
     
-        // Clear existing content
         thead.empty();
         tbody.empty();
     
         try {
-            // Build table headers
             const headers = buildHeaders(templateData);
             thead.append(headers);
     
-            // Process template data to get unique variants
             const uniqueVariants = processTemplateData(templateData);
-    
-            // Build rows
             const rows = buildTableRows(uniqueVariants, templateData);
-          
             tbody.append(rows);
             
-            // Call helper functions with error handling
+            // Just call hideVariantRowsInitially - no need to rebind event
+            hideVariantRowsInitially();
+            
             if (typeof updateVariantHeaderCounts === 'function') updateVariantHeaderCounts();
             if (typeof collectVariantColors === 'function') collectVariantColors();
-            if (typeof hideVariantRowsInitially === 'function') hideVariantRowsInitially();
             if (typeof collectVariantSizes === 'function') collectVariantSizes(templateData);
             if (typeof collectVariantPrices === 'function') collectVariantPrices();
         } catch (error) {
             console.error('Error in buildTableContent:', error.message);
-            // You might want to display this error to the user or handle it in some other way
         }
-        
-        console.log('Exiting buildTableContent function');
     }
 
     function updateVariantHeaderCounts() {
@@ -401,10 +399,11 @@ sip.templateActions = (function($, ajax, utilities) {
         });
     }
     
+
     function hideVariantRowsInitially() {
-        $('.variant-row').hide();  // Hide variant rows initially
-        $('.toggle-variant-rows').text('+');  // Set the initial state of the toggle to collapsed
-        console.log('Variant rows in Product Creation Table collapsed');
+        $('.variant-row').hide();
+        $('.toggle-variant-rows').text('+');
+        console.log('Variant rows initially hidden');
     }
 
     //////////////////////////////IMAGES/////////////////////////////////
@@ -616,32 +615,10 @@ sip.templateActions = (function($, ajax, utilities) {
         return strippedText.length > maxLength ? strippedText.substring(0, maxLength) + '...' : strippedText;
     }
 
-    function updateOtherSummaryColumns() {
-        // Update other summary columns (sizes, tags, description, etc.) if needed
-        // This function can be implemented based on your specific requirements
-    }
-
-    // Add this new function to handle the toggle functionality
-    function attachToggleEventListener() {
-        $('.toggle-variant-rows').on('click', function() {
-            const $this = $(this);
-            const $variantRows = $this.closest('tr').nextAll('.variant-row');
-            
-            if ($this.text() === '+') {
-                $variantRows.show();
-                $this.text('-');
-            } else {
-                $variantRows.hide();
-                $this.text('+');
-            }
-        });
-    }
-
     return {
         init: init,
-        attachToggleEventListeners: attachToggleEventListener,
         handleSuccessResponse: handleSuccessResponse,
-        populateCreationTable: populateCreationTable,
+        populateCreationTable: populateCreationTable
     };
 
 })(jQuery, sip.ajax, sip.utilities);

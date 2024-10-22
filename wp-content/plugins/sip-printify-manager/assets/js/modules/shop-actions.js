@@ -64,6 +64,7 @@ sip.shopActions = (function($, ajax, utilities) {
                     break;
     
                 case 'clear_shop':
+                    window.lastSelectedTemplate = null;
                     console.log('Shop has been cleared successfully');
                     location.reload();  // Reload for clear_shop
                     break;
