@@ -30,7 +30,11 @@ sip.creationActions = (function($, ajax, utilities) {
         $('#creation-table').on('click', '.editable', handleCellEdit);
         $('#creation-table').on('click', '.edit-button', handleDescriptionEdit);
         $('#close-template').on('click', closeTemplate);
-
+    
+        // $('#creation-table').on('input', 'input, textarea', function() {
+        //     isDirty = true;
+        // });
+    
         // Bind the toggle function to the variant header row toggle button
         $('#creation-table').on('click', '.toggle-variant-rows', function() {
             toggleVariantRows.call(this);
