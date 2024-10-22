@@ -339,6 +339,7 @@ sip.templateEditor = (function($, ajax, utilities) {
     // Expose the init function
     return {
         init: init,
+        initializeTemplateEditor: initializeTemplateEditor
     };
 })(jQuery, sip.ajax, sip.utilities);
 

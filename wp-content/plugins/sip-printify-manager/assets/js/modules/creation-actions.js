@@ -89,6 +89,10 @@ sip.creationActions = (function($, ajax, utilities) {
                     console.log('***hidespinner called. Template closed successfully');
                     sip.utilities.hideSpinner();
                     break;
+                case 'edit_json':
+                    handleEditJsonSuccess(response.data);
+                    break
+
                 default:
                     console.warn('Unhandled creation action type:', response.data.action);
             }
@@ -111,7 +115,13 @@ sip.creationActions = (function($, ajax, utilities) {
         }
     }
 
-    function handleSetLoadedTemplateSuccess(data) {
+    function handleEditJsonSuccess(data) {
+        console.log('Initializing editors with template data:', data.template_data);
+        sip.templateEditor.initializeTemplateEditor(data.template_data);
+        utilities.hideSpinner();
+    }
+
+    function handleSaveLoadedTemplateSuccess(data) {
         console.log('Template data saved successfully');
     }
 
