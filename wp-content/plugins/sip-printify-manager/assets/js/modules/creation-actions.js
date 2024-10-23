@@ -165,6 +165,33 @@ function handleEditJsonSuccess(data) {
             foldOptions: {}
         });
 
+        // Add toggle view functionality
+        const toggleButton = document.getElementById('template-editor-toggle-view');
+        const renderedHtml = document.getElementById('template-editor-rendered-html');
+        const topEditorContainer = document.getElementById('template-editor-top-editor');
+        
+        let isRendered = false;
+        toggleButton.addEventListener('click', () => {
+            isRendered = !isRendered;
+            if (isRendered) {
+                renderedHtml.innerHTML = sip.templateEditor.descriptionEditor.getValue();
+                renderedHtml.style.display = 'block';
+                topEditorContainer.style.display = 'none';
+                toggleButton.textContent = 'View Code';
+            } else {
+                renderedHtml.style.display = 'none';
+                topEditorContainer.style.display = 'block';
+                toggleButton.textContent = 'View Rendered';
+                requestAnimationFrame(() => {
+                    sip.templateEditor.descriptionEditor.refresh();
+                });
+            }
+        });
+
+        // Set initial states
+        renderedHtml.style.display = 'none';
+        toggleButton.textContent = 'View Rendered';
+
         // Set initial sizes for editors
         sip.templateEditor.descriptionEditor.setSize(null, halfHeight - 30);
         sip.templateEditor.jsonEditor.setSize(null, halfHeight - 30);
