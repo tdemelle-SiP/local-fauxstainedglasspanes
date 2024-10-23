@@ -166,25 +166,25 @@ sip.templateEditor = (function($, ajax, utilities) {
         });
     }
 
-    /**
-     * Separate the template content into HTML and JSON parts
-     * @param {string} content - The full template content
-     * @return {Object} An object containing separated html and json content
-     */
-    function separateContent(content) {
-        try {
-            var parsedContent = JSON.parse(content);
-            var description = parsedContent.description || '';
-            delete parsedContent.description;
-            return {
-                html: description,
-                json: JSON.stringify(parsedContent, null, 2)
-            };
-        } catch (e) {
-            console.error('Error separating content:', e);
-            return { html: '', json: content };
-        }
-    }
+    // /**
+    //  * Separate the template content into HTML and JSON parts
+    //  * @param {string} content - The full template content
+    //  * @return {Object} An object containing separated html and json content
+    //  */
+    // function separateContent(content) {
+    //     try {
+    //         var parsedContent = JSON.parse(content);
+    //         var description = parsedContent.description || '';
+    //         delete parsedContent.description;
+    //         return {
+    //             html: description,
+    //             json: JSON.stringify(parsedContent, null, 2)
+    //         };
+    //     } catch (e) {
+    //         console.error('Error separating content:', e);
+    //         return { html: '', json: content };
+    //     }
+    // }
 
     /**
      * Set up resize functionality for the editor window

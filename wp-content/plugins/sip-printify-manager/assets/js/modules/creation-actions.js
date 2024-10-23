@@ -117,9 +117,211 @@ sip.creationActions = (function($, ajax, utilities) {
 
     function handleEditJsonSuccess(data) {
         console.log('Initializing editors with template data:', data.template_data);
-        sip.templateEditor.initializeTemplateEditor(data.template_data);
+        
+        const outerWindow = document.getElementById('template-editor-outer-window');
+        const header = document.getElementById('template-editor-header');
+        const resizer = document.getElementById('template-editor-resizer');
+        
+        // Initialize editors with equal heights
+        const totalHeight = outerWindow.clientHeight - header.clientHeight - resizer.clientHeight;
+        const halfHeight = totalHeight / 2;
+        
+        // Initialize editors with content
+        if (!sip.templateEditor.descriptionEditor || !sip.templateEditor.jsonEditor) {
+            const content = data.template_data;
+            const separatedContent = separateContent(content);
+            
+            // Initialize description editor
+            sip.templateEditor.descriptionEditor = wp.CodeMirror(document.getElementById('template-editor-top-editor'), {
+                mode: 'htmlmixed',
+                lineNumbers: true,
+                lineWrapping: true,
+                dragDrop: false,
+                viewportMargin: Infinity,
+                value: separatedContent.html,
+                foldGutter: true,
+                gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+            });
+    
+            // Initialize JSON editor
+            sip.templateEditor.jsonEditor = wp.CodeMirror(document.getElementById('template-editor-bottom-editor'), {
+                mode: 'application/json',
+                lineNumbers: true,
+                lineWrapping: true,
+                dragDrop: false,
+                viewportMargin: Infinity,
+                value: separatedContent.json,
+                foldGutter: true,
+                gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+                extraKeys: {
+                    "Ctrl-Q": function(cm) {
+                        cm.foldCode(cm.getCursor());
+                    }
+                },
+                foldOptions: {}
+            });
+    
+            // Set initial sizes for editors
+            sip.templateEditor.descriptionEditor.setSize(null, halfHeight - 30);
+            sip.templateEditor.jsonEditor.setSize(null, halfHeight - 30);
+    
+            // Set up resize functionality
+            setupResizeFunctionality(outerWindow, header, resizer, sip.templateEditor.descriptionEditor, sip.templateEditor.jsonEditor);
+            setupDragging(header, outerWindow);
+        } else {
+            // If editors already exist, update their content
+            const separatedContent = separateContent(data.template_data);
+            sip.templateEditor.descriptionEditor.setValue(separatedContent.html);
+            sip.templateEditor.jsonEditor.setValue(separatedContent.json);
+    
+            // Force refresh after updating content
+            setTimeout(() => {
+                sip.templateEditor.descriptionEditor.refresh();
+                sip.templateEditor.jsonEditor.refresh();
+            }, 0);
+        }
         utilities.hideSpinner();
     }
+
+    // Add the separateContent function if it's not already there
+    function separateContent(content) {
+        try {
+            var parsedContent = JSON.parse(JSON.stringify(content)); // Make a copy of the object
+            var description = parsedContent.description || '';
+            delete parsedContent.description;
+            return {
+                html: description,
+                json: JSON.stringify(parsedContent, null, 2)
+            };
+        } catch (e) {
+            console.error('Error separating content:', e);
+            return { html: '', json: JSON.stringify(content) };
+        }
+    }
+
+    function setupResizeFunctionality(outerWindow, header, resizer, descriptionEditor, jsonEditor) {
+        // Function to adjust modal size and position
+        function adjustModalSize() {
+            requestAnimationFrame(() => {
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                const modalWidth = windowWidth * 0.8;
+                const modalHeight = windowHeight * 0.8;
+    
+                outerWindow.style.width = `${modalWidth}px`;
+                outerWindow.style.height = `${modalHeight}px`;
+                outerWindow.style.left = `${(windowWidth - modalWidth) / 2}px`;
+                outerWindow.style.top = `${(windowHeight - modalHeight) / 2}px`;
+    
+                adjustEditors();
+            });
+        }
+    
+        function adjustEditors() {
+            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+            const halfHeight = containerHeight / 2;
+        
+            // Set the heights of the container elements
+            resizer.previousElementSibling.style.height = `${halfHeight}px`;
+            resizer.nextElementSibling.style.height = `${halfHeight}px`;
+        
+            descriptionEditor.setSize(null, halfHeight - 30);
+            jsonEditor.setSize(null, halfHeight - 30);
+        
+            descriptionEditor.refresh();
+            jsonEditor.refresh();
+        }
+    
+        // Initial adjustment and window resize listener
+        adjustModalSize();
+        window.addEventListener('resize', adjustModalSize);
+    
+        // Vertical resizing functionality
+        let isResizerDragging = false;
+        let startResizerY, startTopHeight;
+    
+        resizer.addEventListener('mousedown', initResize);
+        document.addEventListener('mousemove', resize);
+        document.addEventListener('mouseup', stopResize);
+    
+        function initResize(e) {
+            e.preventDefault();
+            isResizerDragging = true;
+            startResizerY = e.clientY;
+            startTopHeight = resizer.previousElementSibling.offsetHeight;
+            document.body.classList.add('resizing');
+        }
+    
+        let resizeRAF;
+        function resize(e) {
+            if (!isResizerDragging) return;
+    
+            cancelAnimationFrame(resizeRAF);
+            resizeRAF = requestAnimationFrame(() => {
+                const difference = e.clientY - startResizerY;
+                const newTopHeight = startTopHeight + difference;
+                const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+    
+                if (newTopHeight > 0 && newTopHeight < containerHeight) {
+                    resizer.previousElementSibling.style.height = `${newTopHeight}px`;
+                    resizer.nextElementSibling.style.height = `${containerHeight - newTopHeight}px`;
+                    descriptionEditor.setSize(null, newTopHeight - 30);
+                    jsonEditor.setSize(null, containerHeight - newTopHeight - 30);
+                }
+            });
+        }
+    
+        function stopResize() {
+            isResizerDragging = false;
+            document.body.classList.remove('resizing');
+            descriptionEditor.refresh();
+            jsonEditor.refresh();
+        }
+    
+        // Use ResizeObserver for efficient window resizing
+        new ResizeObserver(() => {
+            requestAnimationFrame(adjustEditors);
+        }).observe(outerWindow);
+    }
+
+    function setupDragging(header, outerWindow) {
+        let isDragging = false;
+        let startX, startY, startLeft, startTop;
+    
+        header.addEventListener("mousedown", dragStart);
+        document.addEventListener("mousemove", drag);
+        document.addEventListener("mouseup", dragEnd);
+    
+        function dragStart(e) {
+            if (e.target === header) {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = outerWindow.offsetLeft;
+                startTop = outerWindow.offsetTop;
+                outerWindow.style.transition = 'none';
+            }
+        }
+    
+        let dragRAF;
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            cancelAnimationFrame(dragRAF);
+            dragRAF = requestAnimationFrame(() => {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                outerWindow.style.left = `${startLeft + dx}px`;
+                outerWindow.style.top = `${startTop + dy}px`;
+            });
+        }
+    
+        function dragEnd() {
+            isDragging = false;
+            outerWindow.style.transition = '';
+        }
+    }
+
 
     function handleSaveLoadedTemplateSuccess(data) {
         console.log('Template data saved successfully');
