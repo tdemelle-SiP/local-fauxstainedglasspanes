@@ -5,6 +5,40 @@ var sip = sip || {};
 sip.templateEditor = (function($, ajax, utilities) {
     // Global variables for CodeMirror editors
     let descriptionEditor, jsonEditor;
+    let jsonEditorHasChanges = false;
+
+//updated save and close actions to integrate
+    // // JSON Editor handlers
+    // function handleJsonEditorSave() {
+    //     const formData = new FormData();
+    //     formData.append('action', 'sip_handle_ajax_request');
+    //     formData.append('action_type', 'creation_action');
+    //     formData.append('creation_action', 'save_json_editor_changes');
+    //     formData.append('template_name', currentTemplateId);
+    //     formData.append('template_data', sip.templateEditor.jsonEditor.getValue());
+    //     formData.append('nonce', sipAjax.nonce);
+        
+    //     sip.ajax.handleAjaxAction('creation_action', formData);
+    // }
+
+    // function handleJsonEditorClose() {
+    //     if (jsonEditorHasChanges) {
+    //         const shouldSave = confirm('You have unsaved changes in the JSON editor. Would you like to save before closing?');
+    //         if (shouldSave) {
+    //             handleJsonEditorSave();
+    //         }
+    //     }
+
+    //     const formData = new FormData();
+    //     formData.append('action', 'sip_handle_ajax_request');
+    //     formData.append('action_type', 'creation_action');
+    //     formData.append('creation_action', 'close_json_editor');
+    //     formData.append('nonce', sipAjax.nonce);
+        
+    //     sip.ajax.handleAjaxAction('creation_action', formData);
+    // }
+
+
 
     /**
      * Initialize the template editor functionality

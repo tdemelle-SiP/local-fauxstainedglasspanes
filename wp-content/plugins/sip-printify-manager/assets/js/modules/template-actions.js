@@ -140,20 +140,8 @@ sip.templateActions = (function($, ajax, utilities) {
         $('#product-creation-container').show();
         $('#no-template-message').hide();
         $('#creation-table').show();
-
-        saveLoadedTemplate(templateData);
     }
 
-    function saveLoadedTemplate(templateData) {
-        // console.log('Saving loaded template:', templateData);
-        var formData = new FormData();
-        formData.append('action', 'sip_handle_ajax_request');
-        formData.append('action_type', 'creation_action');
-        formData.append('creation_action', 'save_loaded_template');
-        formData.append('template_data', JSON.stringify(templateData));
-        formData.append('nonce', sipAjax.nonce);
-        sip.ajax.handleAjaxAction('creation_action', formData);
-    }
     ///////////////////////////PROCESS TEMPLATE DATA//////////////////////////////////////
     function processTemplateData(templateData) {
         const uniqueVariants = [];

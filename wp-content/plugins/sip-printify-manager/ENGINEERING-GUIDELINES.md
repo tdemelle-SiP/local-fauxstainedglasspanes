@@ -1,3 +1,152 @@
+
+
+-------------------------------------------Notes to be incorporated-------------------------------------------------
+the scheme for modularizing the code is based on the idea that code should be associated with the interface where its called.
+
+For this reason, the create template function is in the products files not the template files because the create template action is executed in the product table.  The template actions that are executed on the created template files are then handled in the template files because they are executed from the template table.  Similarly, the Product Creation Table initialization is handled in the template files not the creation files because the create_new_products action is executed from the templates table.  The actions that are then executed within the Product Creation Table are handled in the creation files.
+
+I was thinking this same principle would apply in the case of the template json editor so that the initialization and creation of the json editor would be handled in the creation files because the edit json button is in the Product Creation Table interface, but then, once opened, the interaction with the json editor would take place in the templateEditor files.  That would mean that the save_json_editor_changes and the close_json_editor changes would be handled in the templateEditor files, not the creation files.
+
+For now, I want to focus on the saving loading and closing just in the Product Creation Table and worry about the actions in the json editor later.
+
+------------------------------------------------js file standards----------------------------------------------------
+// moduleTemplate.js
+
+/**
+ * Standard JavaScript Module Template
+ * 
+ * Structure:
+ * 1. Namespace declaration
+ * 2. Module definition (IIFE)
+ * 3. Private variables/state
+ * 4. Initialization functions
+ * 5. Event handlers
+ * 6. AJAX success handlers
+ * 7. Utility functions
+ * 8. Public interface
+ * 9. AJAX registration
+ */
+
+var sip = sip || {};
+
+sip.moduleTemplate = (function($, ajax, utilities) {
+    // Private variables - kept to minimum, clearly named
+    let selectedId = null;
+    let isDirty = false;
+
+    /**
+     * Initialize the module
+     * @param {Object} [config] Optional configuration object
+     */
+    function init(config) {
+        // Always call attachEventListeners in init
+        attachEventListeners();
+        
+        // Handle any initialization logic
+        if (config) {
+            initializeWithConfig(config);
+        }
+    }
+
+    /**
+     * Attach all event listeners for the module
+     */
+    function attachEventListeners() {
+        // Group related events together
+        // Use jQuery delegation for dynamic elements
+        $('#module-form').on('submit', handleFormSubmit);
+        
+        // Use consistent event binding pattern
+        $('#module-table')
+            .on('click', '.editable', handleEdit)
+            .on('click', '.delete-button', handleDelete);
+    }
+
+    /**
+     * Handle form submission
+     * @param {Event} e The submit event
+     */
+    function handleFormSubmit(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Standard FormData handling pattern
+        const formData = new FormData(e.target);
+        formData.append('action', 'sip_handle_ajax_request');
+        formData.append('action_type', 'module_action');
+        formData.append('module_action', formData.get('action_type'));
+        formData.append('nonce', sipAjax.nonce);
+
+        sip.ajax.handleAjaxAction('module_action', formData);
+    }
+
+    /**
+     * Handle AJAX success responses
+     * @param {Object} response The AJAX response object
+     */
+    function handleSuccessResponse(response) {
+        if (response.success) {
+            // Use switch for different action types
+            switch(response.data.action) {
+                case 'get_data':
+                    handleGetDataSuccess(response.data);
+                    break;
+                case 'update_data':
+                    handleUpdateDataSuccess(response.data);
+                    break;
+                default:
+                    console.warn('Unhandled action type:', response.data.action);
+            }
+        } else {
+            console.error('Error in AJAX response:', response.data);
+            utilities.showToast('Error: ' + response.data, 5000);
+        }
+    }
+
+    /**
+     * Handle successful data retrieval
+     * @param {Object} data The response data
+     */
+    function handleGetDataSuccess(data) {
+        if (data.html) {
+            $('#module-container').html(data.html);
+        }
+        utilities.hideSpinner();
+    }
+
+    /**
+     * Handle successful data update
+     * @param {Object} data The response data
+     */
+    function handleUpdateDataSuccess(data) {
+        isDirty = false;
+        utilities.showToast('Update successful', 3000);
+    }
+
+    /**
+     * Utility function for common operations
+     * @param {string} value The value to process
+     * @returns {string} The processed value
+     */
+    function utilityFunction(value) {
+        return value.trim().toLowerCase();
+    }
+
+    // Public interface
+    // Only expose what's necessary for external use
+    return {
+        init: init, // Required for initialization from main.js
+        handleSuccessResponse: handleSuccessResponse, // Required for AJAX handling
+        utilityFunction: utilityFunction // Only if needed by other modules
+    };
+
+})(jQuery, sip.ajax, sip.utilities);
+
+// Register AJAX success handler
+sip.ajax.registerSuccessHandler('module_action', sip.moduleTemplate.handleSuccessResponse);
+
+-----------------------------------------------------------------------------------------------------------
+
 # SiP Printify Manager - File Structure and Guidelines
 
 ## 1.1 PHP Files
