@@ -230,6 +230,10 @@ function separateContent(content) {
 }
 
 function setupResizeFunctionality(outerWindow, header, resizer, descriptionEditor, jsonEditor) {
+    let scaleRAF;
+    let lastScaleUpdate = 0;
+    let resizeTimeout; // Single declaration here
+
     // Cache DOM measurements
     let cachedDimensions = {
         headerHeight: header.clientHeight,
@@ -284,17 +288,10 @@ function setupResizeFunctionality(outerWindow, header, resizer, descriptionEdito
         });
     }
 
-    // Throttled window resize handler
-    let resizeTimeout;
     window.addEventListener('resize', () => {
-        if (!resizeTimeout) {
-            resizeTimeout = setTimeout(() => {
-                resizeTimeout = null;
-                cachedDimensions.windowHeight = window.innerHeight;
-                cachedDimensions.windowWidth = window.innerWidth;
-                adjustModalSize();
-            }, 16);
-        }
+        cachedDimensions.windowHeight = window.innerHeight;
+        cachedDimensions.windowWidth = window.innerWidth;
+        adjustModalSize();
     }, { passive: true });
 
     // Initial adjustment
@@ -315,11 +312,26 @@ function setupResizeFunctionality(outerWindow, header, resizer, descriptionEdito
         startResizerY = e.clientY;
         startTopHeight = resizer.previousElementSibling.offsetHeight;
         document.body.classList.add('resizing');
+        
+        // Prevent text selection during resize
+        document.body.style.userSelect = 'none';
+        document.body.style.cursor = 'ns-resize';
+        
+        // Disable CodeMirror scrolling
+        descriptionEditor.setOption('readOnly', true);
+        jsonEditor.setOption('readOnly', true);
     }
 
     let resizeRAF;
     function resize(e) {
         if (!isResizerDragging) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Prevent any scrolling during resize
+        if (e.target.closest('.CodeMirror-scroll')) {
+            e.target.closest('.CodeMirror-scroll').scrollTop = 0;
+        }
 
         // Throttle updates
         const now = Date.now();
@@ -347,19 +359,55 @@ function setupResizeFunctionality(outerWindow, header, resizer, descriptionEdito
         if (!isResizerDragging) return;
         isResizerDragging = false;
         document.body.classList.remove('resizing');
-        debouncedRefresh();
+        
+        // Re-enable text selection and restore cursor
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+        
+        // Re-enable CodeMirror scrolling
+        descriptionEditor.setOption('readOnly', false);
+        jsonEditor.setOption('readOnly', false);
+        
+        // Refresh editors
+        requestAnimationFrame(() => {
+            descriptionEditor.refresh();
+            jsonEditor.refresh();
+        });
     }
 
-    // Efficient resize observation
     const resizeObserver = new ResizeObserver(() => {
-        if (!resizeTimeout) {
-            resizeTimeout = setTimeout(() => {
-                resizeTimeout = null;
-                requestAnimationFrame(adjustEditors);
-            }, 16);
-        }
+        if (isResizerDragging) return; // Don't interfere with manual resizing
+    
+        // Get current position and scale before adjustment
+        const style = window.getComputedStyle(outerWindow);
+        const existingTransform = style.transform;
+        
+        // Perform size adjustments in a single frame
+        requestAnimationFrame(() => {
+            const containerHeight = outerWindow.offsetHeight;
+            const halfHeight = (containerHeight - header.offsetHeight - resizer.offsetHeight) / 2;
+    
+            // Set editor sizes first
+            descriptionEditor.setSize(null, halfHeight - 30);
+            jsonEditor.setSize(null, halfHeight - 30);
+    
+            // Set container heights
+            resizer.previousElementSibling.style.height = `${halfHeight}px`;
+            resizer.nextElementSibling.style.height = `${halfHeight}px`;
+    
+            // Restore transform if it existed
+            if (existingTransform && existingTransform !== 'none') {
+                outerWindow.style.transform = existingTransform;
+            }
+        });
     });
+
     resizeObserver.observe(outerWindow);
+
+    // Clean up previous observer if it exists
+    return () => {
+        resizeObserver.disconnect();
+    };
 }
 
 function setupDragging(header, outerWindow) {
