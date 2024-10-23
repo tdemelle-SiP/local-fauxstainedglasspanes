@@ -1,0 +1,64 @@
+I'd like to update how the close and save buttons are handled in the Product Creation Table.
+
+First, in order to retain the ability to close without saving, when a template is opened in the Product Creatin Table, a copy of that template should be created and loaded into the Product Creation Table that will be updated as edits are made in the Product Creation Table.  This copy should persist through sessions as long as the template is loaded in the Product Creation Table (until it is either closed or a new template is loaded on top of it both of which should trigger the prompt pop up that allows the user to save unsaved changes to the loaded template's permanent json file.
+
+When there are changes to the loaded template that have not been saved to the original loaded template json file, the Save button appearance should be in some 'unsaved changes' state through css color styles to indicate that there are unsaved changes.
+
+The original template json will remain unchanged until the save button is clicked at which time the contents of the copy with the active edits replace the template json and a new copy is made and loaded into the editor for additional changes.  If the close button is pressed, if there are unsaved changes, a window should come up asking if changes should be saved with two buttons, "save changes" or "discard changes".  The changes should be saved or not according to the response.
+
+--------------------------------------------
+
+complicating things a bit further, one of the editing options available in the Product Creation Table is a codemirror editor that can open the json file in a popup editor overlay.  It also has save and close actions. 
+
+I think that the save action in the editor pop up should save to the working template json, not to the permanent template json and the close button would simply close the editor without saving changes at all, although it should have its own pop up prompting to save unsaved changes (which it would save to the working json) when the close button is clicked.  This means that there should be separate actions for the save and close buttons in the json editor overlay.
+
+These should also be named clearly and intuitively.  
+
+I'm still not 100% clear under what circumstances the session based load and save handled by save_loaded_template and get_loaded_template would be needed.  Why couldn't these changes be lumped in with either the working template load and save or the permanent template load and save?
+
+
+Although a bit clunky, I think the naming of the various save, close and laod actions should be something like:
+
+template_working_save //not sure what purpose this serves and under what circumstancees it would be used.
+template_working_load //not sure what purpose this serves and under what circumstancees it would be used.
+
+save_json_editor_template //this could be just template_working_save
+close_json_editor_template //this could be just close_json_editor
+
+save_creation_editor_template
+close_creation_editor_template 
+
+
+--------------------------------------------
+
+I'd like to update the title cell inline editing functionality.  
+	-there should be a small edit icon in the upper right corner of the title cell in the Template Row Type Row.  Template Variant title cells do not have edit icons and are not themselves editable as they are derived from the template title.
+	-  When the edit icon in the template title cell is clicked, the text directly in the cell should become editable with a blinking cursor indicating that it is in the editable state.  There should not be a pop-up editor.
+	-when the text has been edited and the enter key pressed, the spinner should appear, the changes should be saved to the loaded template json file, the Product Creation Table should update just as it does on initial creation and population so that in addition to the contents of the title cell updating, the subtitle in the Product Creation Table header updates and the individual variant titles update to reflect the change.
+
+--------------------------------------------
+
+There's a custom codemirror text editor overlay that pops up in response to the user pressing the edit json button.
+
+It's working overall but there are some improvements that need to be made.
+1. I'd like to add search functionality to each window.  This should be handled with a codemirror extenstion if possible.  The search field should be located on the right side of the header above each editor, the description editor on top and the json editor underneath.
+
+2. save functionality needs to be updated.  Goals for the save function:
+	-there needs to be a visual indicator that there are unsaved changes in the codemirror editor.  This should be handled with a codemirror extension if possible.
+	-when the save button is clicked, the spinner should appear over the pop up.
+	-changes made in the editor should be saved directly to the loaded template .json file.  This should use the same save_template action code that is used when the save button in the Product Creation Table save button is pressed.
+	-the Product creation Table should be updated using the same code that initializes it from the loaded template.json when it is first loaded.  This should be part of each save and the spinner should remain visible until this is completed.
+	-when the close button is clicked, if there are unsaved changes, a window should come up asking if changes should be saved with two buttons, "save changes" or "discard changes".  The changes should be saved or not according to the response.
+	If changes are saved, the spinner should appear, the window and the json editor should  both disappear, the changes should be saved, the Product Creation Table updated and then the spinner should disappear.
+	If changes are discarded, the json editor should simply close.
+
+-=------------------------------------------------------
+
+I'd also like to have a popup text editor overlay when an editor icon in one of the tags cells is clicked.
+
+The editor should follow the general format of the edit json overlay, but it should be only a single text editor window displaying only the specific tags in the cell in which the editor icon was clicked.
+
+-the existing tag editor code needs to be removed.
+-an edit icon needs to be added to all the individual tags cells in all the rows
+
+-edits to the tag cell in the 'Template' Row Type are applied to all the Template variant rows.
