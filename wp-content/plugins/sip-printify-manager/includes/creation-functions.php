@@ -43,27 +43,6 @@ function sip_handle_creation_action() {
             sip_close_creation_editor_template();
             break;
 
-        // case 'get_loaded_template':
-        //     sip_get_loaded_template();
-        //     break;
-        // case 'save_loaded_template':
-        //     sip_save_loaded_template();
-        //     break;
-
-        // case 'save_template':
-        //     sip_save_template_content();
-        //     break;
-        // case 'close_template':
-        //     delete_option('sip_loaded_template');
-        //     wp_send_json_success(array(
-        //         'action' => 'close_template',
-        //         'message' => 'Template closed successfully'
-        //     ));
-        //     break;           
-        // case 'get_initial_table_html':
-        //     wp_send_json_success(array('initial_html' => '{{INITIAL_TABLE_HTML_PLACEHOLDER}}'));
-        //     break; 
-
         default:
             wp_send_json_error('Unknown creation action.');
             break;
@@ -250,66 +229,3 @@ function sip_send_product_to_printify($product_data) {
         'message' => 'Product sent to Printify successfully'
     );
 }
-
-// /**
-//  * Get the loaded template data.
-//  */
-// function sip_get_loaded_template() {
-//     $loaded_template = get_option('sip_loaded_template', '');
-//     if (!empty($loaded_template)) {
-//         wp_send_json_success(array(
-//             'action' => 'get_loaded_template',
-//             'template_data' => json_decode($loaded_template, true)
-//         ));
-//     } else {
-//         wp_send_json_success(array(
-//             'action' => 'get_loaded_template',
-//             'template_data' => null
-//         ));
-//     }
-// }
-
-// /**
-//  * Set the loaded template data.
-//  */
-// function sip_save_loaded_template() {
-//     if (!isset($_POST['template_data'])) {
-//         wp_send_json_error('No template data provided');
-//     }
-//     $template_data = wp_unslash($_POST['template_data']);
-//     update_option('sip_loaded_template', $template_data);
-//     wp_send_json_success(array(
-//         'action' => 'save_loaded_template',
-//         'message' => 'Template data saved successfully'
-//     ));
-// }
-
-// /**
-//  * Save the edited template content from the template editor.
-//  */
-// function sip_save_template_content() {
-//     check_ajax_referer('sip_printify_manager_nonce', '_ajax_nonce');
-
-//     $template_name    = sanitize_text_field($_POST['template_name']);
-//     $template_content = wp_unslash($_POST['template_content']);
-//     $file_path        = sip_get_template_dir() . $template_name . '.json';
-
-//     if (file_exists($file_path)) {
-//         if (file_put_contents($file_path, $template_content)) {
-//             wp_send_json_success(array(
-//                 'action' => 'save_template',
-//                 'message' => 'Template saved successfully.'
-//             ));
-//         } else {
-//             wp_send_json_error(array(
-//                 'action' => 'save_template',
-//                 'message' => 'Failed to save template.'
-//             ));
-//         }
-//     } else {
-//         wp_send_json_error(array(
-//             'action' => 'save_template',
-//             'message' => 'Template file not found.'
-//         ));
-//     }
-// }

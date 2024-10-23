@@ -3,55 +3,41 @@
 var sip = sip || {};
 
 sip.templateEditor = (function($, ajax, utilities) {
-    // Global variables for CodeMirror editors
-    let descriptionEditor, jsonEditor;
+    // Module-level variables
+    let descriptionEditor = null;
+    let jsonEditor = null;
     let jsonEditorHasChanges = false;
+    let currentTemplateId = null;
 
-//updated save and close actions to integrate
-    // // JSON Editor handlers
-    // function handleJsonEditorSave() {
-    //     const formData = new FormData();
-    //     formData.append('action', 'sip_handle_ajax_request');
-    //     formData.append('action_type', 'creation_action');
-    //     formData.append('creation_action', 'save_json_editor_changes');
-    //     formData.append('template_name', currentTemplateId);
-    //     formData.append('template_data', sip.templateEditor.jsonEditor.getValue());
-    //     formData.append('nonce', sipAjax.nonce);
-        
-    //     sip.ajax.handleAjaxAction('creation_action', formData);
-    // }
-
-    // function handleJsonEditorClose() {
-    //     if (jsonEditorHasChanges) {
-    //         const shouldSave = confirm('You have unsaved changes in the JSON editor. Would you like to save before closing?');
-    //         if (shouldSave) {
-    //             handleJsonEditorSave();
-    //         }
-    //     }
-
-    //     const formData = new FormData();
-    //     formData.append('action', 'sip_handle_ajax_request');
-    //     formData.append('action_type', 'creation_action');
-    //     formData.append('creation_action', 'close_json_editor');
-    //     formData.append('nonce', sipAjax.nonce);
-        
-    //     sip.ajax.handleAjaxAction('creation_action', formData);
-    // }
-
-
-
-    /**
-     * Initialize the template editor functionality
-     */
     function init() {
         initializeTemplateEditor();
+
+        // Restore highlight from localStorage on page load
+        const savedTemplate = localStorage.getItem('lastSelectedTemplate');
     }
 
-    /**
-     * Set up the template editor, including event listeners and editor initialization
-     */
-    function initializeTemplateEditor() {
-        // Editor elements
+    function setupEventListeners() {
+            // Event listener for closing the template editor
+            $('#template-editor-close').on('click', function() {
+                if (jsonEditorHasChanges) {
+                    const shouldSave = confirm('You have unsaved changes. Would you like to save before closing?');
+                    if (shouldSave) {
+                        handleJsonEditorSave(() => handleJsonEditorClose());
+                    } else {
+                        handleJsonEditorClose();
+                    }
+                } else {
+                    handleJsonEditorClose();
+                }
+            });
+    
+            // Event listener for saving the template
+            $('#template-editor-save').on('click', function() {
+                handleJsonEditorSave();
+            });
+    };
+
+    function initializeEditors(content) {
         const outerWindow = document.getElementById('template-editor-outer-window');
         const header = document.getElementById('template-editor-header');
         const resizer = document.getElementById('template-editor-resizer');
@@ -60,71 +46,84 @@ sip.templateEditor = (function($, ajax, utilities) {
         const bottomEditorContainer = document.getElementById('template-editor-bottom-editor');
         const renderedHtml = document.getElementById('template-editor-rendered-html');
 
-        /**
-         * Initialize CodeMirror editors
-         * @param {string} content - The content to be loaded into the editors
-         */
-        function initializeEditors(content) {
-            const separatedContent = separateContent(content);
+        const separatedContent = utilities.separateTemplateContent(content);
+        
+        // Initialize editors
+        descriptionEditor = wp.CodeMirror(topEditorContainer, {
+            mode: 'htmlmixed',
+            lineNumbers: true,
+            lineWrapping: true,
+            dragDrop: false,
+            viewportMargin: Infinity,
+            value: separatedContent.html,
+            foldGutter: true,
+            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+        });
 
-            // Initialize editors with equal heights
-            const totalHeight = outerWindow.clientHeight - header.clientHeight - resizer.clientHeight;
-            const halfHeight = totalHeight / 2;
+        jsonEditor = wp.CodeMirror(bottomEditorContainer, {
+            mode: 'application/json',
+            lineNumbers: true,
+            lineWrapping: true,
+            dragDrop: false,
+            viewportMargin: Infinity,
+            value: separatedContent.json,
+            foldGutter: true,
+            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+            extraKeys: {
+                "Ctrl-Q": function(cm) {
+                    cm.foldCode(cm.getCursor());
+                }
+            }
+        });
 
-            // Initialize description editor
-            descriptionEditor = wp.CodeMirror(topEditorContainer, {
-                mode: 'htmlmixed',
-                lineNumbers: true,
-                lineWrapping: true,
-                dragDrop: false,
-                viewportMargin: Infinity,
-                value: separatedContent.html,
-                foldGutter: true,
-                gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
-            });
+        // Set up change tracking
+        jsonEditor.on('change', function() {
+            jsonEditorHasChanges = true;
+            $('#template-editor-save').addClass('has-changes');
+        });
 
-            // Initialize JSON editor
-            jsonEditor = wp.CodeMirror(bottomEditorContainer, {
-                mode: 'application/json',
-                lineNumbers: true,
-                lineWrapping: true,
-                dragDrop: false,
-                viewportMargin: Infinity,
-                value: separatedContent.json,
-                foldGutter: true,
-                gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-                extraKeys: {
-                    "Ctrl-Q": function(cm) {
-                        cm.foldCode(cm.getCursor());
-                    }
-                },
-                foldOptions: {}
-            });
+        descriptionEditor.on('change', function() {
+            jsonEditorHasChanges = true;
+            $('#template-editor-save').addClass('has-changes');
+        });
 
-            // Set initial sizes for editors
-            descriptionEditor.setSize(null, halfHeight);
-            jsonEditor.setSize(null, halfHeight);
+        const totalHeight = outerWindow.clientHeight - header.clientHeight - resizer.clientHeight;
+        const halfHeight = totalHeight / 2;
 
-            // Set up resize functionality
-            setupResizeFunctionality(outerWindow, header, resizer, descriptionEditor, jsonEditor);
+        // Initialize container sizes
+        resizer.previousElementSibling.style.height = `${halfHeight}px`;
+        resizer.nextElementSibling.style.height = `${halfHeight}px`;
 
-            // Set up toggle view functionality
-            setupToggleView(toggleButton, renderedHtml, topEditorContainer, descriptionEditor);
+        // Set editor sizes
+        descriptionEditor.setSize(null, halfHeight - 30);
+        jsonEditor.setSize(null, halfHeight - 30);
 
-            // Set up dragging functionality
-            setupDragging(header, outerWindow);
-        }
+        // Set up editor functionality
+        setupResizeFunctionality(outerWindow, header, resizer);
+        setupToggleView(toggleButton, renderedHtml, topEditorContainer);
+        setupDragging(header, outerWindow);
 
+        // Refresh editors
+        descriptionEditor.refresh();
+        jsonEditor.refresh();
+
+        // Initialize event listeners
+        // initializeEventListeners();
+    }
+
+    function initializeTemplateEditor() {
         // Event listener for opening the template editor
         $('.edit-template-content').on('click', function () {
             var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
             $('#template-editor-overlay').show().addClass('active');
             $('#template-editor-header span').text('Edit Template: ' + templateName);
+            jsonEditorHasChanges = false;
+            $('#template-editor-save').removeClass('has-changes');
 
             var formData = new FormData();
             formData.append('action', 'sip_handle_ajax_request');
             formData.append('action_type', 'template_editor');
-            formData.append('template_editor', 'editor_edit_template');
+            formData.append('template_editor', 'json_editor_edit_template');
             formData.append('template_name', templateName);
             formData.append('nonce', sipAjax.nonce);
 
@@ -138,7 +137,7 @@ sip.templateEditor = (function($, ajax, utilities) {
                             initializeEditors(content);
                         } else {
                             // If editors already exist, update their content
-                            var separatedContent = separateContent(content);
+                            var separatedContent = sip.utilities.separateTemplateContent(content);
                             descriptionEditor.setValue(separatedContent.html);
                             jsonEditor.setValue(separatedContent.json);
 
@@ -148,170 +147,159 @@ sip.templateEditor = (function($, ajax, utilities) {
                                 jsonEditor.refresh();
                             }, 0);
                         }
-                    } else {
                     }
                 },
                 function(error) {
+                    console.error('Error loading template:', error);
                 }
             );
         });
 
-        // Event listener for closing the template editor
-        $('#template-editor-close').on('click', function() {
-            $('#template-editor-overlay').removeClass('active').one('transitionend', function() {
-                $(this).hide();
-            });
-        });
-
-        // Event listener for saving the template
-        $('#template-editor-save').on('click', function() {
-            var templateName = $('#template-editor-header span').text().replace('Edit Template: ', '');
-            var descriptionContent = descriptionEditor.getValue();
-            var jsonContent = jsonEditor.getValue();
-
-            try {
-                var parsedJson = JSON.parse(jsonContent);
-                parsedJson.description = descriptionContent;
-                var finalContent = JSON.stringify(parsedJson);
-
-                var formData = new FormData();
-                formData.append('action', 'sip_handle_ajax_request');
-                formData.append('action_type', 'template_editor');
-                formData.append('template_editor', 'editor_save_template');               
-                formData.append('template_name', templateName);
-                formData.append('template_content', finalContent);
-                formData.append('nonce', sipAjax.nonce);
-
-                sip.ajax.handleAjaxAction('template_editor', formData, 
-                    function(response) {
-                        if (response.success) {
-                            $('#template-editor-overlay').removeClass('active').one('transitionend', function() {
-                                $(this).hide();
-                            });
-                        } else {
-                        }
-                    },
-                    function(error) {
-                    }
-                );
-            } catch (e) {
-                console.error('Error re-integrating content:', e);
-            }
-        });
+        setupEventListeners();
     }
 
-    // /**
-    //  * Separate the template content into HTML and JSON parts
-    //  * @param {string} content - The full template content
-    //  * @return {Object} An object containing separated html and json content
-    //  */
-    // function separateContent(content) {
-    //     try {
-    //         var parsedContent = JSON.parse(content);
-    //         var description = parsedContent.description || '';
-    //         delete parsedContent.description;
-    //         return {
-    //             html: description,
-    //             json: JSON.stringify(parsedContent, null, 2)
-    //         };
-    //     } catch (e) {
-    //         console.error('Error separating content:', e);
-    //         return { html: '', json: content };
-    //     }
-    // }
+    function handleSuccessResponse(response) {
+        console.log('Template Editor response:', response);
+
+        if (response.success) {
+            switch(response.data.action) {
+                case 'json_editor_save_template':
+                    handleJsonEditorSave(response.data);
+                    break;
+                case 'json_editor_close':
+                    handleJsonEditorClose(response.data);
+                    break;
+                default:
+                    console.warn('Unhandled creation action type:', response.data.action);
+            }
+        } else {
+            console.error('Error in AJAX response:', response.data);
+            utilities.showToast('Error: ' + response.data, 5000);
+        }
+    }
+
+    function handleJsonEditorSave(callback) {
+        console.log('Saving template success handler... hello!..');
+        const templateName = window.lastSelectedTemplate;
+        const descriptionContent = descriptionEditor.getValue();
+        const jsonContent = jsonEditor.getValue();
+
+        try {
+            const parsedJson = JSON.parse(jsonContent);
+            parsedJson.description = descriptionContent;
+            const finalContent = JSON.stringify(parsedJson);
+
+            const formData = new FormData();
+            formData.append('action', 'sip_handle_ajax_request');
+            formData.append('action_type', 'template_editor');
+            formData.append('template_editor', 'json_editor_save_template');
+            formData.append('template_name', templateName);
+            formData.append('template_content', finalContent);
+            formData.append('nonce', sipAjax.nonce);
+
+            ajax.handleAjaxAction('template_editor', formData,
+                function(response) {
+                    if (response.success) {
+                        jsonEditorHasChanges = false;
+                        $('#template-editor-save').removeClass('has-changes');
+                        if (callback) callback();
+                    }
+                },
+                function(error) {
+                    console.error('Error saving template:', error);
+                }
+            );
+        } catch (e) {
+            console.error('Error preparing content:', e);
+        }
+    }
+
+    function handleJsonEditorClose() {
+        const formData = new FormData();
+        formData.append('action', 'sip_handle_ajax_request');
+        formData.append('action_type', 'template_editor');
+        formData.append('template_editor', 'json_editor_close_template');
+        formData.append('nonce', sipAjax.nonce);
+
+        ajax.handleAjaxAction('template_editor', formData,
+            function(response) {
+                if (response.success) {
+                    $('#template-editor-overlay').removeClass('active').hide();
+                }
+            },
+            function(error) {
+                console.error('Error closing editor:', error);
+            }
+        );
+    }
 
     /**
      * Set up resize functionality for the editor window
      */
-    function setupResizeFunctionality(outerWindow, header, resizer, descriptionEditor, jsonEditor) {
-        // Function to adjust modal size and position
-        function adjustModalSize() {
-            requestAnimationFrame(() => {
-                const windowWidth = window.innerWidth;
-                const windowHeight = window.innerHeight;
-                const modalWidth = windowWidth * 0.8;
-                const modalHeight = windowHeight * 0.8;
-
-                outerWindow.style.width = `${modalWidth}px`;
-                outerWindow.style.height = `${modalHeight}px`;
-                outerWindow.style.left = `${(windowWidth - modalWidth) / 2}px`;
-                outerWindow.style.top = `${(windowHeight - modalHeight) / 2}px`;
-
-                adjustEditors();
-            });
-        }
-
-        let adjustEditorsRAF;
+    function setupResizeFunctionality(outerWindow, header, resizer) {
         function adjustEditors() {
-            cancelAnimationFrame(adjustEditorsRAF);
-            adjustEditorsRAF = requestAnimationFrame(() => {
-                const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
-                const halfHeight = containerHeight / 2;
+            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+            const halfHeight = containerHeight / 2;
 
-                descriptionEditor.setSize(null, halfHeight - 30);
-                jsonEditor.setSize(null, halfHeight - 30);
-
-                descriptionEditor.refresh();
-                jsonEditor.refresh();
-            });
-        }
-
-        // Initial adjustment and window resize listener
-        adjustModalSize();
-        window.addEventListener('resize', adjustModalSize);
-
-        // Vertical resizing functionality
-        let isResizerDragging = false;
-        let startResizerY, startTopHeight;
-
-        resizer.addEventListener('mousedown', initResize);
-        document.addEventListener('mousemove', resize);
-        document.addEventListener('mouseup', stopResize);
-
-        function initResize(e) {
-            e.preventDefault();
-            isResizerDragging = true;
-            startResizerY = e.clientY;
-            startTopHeight = resizer.previousElementSibling.offsetHeight;
-            document.body.classList.add('resizing');
-        }
-
-        let resizeRAF;
-        function resize(e) {
-            if (!isResizerDragging) return;
-
-            cancelAnimationFrame(resizeRAF);
-            resizeRAF = requestAnimationFrame(() => {
-                const difference = e.clientY - startResizerY;
-                const newTopHeight = startTopHeight + difference;
-                const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
-
-                if (newTopHeight > 0 && newTopHeight < containerHeight) {
-                    resizer.previousElementSibling.style.height = `${newTopHeight}px`;
-                    resizer.nextElementSibling.style.height = `${containerHeight - newTopHeight}px`;
-                    descriptionEditor.setSize(null, newTopHeight - 30);
-                    jsonEditor.setSize(null, containerHeight - newTopHeight - 30);
-                }
-            });
-        }
-
-        function stopResize() {
-            isResizerDragging = false;
-            document.body.classList.remove('resizing');
+            resizer.previousElementSibling.style.height = `${halfHeight}px`;
+            resizer.nextElementSibling.style.height = `${halfHeight}px`;
+            
+            descriptionEditor.setSize(null, halfHeight - 30);
+            jsonEditor.setSize(null, halfHeight - 30);
+            
             descriptionEditor.refresh();
             jsonEditor.refresh();
         }
 
-        // Use ResizeObserver for efficient window resizing
-        new ResizeObserver(() => {
-            requestAnimationFrame(adjustEditors);
-        }).observe(outerWindow);
+        // Resize handling
+        let isResizing = false;
+        let startY, startHeights;
+
+        resizer.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            startY = e.clientY;
+            startHeights = {
+                top: resizer.previousElementSibling.offsetHeight,
+                bottom: resizer.nextElementSibling.offsetHeight
+            };
+            document.body.style.userSelect = 'none';
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+
+            const dy = e.clientY - startY;
+            const containerHeight = outerWindow.offsetHeight - header.offsetHeight - resizer.offsetHeight;
+            
+            let newTopHeight = startHeights.top + dy;
+            let newBottomHeight = startHeights.bottom - dy;
+
+            if (newTopHeight > 50 && newBottomHeight > 50) {
+                resizer.previousElementSibling.style.height = `${newTopHeight}px`;
+                resizer.nextElementSibling.style.height = `${newBottomHeight}px`;
+                
+                descriptionEditor.setSize(null, newTopHeight - 30);
+                jsonEditor.setSize(null, newBottomHeight - 30);
+                
+                descriptionEditor.refresh();
+                jsonEditor.refresh();
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            isResizing = false;
+            document.body.style.userSelect = '';
+        });
+
+        // Initial setup
+        adjustEditors();
+        window.addEventListener('resize', adjustEditors);
     }
 
     /**
      * Set up toggle view functionality for the editor
      */
-    function setupToggleView(toggleButton, renderedHtml, topEditorContainer, descriptionEditor) {
+    function setupToggleView(toggleButton, renderedHtml, topEditorContainer) {
         let isRendered = false;
         toggleButton.addEventListener('click', () => {
             isRendered = !isRendered;
@@ -324,8 +312,8 @@ sip.templateEditor = (function($, ajax, utilities) {
                 renderedHtml.style.display = 'none';
                 topEditorContainer.style.display = 'block';
                 toggleButton.textContent = 'View Rendered';
+                descriptionEditor.refresh();
             }
-            descriptionEditor.refresh();
         });
     }
 
@@ -336,45 +324,38 @@ sip.templateEditor = (function($, ajax, utilities) {
         let isDragging = false;
         let startX, startY, startLeft, startTop;
 
-        header.addEventListener("mousedown", dragStart);
-        document.addEventListener("mousemove", drag);
-        document.addEventListener("mouseup", dragEnd);
-
-        function dragStart(e) {
+        header.addEventListener('mousedown', function(e) {
             if (e.target === header) {
                 isDragging = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                startLeft = outerWindow.offsetLeft;
-                startTop = outerWindow.offsetTop;
-                outerWindow.style.transition = 'none';
+                startX = e.clientX - outerWindow.offsetLeft;
+                startY = e.clientY - outerWindow.offsetTop;
             }
-        }
+        });
 
-        let dragRAF;
-        function drag(e) {
+        document.addEventListener('mousemove', function(e) {
             if (!isDragging) return;
-            e.preventDefault();
-            cancelAnimationFrame(dragRAF);
-            dragRAF = requestAnimationFrame(() => {
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                outerWindow.style.left = `${startLeft + dx}px`;
-                outerWindow.style.top = `${startTop + dy}px`;
-            });
-        }
 
-        function dragEnd() {
+            const newX = e.clientX - startX;
+            const newY = e.clientY - startY;
+
+            outerWindow.style.left = `${newX}px`;
+            outerWindow.style.top = `${newY}px`;
+        });
+
+        document.addEventListener('mouseup', function() {
             isDragging = false;
-            outerWindow.style.transition = '';
-        }
+        });
     }
 
     // Expose the init function
     return {
         init: init,
-        initializeTemplateEditor: initializeTemplateEditor
+        initializeEditors: initializeEditors,
+        handleSuccessResponse: handleSuccessResponse,
+        get jsonEditor() { return jsonEditor; },
+        get descriptionEditor() { return descriptionEditor; }
     };
+
 })(jQuery, sip.ajax, sip.utilities);
 
 sip.ajax.registerSuccessHandler('template_editor', sip.templateEditor.handleSuccessResponse);

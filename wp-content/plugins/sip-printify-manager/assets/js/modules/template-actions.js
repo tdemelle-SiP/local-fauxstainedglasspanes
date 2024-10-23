@@ -1,6 +1,9 @@
 var sip = sip || {};
 
 sip.templateActions = (function($, ajax, utilities) {
+    let descriptionEditor, jsonEditor;
+    let jsonEditorHasChanges = false;
+    let currentTemplateId = null;
     var isDirty = false;
     var isTemplateLoaded = false;
 

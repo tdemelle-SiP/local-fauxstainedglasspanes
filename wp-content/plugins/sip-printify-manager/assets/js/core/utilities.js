@@ -93,10 +93,6 @@ sip.utilities = (function($) {
         window.addEventListener('scroll', handleScroll);
     }
     
-    
-    
-    
-
     function createFormData(actionType, action) {
         var formData = new FormData();
         formData.append('action', 'sip_handle_ajax_request');
@@ -412,6 +408,37 @@ sip.utilities = (function($) {
         `;
     }
 
+    //////////////////////////// Template Utilities ////////////////////////////
+    
+    /**
+     * Separates template content into HTML description and JSON components
+     * @param {Object|string} content - The template content to separate
+     * @return {Object} Object containing separated html and json content
+     */
+    function separateTemplateContent(content) {
+        try {
+            // If content is string, parse it, otherwise use as is
+            const parsedContent = typeof content === 'string' 
+                ? JSON.parse(content) 
+                : JSON.parse(JSON.stringify(content)); // Make a copy if object
+
+            const description = parsedContent.description || '';
+            delete parsedContent.description;
+
+            return {
+                html: description,
+                json: JSON.stringify(parsedContent, null, 2)
+            };
+        } catch (e) {
+            console.error('Error separating template content:', e);
+            return {
+                html: '',
+                json: typeof content === 'string' ? content : JSON.stringify(content)
+            };
+        }
+    }
+
+
     // Expose public methods
     return {
         init: init,
@@ -429,6 +456,7 @@ sip.utilities = (function($) {
         createFormData: createFormData,
         getInitialTableHtml: getInitialTableHtml,
         initStickyHeader: initStickyHeader,
+        separateTemplateContent: separateTemplateContent,
         initTooltip: initTooltip
     };
 })(jQuery);

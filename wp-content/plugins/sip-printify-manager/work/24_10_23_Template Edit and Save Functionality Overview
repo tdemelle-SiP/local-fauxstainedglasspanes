@@ -14,21 +14,6 @@ I think that the save action in the editor pop up should save to the working tem
 
 These should also be named clearly and intuitively.  
 
-I'm still not 100% clear under what circumstances the session based load and save handled by save_loaded_template and get_loaded_template would be needed.  Why couldn't these changes be lumped in with either the working template load and save or the permanent template load and save?
-
-
-Although a bit clunky, I think the naming of the various save, close and laod actions should be something like:
-
-template_working_save //not sure what purpose this serves and under what circumstancees it would be used.
-template_working_load //not sure what purpose this serves and under what circumstancees it would be used.
-
-save_json_editor_template //this could be just template_working_save
-close_json_editor_template //this could be just close_json_editor
-
-save_creation_editor_template
-close_creation_editor_template 
-
-
 --------------------------------------------
 
 I'd like to update the title cell inline editing functionality.  
