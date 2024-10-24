@@ -10,27 +10,33 @@ sip.creationActions = (function($, ajax, utilities) {
 
 
     function init(templateData) {
-        if (templateData && templateData.id) {
-            selectedTemplateId = templateData.id;
-            currentTemplateId = templateData.id;
-            // Don't check for loaded template since we already have one
-            attachEventListeners();
+        // Check if there's a template in localStorage
+        const savedTemplate = localStorage.getItem('lastSelectedTemplate');
+        if (savedTemplate) {
+            console.log('Found saved template:', savedTemplate);
+            // First load the creation editor template
+            const formData = new FormData();
+            formData.append('action', 'sip_handle_ajax_request');
+            formData.append('action_type', 'creation_action');
+            formData.append('creation_action', 'load_creation_editor_template');
+            formData.append('template_name', savedTemplate);
+            formData.append('nonce', sipAjax.nonce);
+            
+            sip.utilities.showSpinner();
+            sip.ajax.handleAjaxAction('creation_action', formData);
         } else {
-            // Check if there's a template in the URL or localStorage before checking server
-            const savedTemplate = localStorage.getItem('lastSelectedTemplate');
-            if (savedTemplate) {
-                // Template exists in localStorage, load it properly through template actions
-                // instead of making a separate check
-                const formData = new FormData();
-                formData.append('action', 'sip_handle_ajax_request');
-                formData.append('action_type', 'template_action');
-                formData.append('template_action', 'create_new_products');
-                formData.append('selected_templates[]', savedTemplate);
-                formData.append('nonce', sipAjax.nonce);
-                sip.ajax.handleAjaxAction('template_action', formData);
-            }
-            attachEventListeners();
+            // Check for any WIP template
+            const formData = new FormData();
+            formData.append('action', 'sip_handle_ajax_request');
+            formData.append('action_type', 'creation_action');
+            formData.append('creation_action', 'check_wip_template');
+            formData.append('nonce', sipAjax.nonce);
+            
+            sip.utilities.showSpinner();
+            sip.ajax.handleAjaxAction('creation_action', formData);
         }
+    
+        attachEventListeners();
     }
 
     function handleClose() {
@@ -61,6 +67,14 @@ sip.creationActions = (function($, ajax, utilities) {
 
         $('#edit-json').on('click', function() {
             console.log('Edit JSON clicked');
+            const templateName = currentTemplateId || localStorage.getItem('lastSelectedTemplate');
+            
+            if (!templateName) {
+                utilities.showToast('No template currently loaded', 5000);
+                return;
+            }
+            
+            console.log('Opening JSON editor for template:', templateName);
             const overlay = $('#template-editor-overlay');
             overlay.show().addClass('active');
         
@@ -68,6 +82,7 @@ sip.creationActions = (function($, ajax, utilities) {
             formData.append('action', 'sip_handle_ajax_request');
             formData.append('action_type', 'creation_action');
             formData.append('creation_action', 'edit_json');
+            formData.append('template_name', templateName);
             formData.append('nonce', sipAjax.nonce);
         
             sip.ajax.handleAjaxAction('creation_action', formData);
@@ -77,10 +92,12 @@ sip.creationActions = (function($, ajax, utilities) {
 
     function handleSuccessResponse(response) {
         console.log('AJAX response received:', response);
-    
+        
         if (response.success) {
             switch(response.data.action) {
+                case 'check_wip_template':
                 case 'get_current_template':
+                case 'load_creation_editor_template': // Added this case
                     handleGetLoadedTemplateSuccess(response.data);
                     break;
                 case 'create_product':
@@ -89,10 +106,9 @@ sip.creationActions = (function($, ajax, utilities) {
                 case 'update_wip':
                     handleUpdateWipSuccess(response.data);
                     break;
-
                 case 'edit_json':
                     handleEditJsonSuccess(response.data);
-                    break
+                    break;
                 case 'save_creation_editor_template':
                     hasUnsavedChanges = false;
                     updateSaveButtonState();
@@ -100,13 +116,14 @@ sip.creationActions = (function($, ajax, utilities) {
                 case 'close_creation_editor':
                     handleCloseTemplateResponse();
                     break;
-
                 default:
                     console.warn('Unhandled creation action type:', response.data.action);
             }
+            utilities.hideSpinner();
         } else {
             console.error('Error in AJAX response:', response.data);
             utilities.showToast('Error: ' + response.data, 5000);
+            utilities.hideSpinner();
         }
     }
 
@@ -117,6 +134,10 @@ sip.creationActions = (function($, ajax, utilities) {
     function handleGetLoadedTemplateSuccess(data) {
         if (data.template_data) {
             console.log('creation-action.js getloadedtemplate success - Loaded template data:', data.template_data);
+            // Set currentTemplateId from localStorage
+            currentTemplateId = localStorage.getItem('lastSelectedTemplate');
+            console.log('Setting currentTemplateId:', currentTemplateId);
+            
             sip.templateActions.populateCreationTable(data.template_data);
             console.log('***hidespinner called. Template loaded successfully');
             sip.utilities.hideSpinner();
@@ -179,6 +200,7 @@ sip.creationActions = (function($, ajax, utilities) {
         $('#product-creation-container').show();
         $('#creation-table').hide();
         $('#no-template-message').show();
+        sip.utilities.hideSpinner();
     }
 
     function saveTemplate() {
@@ -264,6 +286,11 @@ sip.creationActions = (function($, ajax, utilities) {
 
     function handleEditJsonSuccess(data) {
         console.log('Initializing editors with template data:', data.template_data);
+        if (!data.template_data) {
+            utilities.showToast('No template data available to edit', 5000);
+            utilities.hideSpinner();
+            return;
+        }
         sip.templateEditor.initializeEditors(data.template_data);
         utilities.hideSpinner();
     }

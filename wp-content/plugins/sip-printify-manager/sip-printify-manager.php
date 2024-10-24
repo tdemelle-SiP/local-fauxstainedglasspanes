@@ -88,8 +88,6 @@ class SiP_Printify_Manager {
 
         // Add CSS to hide admin notices on the custom admin page
         add_action('admin_head', 'sip_hide_admin_notices');
-
-        add_action('admin_footer', 'sip_check_loaded_template');
     }
 
     public function enqueue_admin_scripts($hook) 
@@ -271,6 +269,7 @@ class SiP_Printify_Manager {
      * It helps prevent HTML and presentation logic from cluttering the main plugin file.
      */
     public static function render_admin_page() {
+
         // Include the admin page view
         include plugin_dir_path(__FILE__) . 'views/admin-page.php';
     }
@@ -312,43 +311,6 @@ SiP_Plugin_Framework::init_plugin(
     'SiP_Printify_Manager'        // Main Class Name
 );
 
-
-
-function sip_check_loaded_template() {
-    $token = get_option('printify_bearer_token');
-    if (!empty($token)) {
-        $loaded_template = get_option('sip_loaded_template', '');
-        if (!empty($loaded_template)) {
-            ?>
-            <script type="text/javascript">
-            jQuery(document).ready(function($) {
-                var templateData = <?php echo $loaded_template; ?>;
-                if (typeof sip !== 'undefined' && sip.templateActions && typeof sip.templateActions.populateCreationTable === 'function') {
-                    sip.templateActions.populateCreationTable(templateData);
-                } else {
-                    console.error('Unable to populate creation table: sip.templateActions not available');
-                }
-                // Ensure spinner is hidden after template is loaded
-                if (typeof sip !== 'undefined' && sip.utilities && typeof sip.utilities.hideSpinner === 'function') {
-                    sip.utilities.hideSpinner();
-                }
-            });
-            </script>
-            <?php
-        } else {
-            // If no template is loaded, still ensure the spinner is hidden
-            ?>
-            <script type="text/javascript">
-            jQuery(document).ready(function($) {
-                if (typeof sip !== 'undefined' && sip.utilities && typeof sip.utilities.hideSpinner === 'function') {
-                    sip.utilities.hideSpinner();
-                }
-            });
-            </script>
-            <?php
-        }
-    }
-}
 
 /**
  * Handle AJAX Requests

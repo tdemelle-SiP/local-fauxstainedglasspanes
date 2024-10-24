@@ -159,21 +159,21 @@ sip.templateEditor = (function($, ajax, utilities) {
     }
 
     function handleSuccessResponse(response) {
-        console.log('Template Editor response:', response);
-
         if (response.success) {
             switch(response.data.action) {
+                case 'json_editor_save':
                 case 'json_editor_save_template':
-                    handleJsonEditorSave(response.data);
+                    jsonEditorHasChanges = false;
+                    $('#template-editor-save').removeClass('has-changes');
                     break;
                 case 'json_editor_close':
-                    handleJsonEditorClose(response.data);
+                    $('#template-editor-overlay').removeClass('active').hide();
+                    utilities.hideSpinner();
                     break;
                 default:
-                    console.warn('Unhandled creation action type:', response.data.action);
+                    console.warn('Unhandled template editor action:', response.data.action);
             }
         } else {
-            console.error('Error in AJAX response:', response.data);
             utilities.showToast('Error: ' + response.data, 5000);
         }
     }

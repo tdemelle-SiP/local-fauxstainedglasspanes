@@ -770,23 +770,24 @@ body.resizing * {
 }
 
 .creation-table-main-title {
-    font-size: 36px; /* Sets the font size for the creation table title */
+    font-size: 1.75vw; /* Sets the font size for the creation table title */
+    height: 2.5vw;
+    max-height: 35px;
     font-weight: bold; /* Makes the creation table title bold */
     text-align: center; /* Centers the shop name text */
     color: #0273AB; /* Sets the color of the shop name */
     text-transform: uppercase; /* Transforms the shop name to uppercase */
     margin: 0px; /* Adds space below the shop name */
-    line-height: 32px;
+    line-height: 1.75vw;
 }
 
 #selected-template-subtitle {
     text-align: center;
     flex: 1;
-    font-size: 24px;
+    font-size: 1.45vw;
     font-weight: 600;
     margin: 6px 0 0 0;
 }
-
 
 /*//////////////////////////////////////Table Column Widths////////////////////////////////////*/
 /* Example column width controls */

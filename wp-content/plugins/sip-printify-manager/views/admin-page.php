@@ -16,6 +16,18 @@ $images     = get_option('sip_printify_images'); // Fetch images from options
 $local_images = get_option('sip_local_images', array()); // Fetch local images
 $templates  = sip_load_templates();
 
+// Add the console log for the token presence here
+?>
+<script type="text/javascript">
+    console.log('Admin Page Loaded: SiP Printify Manager');
+    <?php if (!empty($token)) { ?>
+        console.log('Printify API Token Found. Shop Name: <?php echo $shop_name; ?>');
+    <?php } else { ?>
+        console.log('No Printify API Token Found. Displaying Token Entry Form.');
+    <?php } ?>
+</script>
+<?php
+
 // Get the URL to the sip-plugins-core assets directory
 $sip_core_assets_url = plugins_url('sip-plugins-core/assets');
 
@@ -293,16 +305,3 @@ error_log(' $token state for loading product-creation-container (will load if no
         </div>
     </section>
 </div>
-
-<!-- <script type="text/javascript">
-jQuery(document).ready(function($) {
-    console.log('Document ready, attempting to hide spinner');
-    if (typeof sip !== 'undefined' && sip.utilities && typeof sip.utilities.hideSpinner === 'function') {
-        sip.utilities.hideSpinner();
-    } else {
-        console.error('sip.utilities.hideSpinner is not available');
-        // Fallback method to hide spinner
-        $('#spinner-overlay').hide();
-    }
-});
-</script> -->

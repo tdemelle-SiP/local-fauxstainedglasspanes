@@ -113,12 +113,18 @@ sip.utilities = (function($) {
         $('#spinner-overlay').show();
         $('#spinner').show();
         spinnerVisible = true;
+
+        // Add a console log with the call stack to track where this was called from
+        console.log('Spinner shown. Called from:', (new Error()).stack);
     }
 
     function hideSpinner() {
         $('#spinner-overlay').hide();
         $('#spinner').hide();
         spinnerVisible = false;
+
+        // Add a console log with the call stack to track where this was called from
+        console.log('Spinner hidden. Called from:', (new Error()).stack);
     }
 
     function isSpinnerVisible() {
@@ -416,24 +422,27 @@ sip.utilities = (function($) {
      * @return {Object} Object containing separated html and json content
      */
     function separateTemplateContent(content) {
+        if (!content) {
+            return {
+                html: '',
+                json: '{}'
+            };
+        }
+        
         try {
-            // If content is string, parse it, otherwise use as is
-            const parsedContent = typeof content === 'string' 
-                ? JSON.parse(content) 
-                : JSON.parse(JSON.stringify(content)); // Make a copy if object
-
-            const description = parsedContent.description || '';
-            delete parsedContent.description;
-
+            const description = content.description || '';
+            const jsonWithoutDescription = { ...content };
+            delete jsonWithoutDescription.description;
+    
             return {
                 html: description,
-                json: JSON.stringify(parsedContent, null, 2)
+                json: JSON.stringify(jsonWithoutDescription, null, 2)
             };
         } catch (e) {
             console.error('Error separating template content:', e);
             return {
                 html: '',
-                json: typeof content === 'string' ? content : JSON.stringify(content)
+                json: '{}'
             };
         }
     }

@@ -1,6 +1,7 @@
 
 
 -------------------------------------------Notes to be incorporated-------------------------------------------------
+
 the scheme for modularizing the code is based on the idea that code should be associated with the interface where its called.
 
 For this reason, the create template function is in the products files not the template files because the create template action is executed in the product table.  The template actions that are executed on the created template files are then handled in the template files because they are executed from the template table.  Similarly, the Product Creation Table initialization is handled in the template files not the creation files because the create_new_products action is executed from the templates table.  The actions that are then executed within the Product Creation Table are handled in the creation files.
@@ -8,6 +9,167 @@ For this reason, the create template function is in the products files not the t
 I was thinking this same principle would apply in the case of the template json editor so that the initialization and creation of the json editor would be handled in the creation files because the edit json button is in the Product Creation Table interface, but then, once opened, the interaction with the json editor would take place in the templateEditor files.  That would mean that the save_json_editor_changes and the close_json_editor changes would be handled in the templateEditor files, not the creation files.
 
 For now, I want to focus on the saving loading and closing just in the Product Creation Table and worry about the actions in the json editor later.
+------------------------------------------------template file management---------------------------------------------
+
+# Template Management System Documentation
+
+## Overview
+The system manages three main interfaces that interact with template files:
+1. Template Table - Lists and manages template files
+2. Product Creation Table - Uses templates to create new products 
+3. Template JSON Editor - Edits template structure and content
+
+## File Structure
+
+### Directories
+- Base template directory: `/wp-content/uploads/sip-printify-manager/templates/`
+- Working files directory: `/wp-content/uploads/sip-printify-manager/templates/wip/`
+
+### File Types
+1. **Permanent Templates** (`.json`)
+   - Stored in base template directory
+   - Format: `template-name.json`
+   - Source of truth for template structure
+
+2. **Work In Progress (WIP) Files** (`_wip.json`)
+   - Stored in WIP directory
+   - Format: `template-name_wip.json`
+   - Temporary working copies
+
+## Workflow Processes
+
+### Template Creation
+1. User creates template from existing product
+2. System saves permanent template to base directory
+3. No WIP file created until template is loaded for editing
+
+### Product Creation Table
+1. When template is selected:
+   - Creates `template-name_wip.json` in WIP directory
+   - Copies content from permanent template
+   - Loads WIP content into Product Creation Table
+
+2. During editing:
+   - All changes save to WIP file
+   - Original template remains unchanged
+   - WIP file will persist as long as the open file isn't closed.
+   - The opportunity to save the WIP file permanently to the main template file will always be offered during Product Creation Table close sequence
+
+3. On close:
+   - If changes saved: WIP copied to permanent template
+   - WIP file deleted regardless of save choice 
+
+### Template JSON Editor
+1. Editor opened:
+   - Uses existing WIP file if present 
+   - Creates new WIP if opened directly from template table
+
+2. During editing:
+   - Changes save to WIP file
+   - Live preview in Product Creation Table updates from WIP content
+
+3. On close:
+   - If saved: WIP content becomes permanent template
+   - If discarded: WIP file deleted
+
+## Page Load Behavior
+
+1. System checks WIP directory on page load
+2. If WIP file exists:
+   - Loads content into Product Creation Table
+   - Enables save/discard options
+
+3. If no WIP file:
+   - Shows empty Product Creation Table
+   - Waits for template selection
+
+## Key Functions
+
+### PHP Functions
+```php
+sip_create_wip_directory()
+- Creates WIP directory if needed
+- Returns path to WIP directory
+
+sip_get_current_template()
+- Checks for existing WIP files
+- Returns most recent WIP file content if found
+
+sip_load_creation_editor_template()
+- Creates WIP copy from permanent template
+- Returns template data for editor
+
+sip_save_creation_editor_template()
+- Saves changes to WIP file
+- Maintains working state
+
+sip_close_creation_editor()
+- Optionally saves WIP to permanent template
+- Cleans up WIP file
+```
+
+### JavaScript Functions
+```javascript
+handleCreationEditorSave()
+- Saves current state to WIP file
+- Updates UI to show saved state
+
+closeCreationEditor()
+- Prompts for save if changes exist
+- Triggers cleanup of WIP file
+- Updates UI state
+
+handleJsonEditorSave()
+- Saves JSON editor content to WIP
+- Updates preview if enabled
+
+handleJsonEditorClose()
+- Prompts for save if needed
+- Triggers WIP cleanup
+- Resets editor state
+```
+
+## Error Handling
+
+1. File System
+- Checks directory permissions
+- Creates missing directories
+- Validates file operations
+
+2. Content Validation
+- Validates JSON structure
+- Maintains backup of WIP file
+- Recovers from failed saves
+
+3. State Management
+- Tracks unsaved changes
+- Prevents data loss on close
+- Handles concurrent editing
+
+## Best Practices
+
+1. Always use WIP files for editing
+2. Clean up WIP files after use
+3. Validate content before saving
+4. Maintain consistent file naming
+5. Check permissions before operations
+
+## Security Considerations
+
+1. File Operations
+- Use WordPress file system functions
+- Sanitize file names
+- Validate file paths
+
+2. Content Security
+- Sanitize user input
+- Escape output
+- Validate JSON structure
+
+3. Access Control
+- Check user capabilities
+- Verify nonces
+- Validate actions
 
 ------------------------------------------------js file standards----------------------------------------------------
 // moduleTemplate.js
