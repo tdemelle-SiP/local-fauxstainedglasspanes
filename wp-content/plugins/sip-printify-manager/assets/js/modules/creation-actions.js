@@ -33,18 +33,67 @@ sip.creationActions = (function($, ajax, utilities) {
             
             sip.ajax.handleAjaxAction('creation_action', formData);
         }
+
+        const saveButton = $('#save-template');
+        saveButton.removeClass('has-changes');
     
         attachEventListeners();
     }
 
+
+    function updateSaveButtonState() {
+        const saveButton = $('#save-template');
+        if (hasUnsavedChanges) {
+            saveButton.addClass('has-changes');
+        } else {
+            saveButton.removeClass('has-changes');
+        }
+    }
+    
+    function setUnsavedChanges(isDirty) {
+        hasUnsavedChanges = isDirty;
+        updateSaveButtonState();
+    }
+
     function handleClose() {
         if (hasUnsavedChanges) {
-            const shouldSave = confirm('You have unsaved changes. Would you like to save before closing?');
-            closeCreationEditor(shouldSave);
+            const dialog = $(`
+                <div class="sip-dialog">
+                    <p>You have unsaved changes. Would you like to save before closing?</p>
+                    <div class="dialog-buttons">
+                        <button class="save-close">Save and Close</button>
+                        <button class="discard-close">Discard and Close</button>
+                        <button class="cancel">Cancel</button>
+                    </div>
+                </div>
+            `).dialog({
+                modal: true,
+                width: 400,
+                closeOnEscape: true,
+                dialogClass: 'sip-dialog',
+                close: function() {
+                    $(this).dialog('destroy').remove();
+                }
+            });
+    
+            dialog.find('.save-close').on('click', function() {
+                handleCreationEditorSave();
+                closeCreationEditor(true);
+                dialog.dialog('close');
+            });
+    
+            dialog.find('.discard-close').on('click', function() {
+                closeCreationEditor(false);
+                dialog.dialog('close');
+            });
+    
+            dialog.find('.cancel').on('click', function() {
+                dialog.dialog('close');
+            });
         } else {
             closeCreationEditor(false);
         }
-    }
+    }    
 
     function attachEventListeners() {
         $('#creation-action-form').on('submit', function(e) {
@@ -98,9 +147,11 @@ sip.creationActions = (function($, ajax, utilities) {
                 case 'get_current_template':
                 case 'load_creation_editor_template':
                     handleGetLoadedTemplateSuccess(response.data);
+                    setUnsavedChanges(false);
                     break;
                 case 'create_product':
                     handleCreateProductSuccess(response.data);
+                    setUnsavedChanges(false);
                     break;
                 case 'update_wip':
                     handleUpdateWipSuccess(response.data);
@@ -109,11 +160,12 @@ sip.creationActions = (function($, ajax, utilities) {
                     handleEditJsonSuccess(response.data);
                     break;
                 case 'save_creation_editor_template':
-                    hasUnsavedChanges = false;
+                    setUnsavedChanges(false);
                     updateSaveButtonState();
                     break;
                 case 'close_creation_editor':
                     handleCloseTemplateResponse();
+                    setUnsavedChanges(false);
                     break;
                 default:
                     console.warn('Unhandled creation action type:', response.data.action);
@@ -157,6 +209,7 @@ sip.creationActions = (function($, ajax, utilities) {
         formData.append('nonce', sipAjax.nonce);
         
         sip.ajax.handleAjaxAction('creation_action', formData);
+        setUnsavedChanges(false);
     }
 
     function closeCreationEditor(saveChanges) {
@@ -233,14 +286,14 @@ sip.creationActions = (function($, ajax, utilities) {
         });
     }
 
+    // Modify handleDescriptionEdit
     function handleDescriptionEdit() {
         const $cell = $(this).closest('td');
         const currentText = $cell.find('span').text().trim();
         
-        // Implement a modal or more sophisticated editor for description
         const newText = prompt('Edit Description:', currentText);
         
-        if (newText !== null) {
+        if (newText !== null && newText !== currentText) {
             updateCellValue($cell, newText);
         }
     }
@@ -252,9 +305,9 @@ sip.creationActions = (function($, ajax, utilities) {
         if (key === 'description') {
             $cell.append('<button class="edit-button" title="Edit">&#9998;</button>');
         }
-
-        isDirty = true;
-
+    
+        setUnsavedChanges(true);
+    
         const formData = new FormData();
         formData.append('action', 'sip_handle_ajax_request');
         formData.append('action_type', 'creation_action');
@@ -263,7 +316,7 @@ sip.creationActions = (function($, ajax, utilities) {
         formData.append('value', newValue);
         formData.append('template_name', selectedTemplateId);
         formData.append('nonce', sipAjax.nonce);
-
+    
         sip.ajax.handleAjaxAction('creation_action', formData);
     }
 
