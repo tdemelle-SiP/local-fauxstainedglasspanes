@@ -153,7 +153,12 @@ sip.templateEditor = (function($, ajax, utilities) {
                     saveButton.removeClass('has-changes');
                     sip.utilities.hideSpinner();
                     sip.utilities.showToast('Changes saved successfully', 3000);
-                    sip.creationActions.reloadCreationTable(); 
+                    sip.creationActions.reloadCreationTable();
+                    // Check if we should close after saving
+                    if (window.closeEditorAfterSave) {
+                        closeEditor();
+                        window.closeEditorAfterSave = false;
+                    }
                     break;
                 case 'json_editor_close':
                     $('#template-editor-overlay').removeClass('active').hide();
@@ -169,14 +174,13 @@ sip.templateEditor = (function($, ajax, utilities) {
         }
     }
 
-    function handleJsonEditorSave(callback) {
+    function handleJsonEditorSave() {
         const content = getEditorContent();
         if (!content) {
             sip.utilities.hideSpinner();
             return;
         }
     
-        console.log('Saving template:', currentTemplateId);
         sip.utilities.showSpinner('#template-editor-overlay');
         
         const formData = new FormData();
@@ -218,8 +222,11 @@ sip.templateEditor = (function($, ajax, utilities) {
             });
     
             dialog.find('.save-close').on('click', function() {
-                handleJsonEditorSave(() => closeEditor());
-                dialog.dialog('close');
+                const currentDialog = dialog;
+                // Add closeAfterSave flag to handleSuccessResponse logic
+                window.closeEditorAfterSave = true;
+                handleJsonEditorSave();
+                currentDialog.dialog('close');
             });
     
             dialog.find('.discard-close').on('click', function() {

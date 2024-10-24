@@ -133,6 +133,8 @@ class SiP_Printify_Manager {
         // Enqueue jQuery UI
         wp_enqueue_script('jquery-ui-resizable');
         wp_enqueue_script('jquery-ui-draggable');
+        wp_enqueue_script('jquery-ui-dialog');
+        wp_enqueue_style('wp-jquery-ui-dialog');
     
         // Enqueue your custom JS files in the correct order
         // Enqueue sip-utilities
