@@ -5,6 +5,15 @@
  * This file contains the HTML and PHP code for rendering the admin page of the SiP Printify Manager plugin.
  */
  
+ echo '<script type="text/javascript">
+ jQuery(document).ready(function($) {
+     if (typeof sip !== \'undefined\' && sip.utilities) {
+         sip.utilities.showSpinner();
+         console.log(\'Spinner shown at the start of admin page load\');
+     }
+ });
+</script>';
+
 // Prevent direct access for security
 if (!defined('ABSPATH')) exit;
 

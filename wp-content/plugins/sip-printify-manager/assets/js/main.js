@@ -11,9 +11,6 @@ sip.main = (function($, ajax, utilities) {
             return;
         }
         isInitialized = true;
-        
-        console.log('*****ShowSpinner called on initialization in main.js');
-        utilities.showSpinner();
 
         initializeModules();
         initializeGlobalEventListeners();

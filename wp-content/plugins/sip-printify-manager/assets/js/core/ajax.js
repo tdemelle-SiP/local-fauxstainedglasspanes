@@ -25,8 +25,6 @@ sip.ajax = (function($, utilities) {
         if (buttonSelector) {
             $(buttonSelector).attr('disabled', true);
         }
-        console.log('*****ShowSpinner called on handleAjaxAction in ajax.js');
-        sip.utilities.showSpinner();
 
         $.ajax({
             url: sipAjax.ajax_url,

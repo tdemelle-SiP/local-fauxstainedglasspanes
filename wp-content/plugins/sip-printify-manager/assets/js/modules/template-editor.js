@@ -110,6 +110,10 @@ sip.templateEditor = (function($, ajax, utilities) {
     // Set up events specific to editor functionality
     function setupEditorEvents() {
         saveButton = $('#template-editor-save');
+
+        // Remove any existing event listeners before adding new ones
+        saveButton.off('click').on('click', handleJsonEditorSave);
+        $('#template-editor-close').off('click').on('click', handleJsonEditorClose);
         
         // Editor change tracking
         jsonEditor.on('change', function() {
@@ -121,10 +125,6 @@ sip.templateEditor = (function($, ajax, utilities) {
             jsonEditorHasChanges = true;
             saveButton.addClass('has-changes');
         });
-
-        // Save and close handlers
-        $('#template-editor-save').on('click', handleJsonEditorSave);
-        $('#template-editor-close').on('click', handleJsonEditorClose);
     }
 
     // Get combined content from both editors
@@ -141,6 +141,31 @@ sip.templateEditor = (function($, ajax, utilities) {
             console.error('Error getting editor content:', e);
             utilities.showToast('Invalid JSON format', 5000);
             return null;
+        }
+    }
+
+    function handleSuccessResponse(response) {
+        if (response.success) {
+            switch(response.data.action) {
+                case 'json_editor_save':
+                case 'json_editor_save_template':
+                    jsonEditorHasChanges = false;
+                    saveButton.removeClass('has-changes');
+                    sip.utilities.hideSpinner();
+                    sip.utilities.showToast('Changes saved successfully', 3000);
+                    sip.creationActions.reloadCreationTable(); 
+                    break;
+                case 'json_editor_close':
+                    $('#template-editor-overlay').removeClass('active').hide();
+                    sip.utilities.hideSpinner();
+                    break;
+                default:
+                    console.warn('Unhandled template editor action:', response.data.action);
+                    sip.utilities.hideSpinner();
+            }
+        } else {
+            sip.utilities.hideSpinner();
+            sip.utilities.showToast('Error: ' + response.data, 5000);
         }
     }
 
@@ -162,34 +187,7 @@ sip.templateEditor = (function($, ajax, utilities) {
         formData.append('template_content', content);
         formData.append('nonce', sipAjax.nonce);
     
-        let saveComplete = false;
-    
-        ajax.handleAjaxAction('template_editor', formData,
-            function(response) {
-                if (saveComplete) return;
-                saveComplete = true;
-    
-                if (response.success) {
-                    jsonEditorHasChanges = false;
-                    saveButton.removeClass('has-changes');
-                    sip.utilities.hideSpinner();
-                    sip.utilities.showToast('Changes saved successfully', 3000);
-                    sip.creationActions.reloadCreationTable();
-                    if (callback) callback();
-                } else {
-                    sip.utilities.hideSpinner();
-                    sip.utilities.showToast('Error saving changes', 5000);
-                }
-            },
-            function(error) {
-                if (saveComplete) return;
-                saveComplete = true;
-                
-                console.error('Error saving template:', error);
-                sip.utilities.hideSpinner();
-                sip.utilities.showToast('Error saving changes', 5000);
-            }
-        );
+        ajax.handleAjaxAction('template_editor', formData);
     }
 
     // Close editor
@@ -234,30 +232,6 @@ sip.templateEditor = (function($, ajax, utilities) {
             });
         } else {
             closeEditor();
-        }
-    }
-
-    // Handle AJAX responses
-    function handleSuccessResponse(response) {
-        if (response.success) {
-            switch(response.data.action) {
-                case 'json_editor_save':
-                case 'json_editor_save_template':
-                    jsonEditorHasChanges = false;
-                    saveButton.removeClass('has-changes');
-                    sip.utilities.showToast('Changes saved successfully', 3000);
-                    sip.templateActions.reloadCreationTable(); // Force table refresh
-                    break;
-                case 'json_editor_close':
-                    $('#template-editor-overlay').removeClass('active').hide();
-                    break;
-                default:
-                    console.warn('Unhandled template editor action:', response.data.action);
-            }
-            sip.utilities.hideSpinner();
-        } else {
-            sip.utilities.showToast('Error: ' + response.data, 5000);
-            sip.utilities.hideSpinner();
         }
     }
 

@@ -22,7 +22,6 @@ sip.creationActions = (function($, ajax, utilities) {
             formData.append('template_name', savedTemplate);
             formData.append('nonce', sipAjax.nonce);
             
-            sip.utilities.showSpinner();
             sip.ajax.handleAjaxAction('creation_action', formData);
         } else {
             // Check for any WIP template
@@ -32,7 +31,6 @@ sip.creationActions = (function($, ajax, utilities) {
             formData.append('creation_action', 'check_wip_template');
             formData.append('nonce', sipAjax.nonce);
             
-            sip.utilities.showSpinner();
             sip.ajax.handleAjaxAction('creation_action', formData);
         }
     
@@ -66,6 +64,7 @@ sip.creationActions = (function($, ajax, utilities) {
         });
 
         $('#edit-json').on('click', function() {
+            utilities.showSpinner();
             console.log('Edit JSON clicked');
             const templateName = currentTemplateId;
             
@@ -97,7 +96,7 @@ sip.creationActions = (function($, ajax, utilities) {
             switch(response.data.action) {
                 case 'check_wip_template':
                 case 'get_current_template':
-                case 'load_creation_editor_template': // Added this case
+                case 'load_creation_editor_template':
                     handleGetLoadedTemplateSuccess(response.data);
                     break;
                 case 'create_product':
@@ -119,7 +118,6 @@ sip.creationActions = (function($, ajax, utilities) {
                 default:
                     console.warn('Unhandled creation action type:', response.data.action);
             }
-            utilities.hideSpinner();
         } else {
             console.error('Error in AJAX response:', response.data);
             utilities.showToast('Error: ' + response.data, 5000);
@@ -139,7 +137,7 @@ sip.creationActions = (function($, ajax, utilities) {
             console.log('Setting currentTemplateId:', currentTemplateId);
             
             sip.templateActions.populateCreationTable(data.template_data);
-            console.log('***hidespinner called. Template loaded successfully');
+            console.log('***hidespinner called. Table loaded successfully');
             sip.utilities.hideSpinner();
         } else {
             console.log('***hidespinner called.No template loaded, using initial HTML');
