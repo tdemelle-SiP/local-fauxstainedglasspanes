@@ -129,15 +129,25 @@ function sip_get_wip_template() {
  */
 function sip_load_creation_editor_template() {
     $template_name = sanitize_text_field($_POST['template_name']);
-    $template_path = wp_upload_dir()['basedir'] . '/sip-printify-manager/templates/' . $template_name . '.json';
+    $wip_path = sip_create_wip_directory() . '/' . $template_name . '_wip.json';
     
-    if (!file_exists($template_path)) {
-        wp_send_json_error('Template file not found');
+    // Check for WIP file first
+    if (file_exists($wip_path)) {
+        wp_send_json_success([
+            'action' => 'load_creation_editor_template',
+            'template_data' => json_decode(file_get_contents($wip_path), true)
+        ]);
+        return;
     }
 
-    $wip_dir = sip_create_wip_directory();
-    $wip_path = $wip_dir . '/' . $template_name . '_wip.json';
-    
+    // If no WIP, load from original template
+    $template_path = wp_upload_dir()['basedir'] . '/sip-printify-manager/templates/' . $template_name . '.json';
+    if (!file_exists($template_path)) {
+        wp_send_json_error('Template file not found');
+        return;
+    }
+
+    // Create WIP copy
     if (copy($template_path, $wip_path)) {
         wp_send_json_success([
             'action' => 'load_creation_editor_template',
@@ -156,14 +166,32 @@ function sip_save_creation_editor_template() {
     $wip_path = sip_create_wip_directory() . '/' . $template_name . '_wip.json';
     $template_data = wp_unslash($_POST['template_data']);
     
-    if (file_put_contents($wip_path, $template_data)) {
-        wp_send_json_success([
-            'action' => 'save_creation_editor_template',
-            'message' => 'Template saved'
-        ]);
-    } else {
-        wp_send_json_error('Failed to save template');
+    // Validate JSON
+    $decoded_data = json_decode($template_data);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        error_log('JSON decode error: ' . json_last_error_msg());
+        wp_send_json_error('Invalid JSON format: ' . json_last_error_msg());
+        return;
     }
+
+    // Format JSON
+    $formatted_data = json_encode($decoded_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if ($formatted_data === false) {
+        error_log('JSON encode error: ' . json_last_error_msg());
+        wp_send_json_error('Error formatting JSON');
+        return;
+    }
+    
+    if (file_put_contents($wip_path, $formatted_data) === false) {
+        error_log('Failed to write to file: ' . $wip_path);
+        wp_send_json_error('Failed to save template');
+        return;
+    }
+
+    wp_send_json_success([
+        'action' => 'json_editor_save',
+        'message' => 'Changes saved to working copy'
+    ]);
 }
 
 /**

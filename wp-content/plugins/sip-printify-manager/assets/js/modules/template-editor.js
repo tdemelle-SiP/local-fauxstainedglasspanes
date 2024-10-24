@@ -3,41 +3,49 @@
 var sip = sip || {};
 
 sip.templateEditor = (function($, ajax, utilities) {
-    // Module-level variables
+    // Module-level variables for editor instances and state
     let descriptionEditor = null;
     let jsonEditor = null;
     let jsonEditorHasChanges = false;
     let currentTemplateId = null;
+    let saveButton = null;
 
+    // Initialize module
     function init() {
-        initializeTemplateEditor();
-
-        // Restore highlight from localStorage on page load
-        const savedTemplate = localStorage.getItem('lastSelectedTemplate');
+        // Only set up events that don't require editor instances
+        $(document).on('click', '.edit-template-content', handleTemplateEdit);
     }
 
-    function setupEventListeners() {
-            // Event listener for closing the template editor
-            $('#template-editor-close').on('click', function() {
-                if (jsonEditorHasChanges) {
-                    const shouldSave = confirm('You have unsaved changes. Would you like to save before closing?');
-                    if (shouldSave) {
-                        handleJsonEditorSave(() => handleJsonEditorClose());
-                    } else {
-                        handleJsonEditorClose();
-                    }
-                } else {
-                    handleJsonEditorClose();
-                }
-            });
-    
-            // Event listener for saving the template
-            $('#template-editor-save').on('click', function() {
-                handleJsonEditorSave();
-            });
-    };
+    // Handle template edit button click
+    function handleTemplateEdit() {
+        const templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
+        currentTemplateId = templateName;  // Set currentTemplateId when editing starts
+        console.log('Setting currentTemplateId:', currentTemplateId); // Debug log
+        
+        $('#template-editor-overlay').show().addClass('active');
+        $('#template-editor-header span').text('Edit Template: ' + templateName);
+        
+        loadTemplateContent(templateName);
+    }
 
-    function initializeEditors(content) {
+    function loadTemplateContent(templateName) {
+        const wip_exists = false;  // Need to add check for WIP file first
+        const formData = new FormData();
+        formData.append('action', 'sip_handle_ajax_request');
+        formData.append('action_type', 'template_editor');
+        formData.append('template_editor', 'json_editor_edit_template');
+        formData.append('template_name', templateName);
+        formData.append('check_wip', true);  // Add flag to check WIP first
+        formData.append('nonce', sipAjax.nonce);
+    
+        sip.ajax.handleAjaxAction('template_editor', formData);
+    }
+
+    // Initialize editors and set up editor-specific events
+    function initializeEditors(content, templateId) {
+        // Set template ID first
+        currentTemplateId = templateId;
+        console.log('Template editor initialized with template:', currentTemplateId);
         const outerWindow = document.getElementById('template-editor-outer-window');
         const header = document.getElementById('template-editor-header');
         const resizer = document.getElementById('template-editor-resizer');
@@ -48,7 +56,7 @@ sip.templateEditor = (function($, ajax, utilities) {
 
         const separatedContent = utilities.separateTemplateContent(content);
         
-        // Initialize editors
+        // Initialize CodeMirror editors
         descriptionEditor = wp.CodeMirror(topEditorContainer, {
             mode: 'htmlmixed',
             lineNumbers: true,
@@ -76,161 +84,181 @@ sip.templateEditor = (function($, ajax, utilities) {
             }
         });
 
-        // Set up change tracking
-        jsonEditor.on('change', function() {
-            jsonEditorHasChanges = true;
-            $('#template-editor-save').addClass('has-changes');
-        });
-
-        descriptionEditor.on('change', function() {
-            jsonEditorHasChanges = true;
-            $('#template-editor-save').addClass('has-changes');
-        });
-
+        // Set up editor UI
         const totalHeight = outerWindow.clientHeight - header.clientHeight - resizer.clientHeight;
         const halfHeight = totalHeight / 2;
 
-        // Initialize container sizes
         resizer.previousElementSibling.style.height = `${halfHeight}px`;
         resizer.nextElementSibling.style.height = `${halfHeight}px`;
-
-        // Set editor sizes
+        
         descriptionEditor.setSize(null, halfHeight - 30);
         jsonEditor.setSize(null, halfHeight - 30);
-
-        // Set up editor functionality
+        
+        // Initialize UI components
         setupResizeFunctionality(outerWindow, header, resizer);
         setupToggleView(toggleButton, renderedHtml, topEditorContainer);
         setupDragging(header, outerWindow);
+        
+        // Set up editor event handlers
+        setupEditorEvents();
 
         // Refresh editors
         descriptionEditor.refresh();
         jsonEditor.refresh();
-
-        // Initialize event listeners
-        // initializeEventListeners();
     }
 
-    function initializeTemplateEditor() {
-        // Event listener for opening the template editor
-        $('.edit-template-content').on('click', function () {
-            var templateName = $(this).closest('tr').find('.template-name-cell').data('template-name');
-            $('#template-editor-overlay').show().addClass('active');
-            $('#template-editor-header span').text('Edit Template: ' + templateName);
-            jsonEditorHasChanges = false;
-            $('#template-editor-save').removeClass('has-changes');
-
-            var formData = new FormData();
-            formData.append('action', 'sip_handle_ajax_request');
-            formData.append('action_type', 'template_editor');
-            formData.append('template_editor', 'json_editor_edit_template');
-            formData.append('template_name', templateName);
-            formData.append('nonce', sipAjax.nonce);
-
-            sip.ajax.handleAjaxAction('template_editor', formData, 
-                function(response) {
-                    if (response.success) {
-                        var content = response.data.template_content;
-
-                        // Initialize editors with content
-                        if (!descriptionEditor || !jsonEditor) {
-                            initializeEditors(content);
-                        } else {
-                            // If editors already exist, update their content
-                            var separatedContent = sip.utilities.separateTemplateContent(content);
-                            descriptionEditor.setValue(separatedContent.html);
-                            jsonEditor.setValue(separatedContent.json);
-
-                            // Force refresh after updating content
-                            setTimeout(() => {
-                                descriptionEditor.refresh();
-                                jsonEditor.refresh();
-                            }, 0);
-                        }
-                    }
-                },
-                function(error) {
-                    console.error('Error loading template:', error);
-                }
-            );
+    // Set up events specific to editor functionality
+    function setupEditorEvents() {
+        saveButton = $('#template-editor-save');
+        
+        // Editor change tracking
+        jsonEditor.on('change', function() {
+            jsonEditorHasChanges = true;
+            saveButton.addClass('has-changes');
         });
 
-        setupEventListeners();
+        descriptionEditor.on('change', function() {
+            jsonEditorHasChanges = true;
+            saveButton.addClass('has-changes');
+        });
+
+        // Save and close handlers
+        $('#template-editor-save').on('click', handleJsonEditorSave);
+        $('#template-editor-close').on('click', handleJsonEditorClose);
     }
 
+    // Get combined content from both editors
+    function getEditorContent() {
+        try {
+            const description = descriptionEditor.getValue();
+            const jsonContent = JSON.parse(jsonEditor.getValue());
+            console.log('Parsed JSON content:', jsonContent);
+            jsonContent.description = description;
+            const finalContent = JSON.stringify(jsonContent);
+            console.log('Final content to save:', finalContent);
+            return finalContent;
+        } catch (e) {
+            console.error('Error getting editor content:', e);
+            utilities.showToast('Invalid JSON format', 5000);
+            return null;
+        }
+    }
+
+    function handleJsonEditorSave(callback) {
+        const content = getEditorContent();
+        if (!content) {
+            sip.utilities.hideSpinner();
+            return;
+        }
+    
+        console.log('Saving template:', currentTemplateId);
+        sip.utilities.showSpinner('#template-editor-overlay');
+        
+        const formData = new FormData();
+        formData.append('action', 'sip_handle_ajax_request');
+        formData.append('action_type', 'template_editor');
+        formData.append('template_editor', 'json_editor_save_template');
+        formData.append('template_name', currentTemplateId);
+        formData.append('template_content', content);
+        formData.append('nonce', sipAjax.nonce);
+    
+        let saveComplete = false;
+    
+        ajax.handleAjaxAction('template_editor', formData,
+            function(response) {
+                if (saveComplete) return;
+                saveComplete = true;
+    
+                if (response.success) {
+                    jsonEditorHasChanges = false;
+                    saveButton.removeClass('has-changes');
+                    sip.utilities.hideSpinner();
+                    sip.utilities.showToast('Changes saved successfully', 3000);
+                    sip.creationActions.reloadCreationTable();
+                    if (callback) callback();
+                } else {
+                    sip.utilities.hideSpinner();
+                    sip.utilities.showToast('Error saving changes', 5000);
+                }
+            },
+            function(error) {
+                if (saveComplete) return;
+                saveComplete = true;
+                
+                console.error('Error saving template:', error);
+                sip.utilities.hideSpinner();
+                sip.utilities.showToast('Error saving changes', 5000);
+            }
+        );
+    }
+
+    // Close editor
+    function closeEditor() {
+        $('#template-editor-overlay').removeClass('active').hide();
+    }
+    
+    // Handle editor close with save check
+    function handleJsonEditorClose() {
+        if (jsonEditorHasChanges) {
+            const dialog = $(`
+                <div class="sip-dialog">
+                    <p>You have unsaved changes. Would you like to save before closing?</p>
+                    <div class="dialog-buttons">
+                        <button class="save-close">Save and Close</button>
+                        <button class="discard-close">Discard and Close</button>
+                        <button class="cancel">Cancel</button>
+                    </div>
+                </div>
+            `).dialog({
+                modal: true,
+                width: 400,
+                closeOnEscape: true,
+                dialogClass: 'sip-dialog',
+                close: function() {
+                    $(this).dialog('destroy').remove();
+                }
+            });
+    
+            dialog.find('.save-close').on('click', function() {
+                handleJsonEditorSave(() => closeEditor());
+                dialog.dialog('close');
+            });
+    
+            dialog.find('.discard-close').on('click', function() {
+                closeEditor();
+                dialog.dialog('close');
+            });
+    
+            dialog.find('.cancel').on('click', function() {
+                dialog.dialog('close');
+            });
+        } else {
+            closeEditor();
+        }
+    }
+
+    // Handle AJAX responses
     function handleSuccessResponse(response) {
         if (response.success) {
             switch(response.data.action) {
                 case 'json_editor_save':
                 case 'json_editor_save_template':
                     jsonEditorHasChanges = false;
-                    $('#template-editor-save').removeClass('has-changes');
+                    saveButton.removeClass('has-changes');
+                    sip.utilities.showToast('Changes saved successfully', 3000);
+                    sip.templateActions.reloadCreationTable(); // Force table refresh
                     break;
                 case 'json_editor_close':
                     $('#template-editor-overlay').removeClass('active').hide();
-                    utilities.hideSpinner();
                     break;
                 default:
                     console.warn('Unhandled template editor action:', response.data.action);
             }
+            sip.utilities.hideSpinner();
         } else {
-            utilities.showToast('Error: ' + response.data, 5000);
+            sip.utilities.showToast('Error: ' + response.data, 5000);
+            sip.utilities.hideSpinner();
         }
-    }
-
-    function handleJsonEditorSave(callback) {
-        console.log('Saving template success handler... hello!..');
-        const templateName = window.lastSelectedTemplate;
-        const descriptionContent = descriptionEditor.getValue();
-        const jsonContent = jsonEditor.getValue();
-
-        try {
-            const parsedJson = JSON.parse(jsonContent);
-            parsedJson.description = descriptionContent;
-            const finalContent = JSON.stringify(parsedJson);
-
-            const formData = new FormData();
-            formData.append('action', 'sip_handle_ajax_request');
-            formData.append('action_type', 'template_editor');
-            formData.append('template_editor', 'json_editor_save_template');
-            formData.append('template_name', templateName);
-            formData.append('template_content', finalContent);
-            formData.append('nonce', sipAjax.nonce);
-
-            ajax.handleAjaxAction('template_editor', formData,
-                function(response) {
-                    if (response.success) {
-                        jsonEditorHasChanges = false;
-                        $('#template-editor-save').removeClass('has-changes');
-                        if (callback) callback();
-                    }
-                },
-                function(error) {
-                    console.error('Error saving template:', error);
-                }
-            );
-        } catch (e) {
-            console.error('Error preparing content:', e);
-        }
-    }
-
-    function handleJsonEditorClose() {
-        const formData = new FormData();
-        formData.append('action', 'sip_handle_ajax_request');
-        formData.append('action_type', 'template_editor');
-        formData.append('template_editor', 'json_editor_close_template');
-        formData.append('nonce', sipAjax.nonce);
-
-        ajax.handleAjaxAction('template_editor', formData,
-            function(response) {
-                if (response.success) {
-                    $('#template-editor-overlay').removeClass('active').hide();
-                }
-            },
-            function(error) {
-                console.error('Error closing editor:', error);
-            }
-        );
     }
 
     /**

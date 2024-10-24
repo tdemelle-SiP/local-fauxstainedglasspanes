@@ -67,7 +67,7 @@ sip.creationActions = (function($, ajax, utilities) {
 
         $('#edit-json').on('click', function() {
             console.log('Edit JSON clicked');
-            const templateName = currentTemplateId || localStorage.getItem('lastSelectedTemplate');
+            const templateName = currentTemplateId;
             
             if (!templateName) {
                 utilities.showToast('No template currently loaded', 5000);
@@ -280,6 +280,18 @@ sip.creationActions = (function($, ajax, utilities) {
         $('.variant-row').toggle(isCollapsed);
     }
 
+    function reloadCreationTable() {
+        // Use existing functions to get WIP template
+        var formData = new FormData();
+        formData.append('action', 'sip_handle_ajax_request');
+        formData.append('action_type', 'creation_action');
+        formData.append('creation_action', 'check_wip_template');
+        formData.append('nonce', sipAjax.nonce);
+    
+        sip.ajax.handleAjaxAction('creation_action', formData);
+    }
+    
+
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////TEMPLATE EDITOR FUNCTIONS///////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -291,7 +303,7 @@ sip.creationActions = (function($, ajax, utilities) {
             utilities.hideSpinner();
             return;
         }
-        sip.templateEditor.initializeEditors(data.template_data);
+        sip.templateEditor.initializeEditors(data.template_data, currentTemplateId);
         utilities.hideSpinner();
     }
 
@@ -309,7 +321,8 @@ sip.creationActions = (function($, ajax, utilities) {
         handleSuccessResponse: handleSuccessResponse,
         handleCloseTemplateResponse: handleCloseTemplateResponse,
         saveTemplate: saveTemplate,
-        isDirty: getDirtyState
+        isDirty: getDirtyState,
+        reloadCreationTable: reloadCreationTable
     };
 
 })(jQuery, sip.ajax, sip.utilities);
